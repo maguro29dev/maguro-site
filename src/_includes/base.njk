@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Roboto:wght@700;900&display=swap" rel="stylesheet">
+    {% if page.url == "/plan/" %}
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    {% endif %}
+    <style>
+        /* ▼▼▼ 全ページ共通のスタイル ▼▼▼ */
+        body { font-family: 'Noto Sans JP', sans-serif; background-color: #f9f9f9; color: #0f0f0f; }
+        .banner-container { background-image: url('https://i.imgur.com/nvMSuwR.jpeg'); background-size: cover; background-position: center; height: 30vh; max-height: 250px; }
+        .tab-item { color: #606060; border-bottom: 3px solid transparent; transition: color 0.2s, border-color 0.2s; white-space: nowrap; padding-top: 1rem; padding-bottom: 1rem; }
+        .tab-item:hover { color: #030303; }
+        .tab-item.active { color: #030303; border-bottom-color: #0f0f0f; font-weight: 700; }
+        .scroll-container-wrapper { position: relative; }
+        .scroll-container { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; scrollbar-width: none; -ms-overflow-style: none; }
+        .scroll-container::-webkit-scrollbar { display: none; }
+        .scroll-arrow { position: absolute; top: 50%; transform: translateY(-50%); background-color: rgba(255, 255, 255, 0.9); border: 1px solid #e5e5e5; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: opacity 0.2s; z-index: 20; }
+        .scroll-arrow:hover { background-color: white; }
+        .scroll-arrow.hidden { opacity: 0; pointer-events: none; }
+        #scroll-left-arrow-mobile, #scroll-left-arrow-desktop { left: 8px; }
+        #scroll-right-arrow-mobile, #scroll-right-arrow-desktop { right: 8px; }
+        .text-custom-green { color: #6a994e; }
+        .hover\:text-custom-green-dark:hover { color: #588142; }
+        .bg-custom-green { background-color: #6a994e; }
+    </style>
+    <!-- ▼▼▼ ここに各ページ専用のスタイルが挿入されます ▼▼▼ -->
+    {{ pageStyles | safe }}
+</head>
+<body class="bg-gray-50 pb-24 sm:pb-0">
+    <div class="banner-container w-full"></div>
+    <div class="hidden sm:block sticky top-0 z-10 bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col">
+                <div class="flex flex-row items-end -mt-12 space-x-6 pt-4 pb-4">
+                    <img class="w-36 h-36 rounded-full object-cover border-4 border-white shadow-lg" src="https://i.imgur.com/P1l89ZB.png" alt="チャンネルアイコン">
+                    <div class="flex-grow text-left pb-2">
+                        <h2 class="text-3xl font-bold text-black">{{ header_title }}</h2>
+                        <p class="text-sm text-gray-600 mt-1">{{ header_subtitle }}</p>
+                    </div>
+                    <a href="https://www.youtube.com/channel/UCMP7QuS4suoONg47Nbi-wrg/join" target="_blank" rel="noopener noreferrer" class="bg-black text-white font-bold py-2 px-4 rounded-full hover:bg-gray-800 transition-colors duration-300 text-center mb-2">メンバーになる</a>
+                </div>
+                <div class="scroll-container-wrapper">
+                    <button id="scroll-left-arrow-desktop" class="scroll-arrow hidden"></button>
+                     <div id="scroll-container-desktop" class="scroll-container">
+                        <nav class="flex border-b border-gray-200">
+                            <a href="/" class="tab-item px-1 font-medium text-sm {% if page.url == '/' %}active{% endif %}">総合ハブ</a>
+                            <a href="/members/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/members/' %}active{% endif %}">👑 サポーター殿堂</a>
+                            <a href="/thought/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/thought/' %}active{% endif %}">❤️ メンバーへの想い</a>
+                            <a href="/plan/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/plan/' %}active{% endif %}">🗓️ 企画会議</a>
+                            <a href="https://discord.gg/YabfK2buHm" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">💬 Discord</a>
+                            <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">▶️ ゲームch</a>
+                            <a href="https://www.youtube.com/c/Maguro29Jp" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🎬 実写ch</a>
+                            <a href="https://x.com/maguro29" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🐦 X(旧Twitter)</a>
+                        </nav>
+                    </div>
+                    <button id="scroll-right-arrow-desktop" class="scroll-arrow"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="block sm:hidden bg-white pt-4 pb-4 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex flex-col items-center -mt-16 space-y-4">
+                <img class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg" src="https://i.imgur.com/P1l89ZB.png" alt="チャンネルアイコン">
+                <div class="flex-grow text-center">
+                    <h2 class="text-3xl font-bold text-black">{{ header_title }}</h2>
+                    <p class="text-sm text-gray-600 mt-1">{{ header_subtitle }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="block sm:hidden sticky top-0 z-10 bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="scroll-container-wrapper">
+                <button id="scroll-left-arrow-mobile" class="scroll-arrow hidden"></button>
+                <div id="scroll-container-mobile" class="scroll-container">
+                    <nav class="flex border-b border-gray-200">
+                       <a href="/" class="tab-item px-1 font-medium text-sm {% if page.url == '/' %}active{% endif %}">総合ハブ</a>
+                        <a href="/members/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/members/' %}active{% endif %}">👑 サポーター殿堂</a>
+                        <a href="/thought/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/thought/' %}active{% endif %}">❤️ メンバーへの想い</a>
+                        <a href="/plan/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/plan/' %}active{% endif %}">🗓️ 企画会議</a>
+                        <a href="https://discord.gg/YabfK2buHm" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">💬 Discord</a>
+                        <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">▶️ ゲームch</a>
+                        <a href="https://www.youtube.com/c/Maguro29Jp" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🎬 実写ch</a>
+                        <a href="https://x.com/maguro29" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🐦 X(旧Twitter)</a>
+                    </nav>
+                </div>
+                 <button id="scroll-right-arrow-mobile" class="scroll-arrow"></button>
+            </div>
+        </div>
+    </div>
+    {{ content | safe }}
+    <footer class="fixed bottom-0 left-0 right-0 z-10 bg-white/80 backdrop-blur-sm p-4 border-t border-gray-200 sm:hidden">
+        <a href="https://www.youtube.com/channel/UCMP7QuS4suoONg47Nbi-wrg/join" target="_blank" rel="noopener noreferrer" class="w-full bg-black text-white font-bold py-3 px-4 rounded-full hover:bg-gray-800 transition-colors duration-300 text-center block">
+            メンバーになる
+        </a>
+    </footer>
+    <script>
+        function setupTabScroll(containerId, leftArrowId, rightArrowId) {
+            const scrollContainer = document.getElementById(containerId);
+            const leftArrow = document.getElementById(leftArrowId);
+            const rightArrow = document.getElementById(rightArrowId);
+            if (!scrollContainer || !leftArrow || !rightArrow) return;
+            function updateArrows() {
+                if (scrollContainer.scrollWidth <= scrollContainer.clientWidth) {
+                    if(leftArrow) leftArrow.classList.add('hidden');
+                    if(rightArrow) rightArrow.classList.add('hidden');
+                    return;
+                }
+                const scrollLeft = scrollContainer.scrollLeft;
+                const scrollWidth = scrollContainer.scrollWidth;
+                const clientWidth = scrollContainer.clientWidth;
+                const tolerance = 1;
+                if(leftArrow) leftArrow.classList.toggle('hidden', scrollLeft <= 0);
+                if(rightArrow) rightArrow.classList.toggle('hidden', scrollLeft + clientWidth >= scrollWidth - tolerance);
+            }
+            if(leftArrow) leftArrow.addEventListener('click', () => { scrollContainer.scrollBy({ left: -200, behavior: 'smooth' }); });
+            if(rightArrow) rightArrow.addEventListener('click', () => { scrollContainer.scrollBy({ left: 200, behavior: 'smooth' }); });
+            scrollContainer.addEventListener('scroll', updateArrows);
+            window.addEventListener('resize', updateArrows);
+            setTimeout(updateArrows, 100);
+        }
+        window.addEventListener('load', () => {
+            setupTabScroll('scroll-container-mobile', 'scroll-left-arrow-mobile', 'scroll-right-arrow-mobile');
+            setupTabScroll('scroll-container-desktop', 'scroll-left-arrow-desktop', 'scroll-right-arrow-desktop');
+        });
+    </script>
+</body>
+</html>

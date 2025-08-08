@@ -1,0 +1,72 @@
+---
+layout: base.njk
+title: まぐにぃメンバーシップに込めた想い
+header_title: メンバーシップに込めた想い
+header_subtitle: "@ゲームまぐにぃ / いつも応援ありがとうございます"
+permalink: /thought/
+pageStyles: |
+    <style>
+        .plan-card { background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05); padding: 2rem; border: 1px solid #e5e7eb; height: 100%; display: flex; flex-direction: column; }
+        .plan-card ul li svg { color: #6a994e; }
+    </style>
+---
+<div class="max-w-7xl mx-auto p-4 sm:p-6">
+    <section class="mb-8 mt-8 bg-white p-6 rounded-lg shadow">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">なぜ、メンバーシップをアップデートしたのか</h2>
+        <div class="text-gray-700 leading-relaxed max-w-3xl mx-auto text-base space-y-6">
+            <p>正直にお話いたします。<br>現在、YouTubeを取り巻く環境は大きく変化し、クリエイターが活動を続けていくには、以前とは異なる課題に直面しています。</p>
+            <p>クリエイター人口の増加に伴い、動画コンテンツのクオリティは飛躍的に向上しました。特に僕が活動する界隈では、複数人でのチーム制作が主流となり、主にソロで活動を続ける僕にとって、クオリティを維持し、さらに向上させていくことが、これまで以上に困難になってきています。正直、僕みたいなのが一人でどこまでやれるのかと、非常に心配になったりもします。</p>
+            <p>しかし、こんな状況だからといって、立ち止まるわけにはいきません。僕の活動の根底にあるのは、「皆さんの毎日の暇つぶしになりたい」「近所の、話していて楽しいおじさんのような存在でいたい」「いつもの行きつけの居酒屋の店主みたいに、ほっとする場所を提供したい」という、ただ純粋な想いです。今回のメンバーシップのアップデートも、決して後ろ向きな理由からではありません。</p>
+            <p>純粋に、僕の動画や生配信を通じて、皆さんに心から「楽しい！」と感じてもらえる時間を、もっともっと、妥協せずに作り続けたい。 そのために、皆さんの温かいご支援を、僕の活動の力とさせていただきたいと考えました。この新しいメンバーシップは、僕がこれからも「面白い」を追求し、皆さんに届け続けるための、新たな挑戦であり、大切な一歩です。</p>
+            <p>皆さんからの応援が、僕みたいな不器用な人間が、これからもワクワクするようなコンテンツを生み出し続けるための、何よりの原動力となります。各プランでしか味わえない、ちょっと特別な体験を、ぜひ一緒に楽しみませんか？</p>
+        </div>
+    </section>
+    <section class="mb-8 mt-12">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">各プランのサービス内容</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="plan-card">
+                <div>
+                    <h3 class="text-3xl font-extrabold mb-2">☆赤身</h3>
+                    <p class="text-xl font-bold text-gray-500 mb-4">月額490円</p>
+                    <p class="text-gray-600 mb-6">「まずは活動を応援したい！」という方に最適な基本プランです。</p>
+                    <ul class="space-y-3 flex-grow">
+                        <li class="flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>メンバー限定バッジ</span></li>
+                        <li class="flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>カスタム絵文字</span></li>
+                        <li class="flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>生配信のアーカイブ</span></li>
+                        <li class="flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Discordコミュニティ</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="plan-card border-2 border-custom-green">
+                <div>
+                    <h3 class="text-3xl font-extrabold mb-2">☆中トロ</h3>
+                    <p class="text-xl font-bold text-gray-500 mb-4">月額990円</p>
+                    <p class="text-gray-600 mb-6">「もっと深く交流したい！」という方へ。限定コンテンツが充実します。</p>
+                    <ul class="space-y-3 flex-grow">
+                        <li class="flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>オフ会参加権 (年2回)</span></li>
+                        <li class="flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>週2回の限定動画</span></li>
+                        <li class="flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>「まぐ家」日常投稿のちょい見せ</span></li>
+                        <li class="font-bold mt-4 flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg><span>赤身プランの全サービス</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="plan-card">
+                <div>
+                    <h3 class="text-3xl font-extrabold mb-2">☆大トロ</h3>
+                    <p class="text-xl font-bold text-gray-500 mb-4">月額4790円</p>
+                    <p class="text-gray-600 mb-6">「活動を全力で後押ししたい！」という方向けの最上級プランです。</p>
+                    <ul class="space-y-3 flex-grow">
+                        <li class="flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>オンラインオフ会 (年4回)</span></li>
+                        <li class="flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>リアルキャンプ企画</span></li>
+                        <li class="flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>年1回のオリジナルギフト</span></li>
+                        <li class="flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>イベントチケット先行販売</span></li>
+                        <li class="flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>プライベート配信</span></li>
+                        <li class="flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>動画のほぼ無編集版</span></li>
+                        <li class="flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>「まぐ家」毎日日常投稿</span></li>
+                        <li class="font-bold mt-4 flex items-start"><svg class="w-6 h-6 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg><span>赤身・中トロの全サービス</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

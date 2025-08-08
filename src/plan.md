@@ -1,0 +1,207 @@
+---
+layout: base.njk
+title: まぐにぃゲーム実況本館 企画会議
+header_title: まぐにぃゲーム実況本館 企画会議
+header_subtitle: "@ゲームまぐにぃ / 月例企画会議イベント会場"
+permalink: /plan/
+pageStyles: |
+    <style>
+        .section-title { font-family: 'Roboto', sans-serif; font-weight: 900; font-size: 2.25rem; color: #333; text-align: center; margin-bottom: 1rem; border-bottom: 3px solid #6a994e; padding-bottom: 0.75rem; }
+        .plan-card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); padding: 1.5rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .plan-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+        .plan-card-title { color: #6a994e; font-weight: 700; font-size: 1.5rem; display: flex; align-items: center; }
+        .plan-card-arrow { font-size: 1.5rem; color: #9ca3af; }
+        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 50; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        #modal-overlay.visible { opacity: 1; visibility: visible; }
+        #modal-content { background-color: white; padding: 2.5rem; border-radius: 1rem; width: 90%; max-width: 640px; max-height: 90vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.3s ease; }
+        #modal-overlay.visible #modal-content { transform: scale(1); }
+        #modal-close { position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; color: #9ca3af; cursor: pointer; line-height: 1; }
+        #modal-close:hover { color: #1f2937; }
+        .modal-description-text { color: #374151; line-height: 1.8; font-size: 1.125rem; margin-top: 1rem; }
+        .date-badge { background-color: #6a994e; color: white; font-size: 0.9rem; font-weight: bold; display: inline-block; }
+        #whiteboard-area { background-color: #f8f8f8; border: 2px solid #ccc; border-radius: 8px; padding: 1.5rem; min-height: 300px; line-height: 1.8; font-size: 1rem; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); cursor: not-allowed; }
+        #whiteboard-area.editable { background-color: #fffff0; border-color: #6a994e; cursor: text; }
+        #whiteboard-area.editable:focus { box-shadow: inset 0 2px 4px rgba(0,0,0,0.05), 0 0 0 3px rgba(106, 153, 78, 0.4); }
+        #suggestion-wrapper { transition: all 0.5s ease-in-out; max-height: 0; opacity: 0; overflow: hidden; }
+        #suggestion-wrapper.open { max-height: 1000px; opacity: 1; }
+        #owner-controls { display: none; }
+        #owner-controls.visible { display: block; }
+        #suggestion-list { margin-top: 1rem; max-height: 400px; overflow-y: auto; background-color: #f9f9f9; padding: 1rem; border-radius: 8px; }
+        .suggestion-item { position: relative; background-color: white; padding: 0.75rem 1rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 0.5rem; padding-right: 2.5rem; }
+        .delete-suggestion-btn { display: none; position: absolute; top: 50%; right: 0.5rem; transform: translateY(-50%); background-color: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-weight: bold; line-height: 24px; text-align: center; cursor: pointer; transition: background-color 0.2s; }
+        .delete-suggestion-btn:hover { background-color: #dc2626; }
+        #suggestion-list.owner-view .delete-suggestion-btn { display: block; }
+    </style>
+---
+<div class="max-w-7xl mx-auto p-4 sm:p-6">
+    <section class="mb-12 mt-8">
+        <h2 class="section-title">🎉 8月の決定済み企画 🎉</h2>
+        <div class="space-y-4 mt-8">
+            <div class="plan-card" data-title="🎂 10周年記念配信" data-date="8月7日(木) 13:00 開始" data-description="チャンネル開設10周年！皆さんと過去の動画を一緒に見ながら裏話を語ります。皆さんが見たい懐かしの動画もぜひ用意しておいてください！コメントで教えてね！"><h3 class="plan-card-title"><span class="mr-3 text-3xl">🗓️</span>企画１</h3><div class="plan-card-arrow">▶</div></div>
+            <div class="plan-card" data-title="⚙️ 工業化MOD企画" data-date="8/18(月)～23(土) 12:00-19:00" data-description="マイクラで流行りの「100days」形式で工業化MODに挑戦！ローンチ計画期間中に、最終ゴールをX(旧Twitter)のアンケートで決定します。企画の情報も順次公開していくのでお楽しみに！<br><strong class='text-red-600'>※開催5日前(8/13水)からローンチ計画(準備配信)も実施！</strong>"><h3 class="plan-card-title"><span class="mr-3 text-3xl">🗓️</span>企画２</h3><div class="plan-card-arrow">▶</div></div>
+            <div class="plan-card" data-title="🔥 マイクラアイアンマンレース" data-date="8月12日(火) 12:00 開始" data-description="マイクラトライアスロンの鬼畜バージョン！<br><strong>「鉄万→ホットな観光地＋ダブル要塞→ハードコアエンドラ討伐」</strong><br>ハードコアで失敗したら、全てが水の泡...。地獄の挑戦が今、始まる！"><h3 class="plan-card-title"><span class="mr-3 text-3xl">🗓️</span>企画３</h3><div class="plan-card-arrow">▶</div></div>
+        </div>
+    </section>
+    <section class="mb-12">
+        <h2 class="section-title">🤝 コラボ企画 🤝</h2>
+        <div class="space-y-4 mt-8">
+            <div class="plan-card" data-title="⛏️ ナナホシナナ主催！ストリーマー限定RUSTサーバー" data-date="8月8日～17日" data-description="ナナホシナナさん主催のストリーマー限定RUSTサーバーにご招待いただきました！他の配信者の方々とどんなドラマが生まれるのか、ご期待ください。<br><small>※期間中、参加できる時間帯に配信します。</small>" data-link="https://x.com/nanahoshinana77/status/1950560605355806771" data-link-text="告知ポストを見る"><h3 class="plan-card-title"><span class="mr-3 text-3xl">🤝</span>コラボ企画１</h3><div class="plan-card-arrow">▶</div></div>
+        </div>
+    </section>
+    <section class="mt-16">
+        <h2 class="section-title">📝 企画会議ホワイトボード 📝</h2>
+        <div class="bg-white p-6 rounded-lg shadow-inner mt-8">
+            <div id="whiteboard-area" title="オーナーとしてログインすると編集できます"></div>
+            <div id="owner-controls" class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p class="font-bold text-green-800">オーナー用パネル</p>
+                <button id="toggle-suggestions-btn" class="mt-2 bg-blue-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">アイデア受付を管理</button>
+            </div>
+            <div id="suggestion-wrapper">
+                <div id="suggestion-box">
+                    <p class="font-bold mt-6 mb-2">💡 みんなのアイデア投稿箱</p>
+                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                        <input type="text" id="suggestion-input" class="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="企画アイデアをどうぞ！">
+                        <button id="suggestion-submit" class="bg-green-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">投稿</button>
+                    </div>
+                </div>
+                <div id="suggestion-list" class="mt-4"></div>
+            </div>
+        </div>
+    </section>
+</div>
+<div id="modal-overlay"><div id="modal-content"><div id="modal-close">&times;</div><h2 id="modal-title" class="text-4xl font-bold text-gray-800"></h2><div id="modal-date" class="mt-4 mb-6"></div><p id="modal-description" class="modal-description-text"></p><div id="modal-link-container" class="mt-6 text-right"></div></div></div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, serverTimestamp, query, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    document.addEventListener('DOMContentLoaded', async () => {
+        const firebaseConfig = {
+          apiKey: "AIzaSyDwjh5FCorVXZDdMse_uTcLbvjXwmw2jhk",
+          authDomain: "maguro29-planning.firebaseapp.com",
+          projectId: "maguro29-planning",
+          storageBucket: "maguro29-planning.appspot.com",
+          messagingSenderId: "525505583082",
+          appId: "1:525505583082:web:2cb02294dfd3d9ca91c493"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let userId = null;
+        let isOwner = false;
+        try {
+            await signInAnonymously(auth);
+            userId = auth.currentUser.uid;
+        } catch (error) { console.error("Anonymous Auth Error:", error); }
+        const whiteboardArea = document.getElementById('whiteboard-area');
+        const ownerControls = document.getElementById('owner-controls');
+        const toggleSuggestionsBtn = document.getElementById('toggle-suggestions-btn');
+        const suggestionWrapper = document.getElementById('suggestion-wrapper');
+        const suggestionList = document.getElementById('suggestion-list');
+        const ownerPassword = "Flexiblefish354";
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'm' && !isOwner) {
+                const inputPassword = prompt("オーナー用パスワードを入力してください:");
+                if (inputPassword === ownerPassword) {
+                    isOwner = true;
+                    enableEditing();
+                    alert("オーナーとしてログインしました。");
+                } else if (inputPassword) {
+                    alert("パスワードが違います。");
+                }
+            }
+        });
+        function enableEditing() {
+            whiteboardArea.contentEditable = true;
+            whiteboardArea.classList.add('editable');
+            whiteboardArea.title = "ここにメモを入力できます";
+            ownerControls.classList.add('visible');
+            suggestionList.classList.add('owner-view');
+            let debounceTimer;
+            whiteboardArea.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    setDoc(eventDocRef, { content: whiteboardArea.innerHTML }, { merge: true });
+                }, 500);
+            });
+        }
+        function launchConfetti() { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); }
+        const planCards = document.querySelectorAll('.plan-card');
+        const modalOverlay = document.getElementById('modal-overlay');
+        planCards.forEach(card => {
+            card.addEventListener('click', () => {
+                launchConfetti();
+                document.getElementById('modal-title').innerHTML = card.dataset.title;
+                document.getElementById('modal-date').innerHTML = `<span class="date-badge py-2 px-4 rounded-lg">${card.dataset.date}</span>`;
+                document.getElementById('modal-description').innerHTML = card.dataset.description;
+                const linkContainer = document.getElementById('modal-link-container');
+                linkContainer.innerHTML = '';
+                if (card.dataset.link) {
+                    const link = document.createElement('a');
+                    link.href = card.dataset.link;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.className = 'inline-block bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-full hover:bg-gray-300 transition-colors duration-300';
+                    link.textContent = card.dataset.linkText || '詳細を見る';
+                    linkContainer.appendChild(link);
+                }
+                modalOverlay.classList.add('visible');
+            });
+        });
+        function closeModal() { modalOverlay.classList.remove('visible'); }
+        document.getElementById('modal-close').addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (event) => { if (event.target === modalOverlay) { closeModal(); } });
+        const suggestionInput = document.getElementById('suggestion-input');
+        const suggestionSubmit = document.getElementById('suggestion-submit');
+        const eventDocRef = doc(db, "planning_data/main");
+        const suggestionsColRef = collection(db, "planning_data/main/suggestions");
+        const placeholderMemo = `<h3>【企画会議ホワイトボード】</h3><ul><li><strong>新しいMODシリーズ：</strong></li></ul><p><em>ここにアイデアを書き込んでいきましょう！</em></p>`;
+        let isSuggestionsOpen = false;
+        onSnapshot(eventDocRef, (doc) => {
+            const data = doc.exists() ? doc.data() : {};
+            const content = data.content || placeholderMemo;
+            if (whiteboardArea.innerHTML !== content) { whiteboardArea.innerHTML = content; }
+            isSuggestionsOpen = data.isOpen || false;
+            if (isSuggestionsOpen) { suggestionWrapper.classList.add('open'); } else { suggestionWrapper.classList.remove('open'); }
+            if (isOwner) {
+                toggleSuggestionsBtn.textContent = isSuggestionsOpen ? 'アイデア受付を終了する' : 'アイデア受付を開始する';
+                toggleSuggestionsBtn.classList.toggle('bg-red-600', isSuggestionsOpen);
+                toggleSuggestionsBtn.classList.toggle('hover:bg-red-700', isSuggestionsOpen);
+                toggleSuggestionsBtn.classList.toggle('bg-blue-600', !isSuggestionsOpen);
+                toggleSuggestionsBtn.classList.toggle('hover:bg-blue-700', !isSuggestionsOpen);
+            }
+        });
+        toggleSuggestionsBtn.addEventListener('click', () => { setDoc(eventDocRef, { isOpen: !isSuggestionsOpen }, { merge: true }); });
+        suggestionSubmit.addEventListener('click', async () => {
+            const text = suggestionInput.value.trim();
+            if (text && userId) {
+                try {
+                    await addDoc(suggestionsColRef, { text: text, author: userId.substring(0, 6), createdAt: serverTimestamp() });
+                    suggestionInput.value = '';
+                } catch (error) { console.error("Error adding suggestion:", error); }
+            }
+        });
+        suggestionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { suggestionSubmit.click(); } });
+        const q = query(suggestionsColRef);
+        onSnapshot(q, (snapshot) => {
+            suggestionList.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                const itemText = document.createElement('span');
+                itemText.textContent = `💡 ${data.text}`;
+                item.appendChild(itemText);
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-suggestion-btn';
+                deleteBtn.textContent = '×';
+                deleteBtn.onclick = async () => {
+                    if (confirm(`「${data.text}」を削除しますか？`)) {
+                        try { await deleteDoc(doc.ref); } catch (error) { console.error("Error removing document: ", error); }
+                    }
+                };
+                item.appendChild(deleteBtn);
+                suggestionList.appendChild(item);
+            });
+        });
+    });
+</script>
