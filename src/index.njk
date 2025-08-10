@@ -12,34 +12,6 @@ pageStyles: |
         .live-now-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
     </style>
-# 手動更新エリア
-# このエリアにリアイベ情報や週のスケジュールを記述します
-realEvents:
-  - date: "8/30(土)"
-    title: "【リアイベ】おじくらwithさかいさんだー in北海道"
-    url: "https://uuum.jp/posts/998392"
-weeklySchedule:
-  - day: "月曜日"
-    time: "⏰ 12:00頃～"
-    plan: "配信"
-  - day: "火曜日"
-    time: "⏰ 12:00頃～"
-    plan: "配信"
-  - day: "水曜日"
-    time: "🌙"
-    plan: "基本お休み"
-  - day: "木曜日"
-    time: "⏰ 12:00頃～"
-    plan: "配信"
-  - day: "金曜日"
-    time: "⏰ 12:00頃～"
-    plan: "配信 & 21:00～ 第18回おじくら"
-  - day: "土曜日"
-    time: "🌙"
-    plan: "基本お休み & 🌞 15:00～ RUSTサーバー初参加"
-  - day: "日曜日"
-    time: "🌙"
-    plan: "基本お休み"
 ---
 
 <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
@@ -65,7 +37,7 @@ weeklySchedule:
                     <span class="text-custom-green">次回の配信</span>まで、あと…
                 </h2>
                 <div id="countdown-timer" class="text-4xl md:text-5xl font-black text-gray-900 tracking-tight" style="font-family: 'Roboto', sans-serif;" data-target-time="{{ nextVideo.liveStreamingDetails.scheduledStartTime }}">
-                    </div>
+                </div>
                 <p class="text-xs text-gray-500 mt-2">
                     <a href="https://www.youtube.com/watch?v={{ nextVideo.id }}" target="_blank" rel="noopener noreferrer" class="hover:text-custom-green">
                         {{ nextVideo.snippet.title }}
@@ -90,7 +62,7 @@ weeklySchedule:
                             {% for video in youtube.upcomingVideos %}
                                 <div class="schedule-item text-sm">
                                     <a href="https://www.youtube.com/watch?v={{ video.id }}" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">
-                                        <strong class="font-bold">{{ video.liveStreamingDetails.scheduledStartTime | date("M/d(EEE) HH:mm") }}</strong> - {{ video.snippet.title }}
+                                        <strong class="font-bold">{{ video.liveStreamingDetails.scheduledStartTime | youtubeDate }}</strong> - {{ video.snippet.title }}
                                     </a>
                                 </div>
                             {% endfor %}
@@ -100,15 +72,15 @@ weeklySchedule:
                     </div>
                 </div>
 
-                {# 手動更新エリア：リアイベ情報 #}
-                {% if realEvents.length > 0 %}
+                {# Contentful管理エリア：リアイベ情報 #}
+                {% if siteContent.realEvents.length > 0 %}
                 <div>
                     <h3 class="font-bold text-gray-800 mb-3 text-sm border-b pb-2">リアイベ情報</h3>
                     <div class="space-y-2 pt-2">
-                        {% for event in realEvents %}
+                        {% for event in siteContent.realEvents %}
                             <div class="schedule-item text-sm">
-                                <a href="{{ event.url }}" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">
-                                    <strong class="font-bold">{{ event.date }}</strong> - {{ event.title }}
+                                <a href="{{ event.fields.url }}" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">
+                                    <strong class="font-bold">{{ event.fields.date }}</strong> - {{ event.fields.title }}
                                 </a>
                             </div>
                         {% endfor %}
@@ -116,15 +88,15 @@ weeklySchedule:
                 </div>
                 {% endif %}
 
-                {# 手動更新エリア：週のスケジュール #}
-                {% if weeklySchedule.length > 0 %}
+                {# Contentful管理エリア：週のスケジュール #}
+                {% if siteContent.weeklySchedule.length > 0 %}
                 <div>
                     <h3 class="font-bold text-gray-800 mb-3 text-sm border-b pb-2">今週の生配信スケジュール</h3>
                     <div class="space-y-1 pt-2">
-                        {% for day in weeklySchedule %}
+                        {% for day in siteContent.weeklySchedule %}
                             <div class="schedule-item text-sm">
-                                <strong class="font-bold w-20 inline-block">{{ day.day }}:</strong>
-                                <span class="text-gray-600">{{ day.time }} {{ day.plan }}</span>
+                                <strong class="font-bold w-20 inline-block">{{ day.fields.day }}:</strong>
+                                <span class="text-gray-600">{{ day.fields.time }} {{ day.fields.plan }}</span>
                             </div>
                         {% endfor %}
                     </div>
@@ -155,8 +127,8 @@ weeklySchedule:
                     <h3 class="font-bold text-gray-800">【中トロ以上】</h3>
                     <ul class="mt-2 space-y-2 pl-2 text-sm">
                         <li><a href="https://www.youtube.com/playlist?list=PL5rEiNRr-t0kHgOa0AN985MkPrCLg9CXW" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">限定ショート動画（毎週 月・土 更新！）</a></li>
-                        <li><a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%に%E3%81%83/posts" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">オフ会のご案内（コミュニティ投稿をチェック！）</a></li>
-                        <li><a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%に%E3%81%83/posts" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">「まぐ家」投稿チラ見せ（コミュニティ投稿をチェック！）</a></li>
+                        <li><a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83/posts" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">オフ会のご案内（コミュニティ投稿をチェック！）</a></li>
+                        <li><a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83/posts" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">「まぐ家」投稿チラ見せ（コミュニティ投稿をチェック！）</a></li>
                         <li><a href="https://docs.google.com/document/d/1aVax0d8e4TWdn173e9HilPREfg9BatMigU34dTgbRHs/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="font-bold text-custom-green hover:text-custom-green-dark">📜 イベント憲章（参加前に必読）</a></li>
                     </ul>
                 </div>
@@ -165,14 +137,15 @@ weeklySchedule:
                     <ul class="mt-2 space-y-2 pl-2 text-sm">
                         <li><a href="https://www.youtube.com/playlist?list=PL5rEiNRr-t0mD91iWjslaCHWAWtYachpz" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">プライベート配信</a></li>
                         <li><a href="https://www.youtube.com/playlist?list=PL5rEiNRr-t0nZOYWf3i0cHLQ6pW_vdcJd" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">動画の無編集版</a></li>
-                        <li><a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%に%E3%81%83/posts" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">「まぐ家」毎日投稿（コミュニティ投稿をチェック！）</a></li>
-                        <li><a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%に%E3%81%8ravenous/posts" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">オンラインオフ会＆リアルキャンプ企画（コミュニティ投稿をチェック！）</a></li>
+                        <li><a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%8ravenous/posts" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">「まぐ家」毎日投稿（コミュニティ投稿をチェック！）</a></li>
+                        <li><a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%8ravenous/posts" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">オンラインオフ会＆リアルキャンプ企画（コミュニティ投稿をチェック！）</a></li>
                         <li><a href="https://www.youtube.com/post/UgkxuqjCpfvhz2hR_rnvmSmk8l-fF-rVc7A0" target="_blank" rel="noopener noreferrer" class="font-bold text-custom-green hover:text-custom-green-dark">📝 特別な感謝の表現に関するご意向確認フォーム</a></li>
                     </ul>
                 </div>
             </div>
         </section>
     </div>
+
     <section class="mt-8">
         <div class="bg-white p-6 rounded-lg shadow">
             <h2 class="text-xl font-bold mb-4 info-title">
@@ -190,6 +163,7 @@ weeklySchedule:
             </div>
         </div>
     </section>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
         <section>
             <h2 class="text-xl font-bold mb-4 info-title">

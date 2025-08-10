@@ -21,8 +21,44 @@ pageStyles: |
         <p class="text-gray-600">このチャンネルを力強く支えてくださっている、最高のメンバー（大トロ）の皆様です。</p>
         <p class="text-sm text-gray-500 mt-2">※ここに表示されているメンバーは、掲載に同意いただいた方のみです。掲載順は、同意フォームにご回答いただいた順番です。</p>
     </header>
-    <div id="member-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10"></div>
-    <div id="anonymous-supporters" class="text-center mt-16 text-gray-600"></div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+    {%- for member in siteContent.members -%}
+        {%- set member_url = member.fields.url -%}
+        {%- if member_url -%}
+        <a href="{{ member_url }}" target="_blank" rel="noopener noreferrer" class="video-card group block">
+        {%- else -%}
+        <div class="video-card group block">
+        {%- endif -%}
+            <div class="thumbnail-container rounded-xl shadow-md group-hover:shadow-xl">
+                {% if member.fields.thumbnail and member.fields.thumbnail.fields.file %}
+                <img src="https://{{ member.fields.thumbnail.fields.file.url }}" alt="{{ member.fields.name }}のサムネイル">
+                {% else %}
+                <img src="https://i.imgur.com/MB8DzWq.png" alt="デフォルトのサムネイル">
+                {% endif %}
+            </div>
+            <div class="flex items-start mt-3">
+                <img class="w-9 h-9 rounded-full mr-3" src="https://i.imgur.com/P1l89ZB.png" alt="チャンネルアイコン">
+                <div>
+                    <h3 class="font-bold text-base text-black leading-snug">{{ member.fields.name }}</h3>
+                    <p class="text-sm text-gray-600">スペシャルサポーター</p>
+                    <p class="text-xs text-custom-green font-bold">OTORO MEMBER</p>
+                </div>
+            </div>
+        {%- if member_url -%}
+        </a>
+        {%- else -%}
+        </div>
+        {%- endif -%}
+    {%- endfor -%}
+    </div>
+
+    {%- if siteContent.settings and siteContent.settings.fields.totalOtoroMembers > siteContent.members.length -%}
+    <div class="text-center mt-16 text-gray-600">
+        <p>...and {{ siteContent.settings.fields.totalOtoroMembers - siteContent.members.length }} other special supporters.</p>
+    </div>
+    {%- endif -%}
+
     <div class="text-center mt-12 pt-10 border-t border-gray-200">
         <h2 class="text-xl font-bold text-gray-800">あなたも、この殿堂へ。</h2>
         <p class="max-w-xl mx-auto mt-2 text-gray-600">
@@ -36,63 +72,3 @@ pageStyles: |
         </div>
     </div>
 </div>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const totalOtoroMembers = 23;
-    const members = [
-        { name: 'さくら🌸', thumbnailUrl: 'https://i.imgur.com/vC3lLRy.png', url: null },
-        { name: 'のんのんのん気♪', thumbnailUrl: 'https://i.imgur.com/XG7xWGB.png', url: null },
-        { name: 'Latte chan', thumbnailUrl: 'https://i.imgur.com/SLFLyGe.png', url: null },
-        { name: 'ゆき', thumbnailUrl: 'https://i.imgur.com/foQHR6U.png', url: null },
-        { name: 'タラちゃん', thumbnailUrl: 'https://i.imgur.com/jN3ZRSi.png', url: null },
-        { name: 'Kurumi88', thumbnailUrl: 'https://i.imgur.com/PieiTIg.png', url: null },
-        { name: 'さくら', thumbnailUrl: 'https://i.imgur.com/MB8DzWq.png', url: null },
-        { name: 'えいしぃ', thumbnailUrl: 'https://i.imgur.com/MB8DzWq.png', url: null },
-        { name: 'すやすやす', thumbnailUrl: 'https://i.imgur.com/MB8DzWq.png', url: null },
-        { name: 'もこもこどんぐり', thumbnailUrl: 'https://i.imgur.com/MB8DzWq.png', url: null },
-        { name: 'miwaさん', thumbnailUrl: 'https://i.imgur.com/MB8DzWq.png', url: null },
-        { name: 'でこ', thumbnailUrl: 'https://i.imgur.com/MB8DzWq.png', url: null },
-        { name: '佐渡島の後藤', thumbnailUrl: 'https://i.imgur.com/MB8DzWq.png', url: null },
-        { name: 'eliy', thumbnailUrl: 'https://i.imgur.com/MB8DzWq.png', url: null },
-        { name: 'はち', thumbnailUrl: 'https://i.imgur.com/MB8DzWq.png', url: null },
-        { name: '🐈🐟薇美にゃん（らみにゃん）＠猫好き', thumbnailUrl: 'https://i.imgur.com/MB8DzWq.png', url: null }
-    ];
-    function populateMembers() {
-        const memberGrid = document.getElementById('member-grid');
-        if (memberGrid) {
-            members.forEach(member => {
-                const cardContent = `
-                    <div class="thumbnail-container rounded-xl shadow-md group-hover:shadow-xl">
-                        <img src="${member.thumbnailUrl}" alt="${member.name}のサムネイル">
-                    </div>
-                    <div class="flex items-start mt-3">
-                        <img class="w-9 h-9 rounded-full mr-3" src="https://i.imgur.com/P1l89ZB.png" alt="チャンネルアイコン">
-                        <div>
-                            <h3 class="font-bold text-base text-black leading-snug">${member.name}</h3>
-                            <p class="text-sm text-gray-600">スペシャルサポーター</p>
-                            <p class="text-xs text-custom-green font-bold">OTORO MEMBER</p>
-                        </div>
-                    </div>
-                `;
-                const wrapper = document.createElement(member.url ? 'a' : 'div');
-                wrapper.className = 'video-card group block';
-                if (member.url) {
-                    wrapper.href = member.url;
-                    wrapper.target = '_blank';
-                    wrapper.rel = 'noopener noreferrer';
-                }
-                wrapper.innerHTML = cardContent;
-                memberGrid.appendChild(wrapper);
-            });
-        }
-        const anonymousSupporters = document.getElementById('anonymous-supporters');
-        if(anonymousSupporters) {
-            const anonymousCount = totalOtoroMembers - members.length;
-            if (anonymousCount > 0) {
-                anonymousSupporters.innerHTML = `<p>...and ${anonymousCount} other special supporters.</p>`;
-            }
-        }
-    }
-    populateMembers();
-});
-</script>

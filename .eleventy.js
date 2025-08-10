@@ -1,23 +1,42 @@
-// この1行をファイルの先頭に追加します
-require('dotenv').config();
+// .eleventy.js
 
-module.exports = function(eleventyConfig) {
-  // Nunjucksで日付をフォーマットするためのフィルターを追加
-  eleventyConfig.addFilter("date", function(dateObj, format) {
-    // luxon はこのフィルターの中で呼び出します
-    const { DateTime } = require("luxon");
-    // .setLocale('ja') を追加して、曜日などを日本語で表示します
-    return DateTime.fromJSDate(new Date(dateObj)).setZone('Asia/Tokyo').setLocale('ja').toFormat(format);
+const { documentToHtmlString } = require('@contentful/rich-text-html-renderer');
+const { DateTime } = require('luxon');
+
+module.exports = function (eleventyConfig) {
+  // .envファイルから環境変数を読み込む
+  require('dotenv').config();
+
+  // ContentfulのRich TextをHTMLに変換するフィルター
+  eleventyConfig.addFilter("documentToHtml", (document) => {
+    if (!document) {
+      return '';
+    }
+    return documentToHtmlString(document);
+  });
+
+  // 日付をフォーマットするフィルター
+  eleventyConfig.addFilter("formatDate", (dateObj) => {
+    if (!dateObj) return '';
+    return DateTime.fromISO(dateObj).setZone('Asia/Tokyo').toFormat('yyyy年MM月dd日');
+  });
+  
+  // YouTubeの日付をフォーマットするフィルター
+  eleventyConfig.addFilter("youtubeDate", (dateObj) => {
+    if (!dateObj) return '';
+    return DateTime.fromISO(dateObj).setZone('Asia/Tokyo').toFormat('M/d(EEE) HH:mm');
   });
 
   return {
-    // .md ファイルを Nunjucks エンジンで処理するように設定します
-    markdownTemplateEngine: "njk",
-    
     dir: {
-      input: "src",
-      output: "_site",
-      includes: "_includes"
-    }
+      input: 'src',
+      output: '_site',
+      includes: '_includes',
+      data: '_data',
+    },
+    templateFormats: ['md', 'njk', 'html'],
+    markdownTemplateEngine: 'njk',
+    htmlTemplateEngine: 'njk',
+    dataTemplateEngine: 'njk',
   };
 };
