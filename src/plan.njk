@@ -20,17 +20,7 @@ pageStyles: |
         .modal-description-text { color: #374151; line-height: 1.8; font-size: 1.125rem; margin-top: 1rem; }
         .modal-description-text p:first-child { margin-top: 0; }
         .modal-description-text p:last-child { margin-bottom: 0; }
-        
-        /* ▼▼▼ このCSSを追加 ▼▼▼ */
-        .modal-description-text img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 0.5rem;
-            margin-top: 1rem;
-            display: block;
-        }
-        /* ▲▲▲ ここまで追加 ▲▲▲ */
-
+        .modal-description-text img { max-width: 100%; height: auto; border-radius: 0.5rem; margin-top: 1rem; display: block; }
         .date-badge { background-color: #6a994e; color: white; font-size: 0.9rem; font-weight: bold; display: inline-block; }
         #whiteboard-area { background-color: #f8f8f8; border: 2px solid #ccc; border-radius: 8px; padding: 1.5rem; min-height: 300px; line-height: 1.8; font-size: 1rem; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); cursor: not-allowed; }
         #whiteboard-area.editable { background-color: #fffff0; border-color: #6a994e; cursor: text; }
@@ -52,12 +42,15 @@ pageStyles: |
         <div class="space-y-4 mt-8">
             {%- for plan in siteContent.mainPlans -%}
             <div class="plan-card" 
+                 data-plan-id="main-{{ loop.index }}"
                  data-title="{{ plan.fields.title }}" 
-                 data-date="{{ plan.fields.date }}" 
-                 data-description="{{ plan.fields.description | markdownToHtml | safe }}">
+                 data-date="{{ plan.fields.date }}">
                 <h3 class="plan-card-title"><span class="mr-3 text-3xl">🗓️</span>{{ plan.fields.cardTitle }}</h3>
                 <div class="plan-card-arrow">▶</div>
             </div>
+            <template id="plan-content-main-{{ loop.index }}">
+                {{ plan.fields.description | markdownToHtml | safe }}
+            </template>
             {%- endfor -%}
         </div>
     </section>
@@ -67,14 +60,17 @@ pageStyles: |
         <div class="space-y-4 mt-8">
             {%- for plan in siteContent.collabPlans -%}
             <div class="plan-card" 
+                 data-plan-id="collab-{{ loop.index }}"
                  data-title="{{ plan.fields.title }}" 
                  data-date="{{ plan.fields.date }}" 
-                 data-description="{{ plan.fields.description | markdownToHtml | safe }}"
                  data-link="{{ plan.fields.link }}"
                  data-link-text="{{ plan.fields.linkText }}">
                 <h3 class="plan-card-title"><span class="mr-3 text-3xl">🤝</span>{{ plan.fields.cardTitle }}</h3>
                 <div class="plan-card-arrow">▶</div>
             </div>
+            <template id="plan-content-collab-{{ loop.index }}">
+                {{ plan.fields.description | markdownToHtml | safe }}
+            </template>
             {%- endfor -%}
         </div>
     </section>
@@ -174,9 +170,23 @@ pageStyles: |
         planCards.forEach(card => {
             card.addEventListener('click', () => {
                 launchConfetti();
+                
+                // モーダルの基本情報を設定
                 document.getElementById('modal-title').innerHTML = card.dataset.title;
                 document.getElementById('modal-date').innerHTML = `<span class="date-badge py-2 px-4 rounded-lg">${card.dataset.date}</span>`;
-                document.getElementById('modal-description').innerHTML = card.dataset.description;
+                
+                // テンプレートから企画説明を安全に取得して設定
+                const planId = card.dataset.planId;
+                const descriptionDiv = document.getElementById('modal-description');
+                descriptionDiv.innerHTML = ''; // 以前の内容をクリア
+                if (planId) {
+                    const template = document.getElementById(`plan-content-${planId}`);
+                    if (template) {
+                        descriptionDiv.appendChild(template.content.cloneNode(true));
+                    }
+                }
+
+                // リンク情報を設定
                 const linkContainer = document.getElementById('modal-link-container');
                 linkContainer.innerHTML = '';
                 if (card.dataset.link) {
@@ -188,6 +198,8 @@ pageStyles: |
                     link.textContent = card.dataset.linkText || '詳細を見る';
                     linkContainer.appendChild(link);
                 }
+                
+                // モーダルを表示
                 modalOverlay.classList.add('visible');
             });
         });
