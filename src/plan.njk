@@ -171,22 +171,29 @@ pageStyles: |
             card.addEventListener('click', () => {
                 launchConfetti();
                 
-                // モーダルの基本情報を設定
                 document.getElementById('modal-title').innerHTML = card.dataset.title;
                 document.getElementById('modal-date').innerHTML = `<span class="date-badge py-2 px-4 rounded-lg">${card.dataset.date}</span>`;
                 
-                // テンプレートから企画説明を安全に取得して設定
                 const planId = card.dataset.planId;
                 const descriptionDiv = document.getElementById('modal-description');
-                descriptionDiv.innerHTML = ''; // 以前の内容をクリア
+                descriptionDiv.innerHTML = '';
                 if (planId) {
                     const template = document.getElementById(`plan-content-${planId}`);
                     if (template) {
                         descriptionDiv.appendChild(template.content.cloneNode(true));
+                        
+                        // ▼▼▼ ここから修正箇所 ▼▼▼
+                        // 説明文の中にある全てのリンク(aタグ)を取得
+                        const linksInDescription = descriptionDiv.querySelectorAll('a');
+                        // 全てのリンクに target="_blank" を設定して新しいタブで開くようにする
+                        linksInDescription.forEach(link => {
+                            link.target = '_blank';
+                            link.rel = 'noopener noreferrer'; // セキュリティ対策
+                        });
+                        // ▲▲▲ ここまで修正箇所 ▲▲▲
                     }
                 }
 
-                // リンク情報を設定
                 const linkContainer = document.getElementById('modal-link-container');
                 linkContainer.innerHTML = '';
                 if (card.dataset.link) {
@@ -199,7 +206,6 @@ pageStyles: |
                     linkContainer.appendChild(link);
                 }
                 
-                // モーダルを表示
                 modalOverlay.classList.add('visible');
             });
         });
