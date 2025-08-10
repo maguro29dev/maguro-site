@@ -2,10 +2,24 @@
 
 const { documentToHtmlString } = require('@contentful/rich-text-html-renderer');
 const { DateTime } = require('luxon');
+const markdownIt = require('markdown-it');
 
 module.exports = function (eleventyConfig) {
   // .envファイルから環境変数を読み込む
   require('dotenv').config();
+
+  // MarkdownをHTMLに変換するための設定
+  const md = new markdownIt({
+    html: true, // HTMLタグの使用を許可
+  });
+
+  // MarkdownをHTMLに変換するフィルター
+  eleventyConfig.addFilter("markdownToHtml", (content) => {
+    if (!content) {
+      return '';
+    }
+    return md.render(content);
+  });
 
   // ContentfulのRich TextをHTMLに変換するフィルター
   eleventyConfig.addFilter("documentToHtml", (document) => {

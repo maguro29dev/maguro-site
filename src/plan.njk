@@ -18,6 +18,8 @@ pageStyles: |
         #modal-close { position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; color: #9ca3af; cursor: pointer; line-height: 1; }
         #modal-close:hover { color: #1f2937; }
         .modal-description-text { color: #374151; line-height: 1.8; font-size: 1.125rem; margin-top: 1rem; }
+        .modal-description-text p:first-child { margin-top: 0; }
+        .modal-description-text p:last-child { margin-bottom: 0; }
         .date-badge { background-color: #6a994e; color: white; font-size: 0.9rem; font-weight: bold; display: inline-block; }
         #whiteboard-area { background-color: #f8f8f8; border: 2px solid #ccc; border-radius: 8px; padding: 1.5rem; min-height: 300px; line-height: 1.8; font-size: 1rem; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); cursor: not-allowed; }
         #whiteboard-area.editable { background-color: #fffff0; border-color: #6a994e; cursor: text; }
@@ -41,7 +43,7 @@ pageStyles: |
             <div class="plan-card" 
                  data-title="{{ plan.fields.title }}" 
                  data-date="{{ plan.fields.date }}" 
-                 data-description="{{ plan.fields.description | replace('\n', '<br>') | safe }}">
+                 data-description="{{ plan.fields.description | markdownToHtml | safe }}">
                 <h3 class="plan-card-title"><span class="mr-3 text-3xl">🗓️</span>{{ plan.fields.cardTitle }}</h3>
                 <div class="plan-card-arrow">▶</div>
             </div>
@@ -56,7 +58,7 @@ pageStyles: |
             <div class="plan-card" 
                  data-title="{{ plan.fields.title }}" 
                  data-date="{{ plan.fields.date }}" 
-                 data-description="{{ plan.fields.description | replace('\n', '<br>') | safe }}"
+                 data-description="{{ plan.fields.description | markdownToHtml | safe }}"
                  data-link="{{ plan.fields.link }}"
                  data-link-text="{{ plan.fields.linkText }}">
                 <h3 class="plan-card-title"><span class="mr-3 text-3xl">🤝</span>{{ plan.fields.cardTitle }}</h3>
@@ -88,7 +90,7 @@ pageStyles: |
     </section>
 </div>
 
-<div id="modal-overlay"><div id="modal-content"><div id="modal-close">&times;</div><h2 id="modal-title" class="text-4xl font-bold text-gray-800"></h2><div id="modal-date" class="mt-4 mb-6"></div><p id="modal-description" class="modal-description-text"></p><div id="modal-link-container" class="mt-6 text-right"></div></div></div>
+<div id="modal-overlay"><div id="modal-content"><div id="modal-close">&times;</div><h2 id="modal-title" class="text-4xl font-bold text-gray-800"></h2><div id="modal-date" class="mt-4 mb-6"></div><div id="modal-description" class="modal-description-text"></div><div id="modal-link-container" class="mt-6 text-right"></div></div></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
