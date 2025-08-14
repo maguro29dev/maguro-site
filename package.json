@@ -13,7 +13,8 @@
   "devDependencies": {
     "@11ty/eleventy": "^2.0.1",
     "@11ty/eleventy-fetch": "^5.1.0",
-    "dotenv": "^17.2.1"
+    "dotenv": "^17.2.1",
+    "netlify-lambda": "^2.0.16"
   },
   "dependencies": {
     "@contentful/rich-text-html-renderer": "^17.1.0",
