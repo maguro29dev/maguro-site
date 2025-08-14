@@ -1,3 +1,15 @@
 # netlify.toml
+
+# --- ビルド設定 ---
+# NetlifyはUI設定よりも、このファイルの設定を優先します。
+[build]
+  # サイトをビルドするコマンド
+  command = "npm run build"
+  
+  # 公開される静的ファイルが入っているフォルダ
+  publish = "_site"
+
+# --- Netlify Functionsの設定 ---
 [functions]
+  # Functionのソースコードが入っているフォルダ
   directory = "netlify/functions"
