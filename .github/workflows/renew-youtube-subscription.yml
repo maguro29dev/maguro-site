@@ -1,0 +1,32 @@
+# .github/workflows/renew-youtube-subscription.yml
+
+name: Renew YouTube Subscription
+
+# 毎日午前0時(UTC)に実行（日本時間午前9時）
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  # 手動でも実行できるようにする
+  workflow_dispatch:
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # お使いのNode.jsバージョンに合わせてください
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run subscription script
+        run: node subscribe.js
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}

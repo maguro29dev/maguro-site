@@ -23,7 +23,7 @@ module.exports = async function () {
     const weeklySchedule = await client.getEntries({ content_type: 'weeklySchedule', order: 'fields.order' });
     const settings = await client.getEntries({ content_type: 'siteSettings', limit: 1 });
     const currentEvent = await client.getEntries({ content_type: 'currentEvent', 'fields.isActive': true, limit: 1 });
-    const realEvents = await client.getEntries({ content_type: 'realEvent' });
+    const realEvents = await client.getEntries({ content_type: 'realEvent', order: 'fields.order' });
 
     console.log("Data fetched successfully!");
 
