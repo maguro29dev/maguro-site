@@ -36,18 +36,18 @@ pageStyles: |
         #suggestion-list.owner-view .delete-suggestion-btn { display: block; }
         
         /* ▼▼▼ ランキングリスト用のスタイル ▼▼▼ */
-        #playlist-scroll-wrapper { display: flex; overflow-x: auto; padding-bottom: 1.5rem; gap: 1rem; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
+        #playlist-scroll-wrapper { display: flex; overflow-x: auto; padding-bottom: 1.5rem; gap: 1.5rem; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
         #playlist-scroll-wrapper::-webkit-scrollbar { display: none; }
-        .playlist-video-card-wrapper { position: relative; flex: 0 0 280px; width: 280px; padding-top: 10px; /* Make space for badge */ }
-        .ranking-badge { position: absolute; top: 0; left: -10px; background-color: #e53e3e; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 15; /* ★★★ 修正点: z-indexを矢印より高くしました ★★★ */ font-size: 1.25rem; border: 2px solid white; }
+        .playlist-video-card { position: relative; flex: 0 0 280px; width: 280px; }
+        .ranking-badge { position: absolute; top: -10px; left: -10px; background-color: #e53e3e; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 5; font-size: 1.25rem; border: 2px solid white; }
         .ranking-badge-1 { background-color: #ecc94b; color: #1a202c; } /* Gold */
         .ranking-badge-2 { background-color: #d6d6d6; color: #1a202c; } /* Silver */
         .ranking-badge-3 { background-color: #cd7f32; color: white; } /* Bronze */
-        .video-stats { display: flex; justify-content: space-around; padding: 0 1rem 1rem; font-size: 0.9rem; color: #cbd5e0; }
-        .scroll-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; background-color: rgba(45, 55, 72, 0.8); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; transition: background-color 0.2s, opacity 0.3s; display: none; }
-        .scroll-btn:hover { background-color: #4a5568; }
-        #scroll-left-btn { left: -15px; }
-        #scroll-right-btn { right: -15px; }
+        .video-stats { display: flex; justify-content: space-around; padding: 0 1rem 1rem; font-size: 0.9rem; color: #4a5568; }
+        .scroll-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; background-color: rgba(255, 255, 255, 0.9); color: #4a5568; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: none; }
+        .scroll-btn:hover { background-color: #fff; transform: translateY(-50%) scale(1.1); }
+        #scroll-left-btn { left: -20px; }
+        #scroll-right-btn { right: -20px; }
         @media (min-width: 768px) { .scroll-btn { display: block; } }
         .scroll-btn.hidden { opacity: 0; pointer-events: none; }
         /* ▲▲▲ ここまでランキングリスト用のスタイル ▲▲▲ */
@@ -102,32 +102,30 @@ pageStyles: |
     </section>
 
     {# ▼▼▼ ランキングリストのセクションを更新しました ▼▼▼ #}
-    <section class="mt-16 bg-gray-800 rounded-lg py-8 px-8 md:px-12">
-        <h2 class="text-3xl font-bold text-center text-white mb-6">企画会議で生まれた人気動画ランキング👑</h2>
-        <div class="relative">
+    <section class="mt-16">
+        <h2 class="section-title">👑 企画会議の人気動画ランキング 👑</h2>
+        <div class="relative mt-8">
             <button id="scroll-left-btn" class="scroll-btn hidden" aria-label="Scroll Left">‹</button>
             {% if youtube.planningPlaylist.length > 0 %}
-                <div id="playlist-scroll-wrapper">
+                <div id="playlist-scroll-wrapper" class="px-2">
                 {% for item in youtube.planningPlaylist %}
-                    <div class="playlist-video-card-wrapper">
+                    <a href="https://www.youtube.com/watch?v={{ item.id }}" target="_blank" rel="noopener noreferrer" class="group block bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 playlist-video-card">
                         <span class="ranking-badge ranking-badge-{{ loop.index }}">{{ loop.index }}</span>
-                        <a href="https://www.youtube.com/watch?v={{ item.id }}" target="_blank" rel="noopener noreferrer" class="group block bg-gray-700 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
-                            <div class="relative">
-                                <img src="{{ item.snippet.thumbnails.medium.url }}" alt="{{ item.snippet.title }}" class="w-full h-auto aspect-video object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
+                        <div class="relative pt-10"> {# Space for badge #}
+                            <img src="{{ item.snippet.thumbnails.medium.url }}" alt="{{ item.snippet.title }}" class="w-full h-auto aspect-video object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
+                        </div>
+                        <div class="p-4 flex flex-col flex-grow">
+                            <h3 class="text-gray-800 font-semibold leading-tight flex-grow mb-2">{{ item.snippet.title }}</h3>
+                            <div class="video-stats border-t border-gray-200 pt-2 mt-auto">
+                                <span>👁️ {{ item.statistics.viewCount | numberFormat }}</span>
+                                <span>👍 {{ item.statistics.likeCount | numberFormat }}</span>
                             </div>
-                            <div class="p-4 flex flex-col flex-grow">
-                                <h3 class="text-white font-semibold leading-tight flex-grow mb-2">{{ item.snippet.title }}</h3>
-                                <div class="video-stats border-t border-gray-600 pt-2 mt-auto">
-                                    <span>👁️ {{ item.statistics.viewCount | numberFormat }}</span>
-                                    <span>👍 {{ item.statistics.likeCount | numberFormat }}</span>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
+                        </div>
+                    </a>
                 {% endfor %}
                 </div>
             {% else %}
-                <p class="text-center text-gray-400 p-8">現在、表示できる動画がありません。</p>
+                <p class="text-center text-gray-500 p-8">現在、表示できる動画がありません。</p>
             {% endif %}
             <button id="scroll-right-btn" class="scroll-btn" aria-label="Scroll Right">›</button>
         </div>
