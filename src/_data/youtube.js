@@ -13,7 +13,7 @@ async function fetchChannelVideos(eventType) {
     console.error("API Key or Channel ID is missing. Aborting API call to search endpoint.");
     return { items: [] };
   }
-  // ★★★ 修正点: type=video パラメータを追加しました ★★★
+  // 修正点: type=video パラメータを追加
   const url = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${YOUTUBE_CHANNEL_ID}&part=snippet,id&order=date&maxResults=5&eventType=${eventType}&type=video`;
   
   return EleventyFetch(url, {
@@ -56,11 +56,48 @@ module.exports = async function() {
 
     console.log("Data fetched successfully!");
 
+    // ★★★ ここから修正箇所 ★★★
+    // index.njkが期待する古いデータ形式も用意してあげることで、後方互換性を保ちます。
+    const liveVideo = liveData.items && liveData.items.length > 0 ? liveData.items[0] : null;
+    
+    // Search APIの結果にはliveStreamingDetailsが含まれないため、upcomingVideosはupcoming.itemsを直接使うようにします。
+    // index.njk側で .id ではなく .id.videoId でアクセスする必要がある点に注意が必要ですが、
+    // 以前の複雑な取得方法に戻すより、こちらの方がシンプルでAPI消費も少ないため、この形を採用します。
+    // ただし、これだとカウントダウンが動かないため、以前の取得ロジックを復活させます。
+
+    // --- 配信予定の動画リストを取得（以前のAPI使用量削減ロジックを復活） ---
+    const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${YOUTUBE_CHANNEL_ID}&key=${YOUTUBE_API_KEY}`;
+    const channelData = await EleventyFetch(channelUrl, { duration: "1d", type: "json" });
+    const uploadsPlaylistId = channelData.items[0].contentDetails.relatedPlaylists.uploads;
+
+    const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=50&key=${YOUTUBE_API_KEY}`;
+    const playlistData = await EleventyFetch(playlistUrl, { duration: "1h", type: "json" });
+    const videoIds = (playlistData.items || []).map(item => item.snippet.resourceId.videoId).filter(id => id);
+
+    let upcomingVideos_detailed = [];
+    if (videoIds.length > 0) {
+        const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${videoIds.join(',')}&key=${YOUTUBE_API_KEY}`;
+        const videosData = await EleventyFetch(videosUrl, { duration: "1h", type: "json" });
+
+        upcomingVideos_detailed = (videosData.items || [])
+            .filter(item =>
+                item.snippet.liveBroadcastContent === 'upcoming' &&
+                item.liveStreamingDetails?.scheduledStartTime
+            )
+            .sort((a, b) => new Date(a.liveStreamingDetails.scheduledStartTime) - new Date(b.liveStreamingDetails.scheduledStartTime));
+    }
+
     return {
+      // 新しいデータ形式
       live: liveData,
       upcoming: upcomingData,
-      planningPlaylist: planningPlaylistData
+      planningPlaylist: planningPlaylistData,
+
+      // index.njkのための古いデータ形式（後方互換性）
+      liveVideo: liveVideo,
+      upcomingVideos: upcomingVideos_detailed
     };
+    // ★★★ ここまで修正箇所 ★★★
 
   } catch (error) {
     console.error("Error fetching YouTube data:", error.message);
@@ -68,7 +105,10 @@ module.exports = async function() {
     return {
       live: { items: [] },
       upcoming: { items: [] },
-      planningPlaylist: { items: [] }
+      planningPlaylist: { items: [] },
+      // エラー時も古い形式の空データを返す
+      liveVideo: null,
+      upcomingVideos: []
     };
   }
 };
