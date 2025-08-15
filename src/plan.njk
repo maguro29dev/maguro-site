@@ -34,6 +34,61 @@ pageStyles: |
         .delete-suggestion-btn { display: none; position: absolute; top: 50%; right: 0.5rem; transform: translateY(-50%); background-color: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-weight: bold; line-height: 24px; text-align: center; cursor: pointer; transition: background-color 0.2s; }
         .delete-suggestion-btn:hover { background-color: #dc2626; }
         #suggestion-list.owner-view .delete-suggestion-btn { display: block; }
+
+        /* ▼▼▼ 再生リスト用の新しいスタイル ▼▼▼ */
+        #playlist-toggle-btn {
+            width: 100%;
+            background-color: #2d3748; /* Dark background */
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: bold;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #playlist-toggle-btn:hover {
+            background-color: #4a5568; /* Lighter background on hover */
+        }
+        #playlist-arrow {
+            transition: transform 0.3s ease;
+        }
+        #playlist-toggle-btn.open #playlist-arrow {
+            transform: rotate(180deg);
+        }
+        #playlist-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+            background-color: #1a202c; /* Even darker background for the content */
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+        #playlist-container.open {
+            max-height: 500px; /* Adjust as needed */
+        }
+        #playlist-scroll-wrapper {
+            display: flex;
+            overflow-x: auto;
+            padding: 1.5rem;
+            gap: 1rem;
+            /* For better scrolling on touch devices */
+            -webkit-overflow-scrolling: touch;
+            /* Hide scrollbar */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+        }
+        #playlist-scroll-wrapper::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, and Opera */
+        }
+        .playlist-video-card {
+            flex: 0 0 250px; /* Fixed width for each card */
+            width: 250px;
+        }
+        /* ▲▲▲ ここまで再生リスト用の新しいスタイル ▲▲▲ */
     </style>
 ---
 <div class="max-w-7xl mx-auto p-4 sm:p-6">
@@ -96,33 +151,36 @@ pageStyles: |
         </div>
     </section>
 
-    {# ▼▼▼ 再生リストのセクションをこちらに移動しました ▼▼▼ #}
-    <section class="mt-16">
+    {# ▼▼▼ 再生リストのセクションを更新しました ▼▼▼ #}
+    <section class="mt-8">
         <hr class="my-12 border-gray-700">
-        <div class="mb-12">
-            <h2 class="section-title">過去の企画会議で生まれた名作たち</h2>
+        <button id="playlist-toggle-btn">
+            <span>過去の企画会議で生まれた名作たち</span>
+            <span id="playlist-arrow">▼</span>
+        </button>
+        <div id="playlist-container">
             {% if youtube.planningPlaylist.items.length > 0 %}
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div id="playlist-scroll-wrapper">
                 {% for item in youtube.planningPlaylist.items %}
-                    <a href="https://www.youtube.com/watch?v={{ item.snippet.resourceId.videoId }}" target="_blank" rel="noopener noreferrer" class="group block bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <div class="relative">
-                        <img 
-                        src="{{ item.snippet.thumbnails.medium.url }}" 
-                        alt="{{ item.snippet.title }}" 
-                        class="w-full h-auto aspect-video object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                        >
-                    </div>
-                    <div class="p-4">
-                        <h3 class="text-white font-semibold leading-tight h-14 overflow-hidden">
-                        {{ item.snippet.title }}
-                        </h3>
-                    </div>
+                    <a href="https://www.youtube.com/watch?v={{ item.snippet.resourceId.videoId }}" target="_blank" rel="noopener noreferrer" class="group block bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 playlist-video-card">
+                        <div class="relative">
+                            <img 
+                            src="{{ item.snippet.thumbnails.medium.url }}" 
+                            alt="{{ item.snippet.title }}" 
+                            class="w-full h-auto aspect-video object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            >
+                        </div>
+                        <div class="p-4">
+                            <h3 class="text-white font-semibold leading-tight h-14 overflow-hidden">
+                            {{ item.snippet.title }}
+                            </h3>
+                        </div>
                     </a>
                 {% endfor %}
                 </div>
             {% else %}
-                <p class="text-center text-gray-400">現在、表示できる動画がありません。</p>
+                <p class="text-center text-gray-400 p-8">現在、表示できる動画がありません。</p>
             {% endif %}
         </div>
     </section>
@@ -137,6 +195,7 @@ pageStyles: |
     import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, serverTimestamp, query, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     document.addEventListener('DOMContentLoaded', async () => {
+        // ... (既存のFirebase関連のコードは変更ありません) ...
         const firebaseConfig = {
           apiKey: "AIzaSyDwjh5FCorVXZDdMse_uTcLbvjXwmw2jhk",
           authDomain: "maguro29-planning.firebaseapp.com",
@@ -214,15 +273,11 @@ pageStyles: |
                     if (template) {
                         descriptionDiv.appendChild(template.content.cloneNode(true));
                         
-                        // ▼▼▼ ここから修正箇所 ▼▼▼
-                        // 説明文の中にある全てのリンク(aタグ)を取得
                         const linksInDescription = descriptionDiv.querySelectorAll('a');
-                        // 全てのリンクに target="_blank" を設定して新しいタブで開くようにする
                         linksInDescription.forEach(link => {
                             link.target = '_blank';
-                            link.rel = 'noopener noreferrer'; // セキュリティ対策
+                            link.rel = 'noopener noreferrer';
                         });
-                        // ▲▲▲ ここまで修正箇所 ▲▲▲
                     }
                 }
 
@@ -296,13 +351,22 @@ pageStyles: |
                 deleteBtn.className = 'delete-suggestion-btn';
                 deleteBtn.textContent = '×';
                 deleteBtn.onclick = async () => {
-                    // confirm()はiframe内では動作しないため、UIで代替する必要がある
-                    // ここでは簡易的に削除を実行
                     try { await deleteDoc(doc.ref); } catch (error) { console.error("Error removing document: ", error); }
                 };
                 item.appendChild(deleteBtn);
                 suggestionList.appendChild(item);
             });
         });
+
+        // ▼▼▼ 再生リストの開閉を制御するJavaScript ▼▼▼
+        const playlistToggleBtn = document.getElementById('playlist-toggle-btn');
+        const playlistContainer = document.getElementById('playlist-container');
+        if (playlistToggleBtn && playlistContainer) {
+            playlistToggleBtn.addEventListener('click', () => {
+                playlistToggleBtn.classList.toggle('open');
+                playlistContainer.classList.toggle('open');
+            });
+        }
+        // ▲▲▲ ここまでが再生リスト用のJavaScriptです ▲▲▲
     });
 </script>
