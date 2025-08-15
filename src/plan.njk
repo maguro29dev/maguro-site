@@ -95,6 +95,38 @@ pageStyles: |
             </div>
         </div>
     </section>
+
+    {# ▼▼▼ 再生リストのセクションをこちらに移動しました ▼▼▼ #}
+    <section class="mt-16">
+        <hr class="my-12 border-gray-700">
+        <div class="mb-12">
+            <h2 class="section-title">過去の企画会議で生まれた名作たち</h2>
+            {% if youtube.planningPlaylist.items.length > 0 %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for item in youtube.planningPlaylist.items %}
+                    <a href="https://www.youtube.com/watch?v={{ item.snippet.resourceId.videoId }}" target="_blank" rel="noopener noreferrer" class="group block bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <div class="relative">
+                        <img 
+                        src="{{ item.snippet.thumbnails.medium.url }}" 
+                        alt="{{ item.snippet.title }}" 
+                        class="w-full h-auto aspect-video object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        >
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-white font-semibold leading-tight h-14 overflow-hidden">
+                        {{ item.snippet.title }}
+                        </h3>
+                    </div>
+                    </a>
+                {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-center text-gray-400">現在、表示できる動画がありません。</p>
+            {% endif %}
+        </div>
+    </section>
+    {# ▲▲▲ ここまでが再生リストのセクションです ▲▲▲ #}
 </div>
 
 <div id="modal-overlay"><div id="modal-content"><div id="modal-close">&times;</div><h2 id="modal-title" class="text-4xl font-bold text-gray-800"></h2><div id="modal-date" class="mt-4 mb-6"></div><div id="modal-description" class="modal-description-text"></div><div id="modal-link-container" class="mt-6 text-right"></div></div></div>
