@@ -34,61 +34,24 @@ pageStyles: |
         .delete-suggestion-btn { display: none; position: absolute; top: 50%; right: 0.5rem; transform: translateY(-50%); background-color: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-weight: bold; line-height: 24px; text-align: center; cursor: pointer; transition: background-color 0.2s; }
         .delete-suggestion-btn:hover { background-color: #dc2626; }
         #suggestion-list.owner-view .delete-suggestion-btn { display: block; }
-
-        /* ▼▼▼ 再生リスト用の新しいスタイル ▼▼▼ */
-        #playlist-toggle-btn {
-            width: 100%;
-            background-color: #2d3748; /* Dark background */
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            font-size: 1.25rem;
-            font-weight: bold;
-            text-align: left;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        #playlist-toggle-btn:hover {
-            background-color: #4a5568; /* Lighter background on hover */
-        }
-        #playlist-arrow {
-            transition: transform 0.3s ease;
-        }
-        #playlist-toggle-btn.open #playlist-arrow {
-            transform: rotate(180deg);
-        }
-        #playlist-container {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease-in-out;
-            background-color: #1a202c; /* Even darker background for the content */
-            border-radius: 0 0 0.5rem 0.5rem;
-        }
-        #playlist-container.open {
-            max-height: 500px; /* Adjust as needed */
-        }
-        #playlist-scroll-wrapper {
-            display: flex;
-            overflow-x: auto;
-            padding: 1.5rem;
-            gap: 1rem;
-            /* For better scrolling on touch devices */
-            -webkit-overflow-scrolling: touch;
-            /* Hide scrollbar */
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none;  /* IE and Edge */
-        }
-        #playlist-scroll-wrapper::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, and Opera */
-        }
-        .playlist-video-card {
-            flex: 0 0 250px; /* Fixed width for each card */
-            width: 250px;
-        }
-        /* ▲▲▲ ここまで再生リスト用の新しいスタイル ▲▲▲ */
+        
+        /* ▼▼▼ ランキングリスト用のスタイル ▼▼▼ */
+        #playlist-container-visible { position: relative; }
+        #playlist-scroll-wrapper { display: flex; overflow-x: auto; padding: 1.5rem; gap: 1rem; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; margin: 0 -1.5rem; /* for seamless scroll */}
+        #playlist-scroll-wrapper::-webkit-scrollbar { display: none; }
+        .playlist-video-card-wrapper { position: relative; flex: 0 0 280px; width: 280px; }
+        .ranking-badge { position: absolute; top: -10px; left: -10px; background-color: #e53e3e; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 5; font-size: 1.25rem; border: 2px solid white; }
+        .ranking-badge-1 { background-color: #ecc94b; color: #1a202c; } /* Gold */
+        .ranking-badge-2 { background-color: #d6d6d6; color: #1a202c; } /* Silver */
+        .ranking-badge-3 { background-color: #cd7f32; color: white; } /* Bronze */
+        .video-stats { display: flex; justify-content: space-around; padding: 0 1rem 1rem; font-size: 0.9rem; color: #cbd5e0; }
+        .scroll-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; background-color: rgba(45, 55, 72, 0.8); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; transition: background-color 0.2s, opacity 0.3s; display: none; }
+        .scroll-btn:hover { background-color: #4a5568; }
+        #scroll-left-btn { left: 10px; }
+        #scroll-right-btn { right: 10px; }
+        @media (min-width: 768px) { .scroll-btn { display: block; } }
+        .scroll-btn.hidden { opacity: 0; pointer-events: none; }
+        /* ▲▲▲ ここまでランキングリスト用のスタイル ▲▲▲ */
     </style>
 ---
 <div class="max-w-7xl mx-auto p-4 sm:p-6">
@@ -96,16 +59,11 @@ pageStyles: |
         <h2 class="section-title">🎉 8月の決定済み企画 🎉</h2>
         <div class="space-y-4 mt-8">
             {%- for plan in siteContent.mainPlans -%}
-            <div class="plan-card" 
-                 data-plan-id="main-{{ loop.index }}"
-                 data-title="{{ plan.fields.title }}" 
-                 data-date="{{ plan.fields.date }}">
+            <div class="plan-card" data-plan-id="main-{{ loop.index }}" data-title="{{ plan.fields.title }}" data-date="{{ plan.fields.date }}">
                 <h3 class="plan-card-title"><span class="mr-3 text-3xl">🗓️</span>{{ plan.fields.cardTitle }}</h3>
                 <div class="plan-card-arrow">▶</div>
             </div>
-            <template id="plan-content-main-{{ loop.index }}">
-                {{ plan.fields.description | markdownToHtml | safe }}
-            </template>
+            <template id="plan-content-main-{{ loop.index }}">{{ plan.fields.description | markdownToHtml | safe }}</template>
             {%- endfor -%}
         </div>
     </section>
@@ -114,18 +72,11 @@ pageStyles: |
         <h2 class="section-title">🤝 コラボ企画 🤝</h2>
         <div class="space-y-4 mt-8">
             {%- for plan in siteContent.collabPlans -%}
-            <div class="plan-card" 
-                 data-plan-id="collab-{{ loop.index }}"
-                 data-title="{{ plan.fields.title }}" 
-                 data-date="{{ plan.fields.date }}" 
-                 data-link="{{ plan.fields.link }}"
-                 data-link-text="{{ plan.fields.linkText }}">
+            <div class="plan-card" data-plan-id="collab-{{ loop.index }}" data-title="{{ plan.fields.title }}" data-date="{{ plan.fields.date }}" data-link="{{ plan.fields.link }}" data-link-text="{{ plan.fields.linkText }}">
                 <h3 class="plan-card-title"><span class="mr-3 text-3xl">🤝</span>{{ plan.fields.cardTitle }}</h3>
                 <div class="plan-card-arrow">▶</div>
             </div>
-            <template id="plan-content-collab-{{ loop.index }}">
-                {{ plan.fields.description | markdownToHtml | safe }}
-            </template>
+            <template id="plan-content-collab-{{ loop.index }}">{{ plan.fields.description | markdownToHtml | safe }}</template>
             {%- endfor -%}
         </div>
     </section>
@@ -151,40 +102,38 @@ pageStyles: |
         </div>
     </section>
 
-    {# ▼▼▼ 再生リストのセクションを更新しました ▼▼▼ #}
-    <section class="mt-8">
-        <hr class="my-12 border-gray-700">
-        <button id="playlist-toggle-btn">
-            <span>過去の企画会議で生まれた名作たち</span>
-            <span id="playlist-arrow">▼</span>
-        </button>
-        <div id="playlist-container">
-            {% if youtube.planningPlaylist.items.length > 0 %}
+    {# ▼▼▼ ランキングリストのセクションを更新しました ▼▼▼ #}
+    <section class="mt-16 bg-gray-800 rounded-lg py-8 px-2">
+        <h2 class="text-3xl font-bold text-center text-white mb-6">過去の企画会議で生まれた人気動画ランキング👑</h2>
+        <div id="playlist-container-visible" class="relative">
+            <button id="scroll-left-btn" class="scroll-btn hidden" aria-label="Scroll Left">‹</button>
+            {% if youtube.planningPlaylist.length > 0 %}
                 <div id="playlist-scroll-wrapper">
-                {% for item in youtube.planningPlaylist.items %}
-                    <a href="https://www.youtube.com/watch?v={{ item.snippet.resourceId.videoId }}" target="_blank" rel="noopener noreferrer" class="group block bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 playlist-video-card">
-                        <div class="relative">
-                            <img 
-                            src="{{ item.snippet.thumbnails.medium.url }}" 
-                            alt="{{ item.snippet.title }}" 
-                            class="w-full h-auto aspect-video object-cover group-hover:scale-105 transition-transform duration-300"
-                            loading="lazy"
-                            >
-                        </div>
-                        <div class="p-4">
-                            <h3 class="text-white font-semibold leading-tight h-14 overflow-hidden">
-                            {{ item.snippet.title }}
-                            </h3>
-                        </div>
-                    </a>
+                {% for item in youtube.planningPlaylist %}
+                    <div class="playlist-video-card-wrapper">
+                        <span class="ranking-badge ranking-badge-{{ loop.index }}">{{ loop.index }}</span>
+                        <a href="https://www.youtube.com/watch?v={{ item.id }}" target="_blank" rel="noopener noreferrer" class="group block bg-gray-700 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
+                            <div class="relative">
+                                <img src="{{ item.snippet.thumbnails.medium.url }}" alt="{{ item.snippet.title }}" class="w-full h-auto aspect-video object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
+                            </div>
+                            <div class="p-4 flex flex-col flex-grow">
+                                <h3 class="text-white font-semibold leading-tight flex-grow mb-2">{{ item.snippet.title }}</h3>
+                                <div class="video-stats border-t border-gray-600 pt-2 mt-auto">
+                                    <span>👁️ {{ item.statistics.viewCount | numberFormat }}</span>
+                                    <span>👍 {{ item.statistics.likeCount | numberFormat }}</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
                 {% endfor %}
                 </div>
             {% else %}
                 <p class="text-center text-gray-400 p-8">現在、表示できる動画がありません。</p>
             {% endif %}
+            <button id="scroll-right-btn" class="scroll-btn" aria-label="Scroll Right">›</button>
         </div>
     </section>
-    {# ▲▲▲ ここまでが再生リストのセクションです ▲▲▲ #}
+    {# ▲▲▲ ここまでがランキングリストのセクションです ▲▲▲ #}
 </div>
 
 <div id="modal-overlay"><div id="modal-content"><div id="modal-close">&times;</div><h2 id="modal-title" class="text-4xl font-bold text-gray-800"></h2><div id="modal-date" class="mt-4 mb-6"></div><div id="modal-description" class="modal-description-text"></div><div id="modal-link-container" class="mt-6 text-right"></div></div></div>
@@ -195,178 +144,67 @@ pageStyles: |
     import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, serverTimestamp, query, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     document.addEventListener('DOMContentLoaded', async () => {
-        // ... (既存のFirebase関連のコードは変更ありません) ...
-        const firebaseConfig = {
-          apiKey: "AIzaSyDwjh5FCorVXZDdMse_uTcLbvjXwmw2jhk",
-          authDomain: "maguro29-planning.firebaseapp.com",
-          projectId: "maguro29-planning",
-          storageBucket: "maguro29-planning.appspot.com",
-          messagingSenderId: "525505583082",
-          appId: "1:525505583082:web:2cb02294dfd3d9ca91c493"
-        };
+        // ... (Firebaseのコードは変更なし) ...
+        const firebaseConfig = { apiKey: "AIzaSyDwjh5FCorVXZDdMse_uTcLbvjXwmw2jhk", authDomain: "maguro29-planning.firebaseapp.com", projectId: "maguro29-planning", storageBucket: "maguro29-planning.appspot.com", messagingSenderId: "525505583082", appId: "1:525505583082:web:2cb02294dfd3d9ca91c493" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         let userId = null;
         let isOwner = false;
-
-        try {
-            await signInAnonymously(auth);
-            userId = auth.currentUser.uid;
-        } catch (error) { console.error("Anonymous Auth Error:", error); }
-
+        try { await signInAnonymously(auth); userId = auth.currentUser.uid; } catch (error) { console.error("Anonymous Auth Error:", error); }
         const whiteboardArea = document.getElementById('whiteboard-area');
         const ownerControls = document.getElementById('owner-controls');
         const toggleSuggestionsBtn = document.getElementById('toggle-suggestions-btn');
         const suggestionWrapper = document.getElementById('suggestion-wrapper');
         const suggestionList = document.getElementById('suggestion-list');
         const ownerPassword = "Flexiblefish354";
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === 'm' && !isOwner) {
-                const inputPassword = prompt("オーナー用パスワードを入力してください:");
-                if (inputPassword === ownerPassword) {
-                    isOwner = true;
-                    enableEditing();
-                    alert("オーナーとしてログインしました。");
-                } else if (inputPassword) {
-                    alert("パスワードが違います。");
-                }
-            }
-        });
-
-        function enableEditing() {
-            whiteboardArea.contentEditable = true;
-            whiteboardArea.classList.add('editable');
-            whiteboardArea.title = "ここにメモを入力できます";
-            ownerControls.classList.add('visible');
-            suggestionList.classList.add('owner-view');
-            let debounceTimer;
-            whiteboardArea.addEventListener('input', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => {
-                    setDoc(eventDocRef, { content: whiteboardArea.innerHTML }, { merge: true });
-                }, 500);
-            });
-        }
-
-        function launchConfetti() {
-            if (typeof confetti === 'function') {
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-            }
-        }
-
+        document.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'm' && !isOwner) { const inputPassword = prompt("オーナー用パスワードを入力してください:"); if (inputPassword === ownerPassword) { isOwner = true; enableEditing(); alert("オーナーとしてログインしました。"); } else if (inputPassword) { alert("パスワードが違います。"); } } });
+        function enableEditing() { whiteboardArea.contentEditable = true; whiteboardArea.classList.add('editable'); whiteboardArea.title = "ここにメモを入力できます"; ownerControls.classList.add('visible'); suggestionList.classList.add('owner-view'); let debounceTimer; whiteboardArea.addEventListener('input', () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => { setDoc(eventDocRef, { content: whiteboardArea.innerHTML }, { merge: true }); }, 500); }); }
+        function launchConfetti() { if (typeof confetti === 'function') { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); } }
         const planCards = document.querySelectorAll('.plan-card');
         const modalOverlay = document.getElementById('modal-overlay');
-        planCards.forEach(card => {
-            card.addEventListener('click', () => {
-                launchConfetti();
-                
-                document.getElementById('modal-title').innerHTML = card.dataset.title;
-                document.getElementById('modal-date').innerHTML = `<span class="date-badge py-2 px-4 rounded-lg">${card.dataset.date}</span>`;
-                
-                const planId = card.dataset.planId;
-                const descriptionDiv = document.getElementById('modal-description');
-                descriptionDiv.innerHTML = '';
-                if (planId) {
-                    const template = document.getElementById(`plan-content-${planId}`);
-                    if (template) {
-                        descriptionDiv.appendChild(template.content.cloneNode(true));
-                        
-                        const linksInDescription = descriptionDiv.querySelectorAll('a');
-                        linksInDescription.forEach(link => {
-                            link.target = '_blank';
-                            link.rel = 'noopener noreferrer';
-                        });
-                    }
-                }
-
-                const linkContainer = document.getElementById('modal-link-container');
-                linkContainer.innerHTML = '';
-                if (card.dataset.link) {
-                    const link = document.createElement('a');
-                    link.href = card.dataset.link;
-                    link.target = '_blank';
-                    link.rel = 'noopener noreferrer';
-                    link.className = 'inline-block bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-full hover:bg-gray-300 transition-colors duration-300';
-                    link.textContent = card.dataset.linkText || '詳細を見る';
-                    linkContainer.appendChild(link);
-                }
-                
-                modalOverlay.classList.add('visible');
-            });
-        });
-
+        planCards.forEach(card => { card.addEventListener('click', () => { launchConfetti(); document.getElementById('modal-title').innerHTML = card.dataset.title; document.getElementById('modal-date').innerHTML = `<span class="date-badge py-2 px-4 rounded-lg">${card.dataset.date}</span>`; const planId = card.dataset.planId; const descriptionDiv = document.getElementById('modal-description'); descriptionDiv.innerHTML = ''; if (planId) { const template = document.getElementById(`plan-content-${planId}`); if (template) { descriptionDiv.appendChild(template.content.cloneNode(true)); const linksInDescription = descriptionDiv.querySelectorAll('a'); linksInDescription.forEach(link => { link.target = '_blank'; link.rel = 'noopener noreferrer'; }); } } const linkContainer = document.getElementById('modal-link-container'); linkContainer.innerHTML = ''; if (card.dataset.link) { const link = document.createElement('a'); link.href = card.dataset.link; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.className = 'inline-block bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-full hover:bg-gray-300 transition-colors duration-300'; link.textContent = card.dataset.linkText || '詳細を見る'; linkContainer.appendChild(link); } modalOverlay.classList.add('visible'); }); });
         function closeModal() { modalOverlay.classList.remove('visible'); }
         document.getElementById('modal-close').addEventListener('click', closeModal);
         modalOverlay.addEventListener('click', (event) => { if (event.target === modalOverlay) { closeModal(); } });
-
         const suggestionInput = document.getElementById('suggestion-input');
         const suggestionSubmit = document.getElementById('suggestion-submit');
         const eventDocRef = doc(db, "planning_data/main");
         const suggestionsColRef = collection(db, "planning_data/main/suggestions");
         const placeholderMemo = `<h3>【企画会議ホワイトボード】</h3><ul><li><strong>新しいMODシリーズ：</strong></li></ul><p><em>ここにアイデアを書き込んでいきましょう！</em></p>`;
         let isSuggestionsOpen = false;
-
-        onSnapshot(eventDocRef, (doc) => {
-            const data = doc.exists() ? doc.data() : {};
-            const content = data.content || placeholderMemo;
-            if (whiteboardArea.innerHTML !== content) { whiteboardArea.innerHTML = content; }
-            isSuggestionsOpen = data.isOpen || false;
-            if (isSuggestionsOpen) { suggestionWrapper.classList.add('open'); } else { suggestionWrapper.classList.remove('open'); }
-            if (isOwner) {
-                toggleSuggestionsBtn.textContent = isSuggestionsOpen ? 'アイデア受付を終了する' : 'アイデア受付を開始する';
-                toggleSuggestionsBtn.classList.toggle('bg-red-600', isSuggestionsOpen);
-                toggleSuggestionsBtn.classList.toggle('hover:bg-red-700', isSuggestionsOpen);
-                toggleSuggestionsBtn.classList.toggle('bg-blue-600', !isSuggestionsOpen);
-                toggleSuggestionsBtn.classList.toggle('hover:bg-blue-700', !isSuggestionsOpen);
-            }
-        });
-
+        onSnapshot(eventDocRef, (doc) => { const data = doc.exists() ? doc.data() : {}; const content = data.content || placeholderMemo; if (whiteboardArea.innerHTML !== content) { whiteboardArea.innerHTML = content; } isSuggestionsOpen = data.isOpen || false; if (isSuggestionsOpen) { suggestionWrapper.classList.add('open'); } else { suggestionWrapper.classList.remove('open'); } if (isOwner) { toggleSuggestionsBtn.textContent = isSuggestionsOpen ? 'アイデア受付を終了する' : 'アイデア受付を開始する'; toggleSuggestionsBtn.classList.toggle('bg-red-600', isSuggestionsOpen); toggleSuggestionsBtn.classList.toggle('hover:bg-red-700', isSuggestionsOpen); toggleSuggestionsBtn.classList.toggle('bg-blue-600', !isSuggestionsOpen); toggleSuggestionsBtn.classList.toggle('hover:bg-blue-700', !isSuggestionsOpen); } });
         toggleSuggestionsBtn.addEventListener('click', () => { setDoc(eventDocRef, { isOpen: !isSuggestionsOpen }, { merge: true }); });
-
-        suggestionSubmit.addEventListener('click', async () => {
-            const text = suggestionInput.value.trim();
-            if (text && userId) {
-                try {
-                    await addDoc(suggestionsColRef, { text: text, author: userId.substring(0, 6), createdAt: serverTimestamp() });
-                    suggestionInput.value = '';
-                } catch (error) { console.error("Error adding suggestion:", error); }
-            }
-        });
-
+        suggestionSubmit.addEventListener('click', async () => { const text = suggestionInput.value.trim(); if (text && userId) { try { await addDoc(suggestionsColRef, { text: text, author: userId.substring(0, 6), createdAt: serverTimestamp() }); suggestionInput.value = ''; } catch (error) { console.error("Error adding suggestion:", error); } } });
         suggestionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { suggestionSubmit.click(); } });
-
         const q = query(suggestionsColRef);
-        onSnapshot(q, (snapshot) => {
-            suggestionList.innerHTML = '';
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                const item = document.createElement('div');
-                item.className = 'suggestion-item';
-                const itemText = document.createElement('span');
-                itemText.textContent = `💡 ${data.text}`;
-                item.appendChild(itemText);
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'delete-suggestion-btn';
-                deleteBtn.textContent = '×';
-                deleteBtn.onclick = async () => {
-                    try { await deleteDoc(doc.ref); } catch (error) { console.error("Error removing document: ", error); }
-                };
-                item.appendChild(deleteBtn);
-                suggestionList.appendChild(item);
-            });
-        });
+        onSnapshot(q, (snapshot) => { suggestionList.innerHTML = ''; snapshot.forEach((doc) => { const data = doc.data(); const item = document.createElement('div'); item.className = 'suggestion-item'; const itemText = document.createElement('span'); itemText.textContent = `💡 ${data.text}`; item.appendChild(itemText); const deleteBtn = document.createElement('button'); deleteBtn.className = 'delete-suggestion-btn'; deleteBtn.textContent = '×'; deleteBtn.onclick = async () => { try { await deleteDoc(doc.ref); } catch (error) { console.error("Error removing document: ", error); } }; item.appendChild(deleteBtn); suggestionList.appendChild(item); }); });
 
-        // ▼▼▼ 再生リストの開閉を制御するJavaScript ▼▼▼
-        const playlistToggleBtn = document.getElementById('playlist-toggle-btn');
-        const playlistContainer = document.getElementById('playlist-container');
-        if (playlistToggleBtn && playlistContainer) {
-            playlistToggleBtn.addEventListener('click', () => {
-                playlistToggleBtn.classList.toggle('open');
-                playlistContainer.classList.toggle('open');
-            });
+        // ▼▼▼ 横スクロールを制御するJavaScript (アコーディオンのロジックは削除) ▼▼▼
+        const scrollWrapper = document.getElementById('playlist-scroll-wrapper');
+        const scrollLeftBtn = document.getElementById('scroll-left-btn');
+        const scrollRightBtn = document.getElementById('scroll-right-btn');
+
+        if (scrollWrapper && scrollLeftBtn && scrollRightBtn) {
+            const scrollAmount = 300; // 一度にスクロールする量
+            const updateArrowVisibility = () => {
+                if (scrollWrapper.scrollWidth <= scrollWrapper.clientWidth) {
+                    scrollLeftBtn.classList.add('hidden');
+                    scrollRightBtn.classList.add('hidden');
+                    return;
+                }
+                scrollLeftBtn.classList.toggle('hidden', scrollWrapper.scrollLeft <= 0);
+                scrollRightBtn.classList.toggle('hidden', scrollWrapper.scrollLeft >= scrollWrapper.scrollWidth - scrollWrapper.clientWidth - 1);
+            };
+            scrollLeftBtn.addEventListener('click', () => { scrollWrapper.scrollLeft -= scrollAmount; });
+            scrollRightBtn.addEventListener('click', () => { scrollWrapper.scrollLeft += scrollAmount; });
+            scrollWrapper.addEventListener('scroll', updateArrowVisibility);
+            
+            // ページ読み込み時とリサイズ時に矢印の状態をチェック
+            // 少し遅延させて実行することで、画像の読み込み後の正しい幅で計算させる
+            setTimeout(updateArrowVisibility, 500);
+            window.addEventListener('resize', updateArrowVisibility);
         }
-        // ▲▲▲ ここまでが再生リスト用のJavaScriptです ▲▲▲
+        // ▲▲▲ ここまでが横スクロール用のJavaScriptです ▲▲▲
     });
 </script>

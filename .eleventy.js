@@ -41,6 +41,14 @@ module.exports = function (eleventyConfig) {
     return DateTime.fromISO(dateObj).setZone('Asia/Tokyo').toFormat('M/d(EEE) HH:mm');
   });
 
+  // ▼▼▼ ここからが追記されたコードです ▼▼▼
+  // 数字をカンマ区切りにするフィルター (例: 12345 → 12,345)
+  eleventyConfig.addFilter("numberFormat", (value) => {
+    if (!value && value !== 0) return "0";
+    return new Intl.NumberFormat('ja-JP').format(value);
+  });
+  // ▲▲▲ ここまでが追記されたコードです ▲▲▲
+
   return {
     dir: {
       input: 'src',
