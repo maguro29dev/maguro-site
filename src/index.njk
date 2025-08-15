@@ -7,10 +7,96 @@ permalink: /
 pageStyles: |
     <style>
         .info-title { color: #6a994e; border-bottom: 2px solid #6a994e; padding-bottom: 0.5rem; display: flex; align-items: center; }
-        .schedule-item { position: relative; padding-left: 1.25rem; }
-        .schedule-item::before { content: '▶'; position: absolute; left: 0; top: 0; color: #6a994e; }
         .live-now-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+        /* ▼▼▼ スケジュール用の新しいスタイル ▼▼▼ */
+        .schedule-card {
+            position: relative; /* キャラクター画像を配置するための基準点 */
+            border: 3px solid #6a994e;
+            background-image: url("https://i.imgur.com/ew3XjDq.png"); /* ご提供いただいた背景画像 */
+            background-size: cover; /* 画像がカード全体を覆うように調整 */
+            background-position: center; /* 画像の中央が表示されるように調整 */
+        }
+        .schedule-character {
+            position: absolute;
+            top: 50px;      /* 位置を調整 (上からの距離) */
+            left: 5px;       /* 位置を調整 (左からの距離) */
+            width: 160px;    /* サイズを調整 */
+            height: auto;
+            z-index: 1;
+            pointer-events: none; /* 画像がクリック操作の邪魔にならないように */
+        }
+        .schedule-main-title {
+            font-family: 'Noto Sans JP', sans-serif;
+            font-weight: 900; /* 最も太いウェイト */
+            color: #38a169; /* 緑色 */
+            text-shadow: 
+                -1px -1px 0 #fff,  
+                 1px -1px 0 #fff,
+                -1px  1px 0 #fff,
+                 1px  1px 0 #fff, /* 白い縁取り */
+                 3px 3px 5px rgba(0,0,0,0.2); /* ソフトなドロップシャドウ */
+        }
+        .schedule-col-title {
+            font-weight: 700;
+            color: #2f855a;
+            background-color: rgba(255, 255, 255, 0.8); /* 背景を少し濃くして可読性を上げる */
+            padding: 0.5rem 1rem;
+            border-radius: 9999px; /* 丸い形 */
+            display: inline-block;
+            border: 2px solid #6a994e;
+        }
+        .schedule-item {
+            background-color: rgba(255, 255, 255, 0.9); /* 背景画像が少し透けるように */
+            border-left: 5px solid #6a994e;
+            transition: all 0.2s ease-in-out;
+        }
+        .schedule-item:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            background-color: #ffffff; /* ホバー時は不透明に */
+        }
+        .schedule-item-date {
+            font-weight: 700;
+            color: #c53030; /* 赤系の色 */
+        }
+        .schedule-item-day {
+            font-weight: 900;
+            color: #4a5568;
+        }
+        .schedule-item-text {
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        /* ▼▼▼ メンバーシップ特典用のスタイル ▼▼▼ */
+        .membership-tier-title {
+            font-weight: 700;
+            color: #2f855a;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem; /* 少し角丸に */
+            display: inline-block;
+            border: 2px solid #6a994e;
+        }
+        .membership-item {
+            display: block;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border-left: 5px solid #6a994e;
+            transition: all 0.2s ease-in-out;
+            font-weight: 700;
+            color: #2d3748;
+            text-align: center;
+        }
+        .membership-item:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            background-color: #ffffff;
+            color: #6a994e;
+        }
     </style>
 ---
 
@@ -47,106 +133,152 @@ pageStyles: |
         {% endif %}
     </section>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {# --- スケジュールセクション (ハイブリッド) --- #}
-        <section>
-            <h2 class="text-xl font-bold mb-4 info-title">
-                <span class="mr-2">🗓️</span>今後のスケジュール
-            </h2>
-            <div class="bg-white p-6 rounded-lg shadow space-y-6">
-                {# 自動更新エリア #}
-                <div>
-                    <h3 class="font-bold text-gray-800 mb-3 text-sm border-b pb-2">配信予定 (自動更新)</h3>
-                    <div class="space-y-2 pt-2">
-                        {% if youtube.upcomingVideos.length > 0 %}
-                            {% for video in youtube.upcomingVideos %}
-                                <div class="schedule-item text-sm">
-                                    <a href="https://www.youtube.com/watch?v={{ video.id }}" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">
-                                        <strong class="font-bold">{{ video.liveStreamingDetails.scheduledStartTime | youtubeDate }}</strong> - {{ video.snippet.title }}
+    {# --- スケジュールセクション (新デザイン) --- #}
+    <section id="schedule" class="my-10">
+        <div class="schedule-card max-w-7xl mx-auto rounded-2xl shadow-xl p-5 sm:p-8 overflow-hidden">
+            
+            {# 左上に表示するキャラクター画像 #}
+            <img src="https://i.imgur.com/r5Novxv.png" alt="キャラクター" class="schedule-character">
+
+            <!-- コンテンツをキャラクターの上に表示するためのラッパー -->
+            <div style="position: relative; z-index: 2;">
+                {# ヘッダー部分 #}
+                <div class="text-center mb-8">
+                    <h2 class="schedule-main-title text-4xl sm:text-5xl">
+                        🗓️ 今後のスケジュール
+                    </h2>
+                </div>
+
+                {# PCでは3カラム、スマホでは1カラムになるグリッドレイアウト #}
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    {# カラム1: 自動更新エリア #}
+                    <div class="text-center">
+                        <h3 class="schedule-col-title mb-6">
+                            <span class="text-xl mr-2">🔴</span>配信予定
+                        </h3>
+                        <div class="space-y-3 text-left">
+                            {% if youtube.upcomingVideos.length > 0 %}
+                                {% for video in youtube.upcomingVideos %}
+                                    <a href="https://www.youtube.com/watch?v={{ video.id }}" target="_blank" rel="noopener noreferrer" class="schedule-item flex items-center p-3 rounded-lg">
+                                        <div class="w-28 flex-shrink-0 text-center pr-3 border-r border-gray-200">
+                                            <div class="schedule-item-date text-sm">{{ video.liveStreamingDetails.scheduledStartTime | youtubeDate }}</div>
+                                        </div>
+                                        <div class="flex-grow pl-4 schedule-item-text text-sm">
+                                            {{ video.snippet.title }}
+                                        </div>
                                     </a>
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <p class="text-gray-500 text-sm pl-3">現在予定されている配信はありません。</p>
-                        {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-gray-500 text-sm p-4 text-center">現在予定されている配信はありません。</p>
+                            {% endif %}
+                        </div>
                     </div>
-                </div>
 
-                {# Contentful管理エリア：リアイベ情報 #}
-                {% if siteContent.realEvents.length > 0 %}
-                <div>
-                    <h3 class="font-bold text-gray-800 mb-3 text-sm border-b pb-2">リアイベ情報</h3>
-                    <div class="space-y-2 pt-2">
-                        {% for event in siteContent.realEvents %}
-                            <div class="schedule-item text-sm">
-                                <a href="{{ event.fields.url }}" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">
-                                    <strong class="font-bold">{{ event.fields.date }}</strong> - {{ event.fields.title }}
-                                </a>
-                            </div>
-                        {% endfor %}
+                    {# カラム2: Contentful管理エリア：リアイベ情報 #}
+                    <div class="text-center">
+                        <h3 class="schedule-col-title mb-6">
+                            <span class="text-xl mr-2">🎟️</span>リアイベ情報
+                        </h3>
+                        <div class="space-y-3 text-left">
+                            {% if siteContent.realEvents.length > 0 %}
+                                {% for event in siteContent.realEvents %}
+                                     <a href="{{ event.fields.url }}" target="_blank" rel="noopener noreferrer" class="schedule-item flex items-center p-3 rounded-lg">
+                                        <div class="w-28 flex-shrink-0 text-center pr-3 border-r border-gray-200">
+                                            <div class="schedule-item-date text-sm">{{ event.fields.date }}</div>
+                                        </div>
+                                        <div class="flex-grow pl-4 schedule-item-text text-sm">
+                                            {{ event.fields.title }}
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                            {% else %}
+                                 <p class="text-gray-500 text-sm p-4 text-center">現在予定されているイベントはありません。</p>
+                            {% endif %}
+                        </div>
                     </div>
-                </div>
-                {% endif %}
 
-                {# Contentful管理エリア：週のスケジュール #}
-                {% if siteContent.weeklySchedule.length > 0 %}
-                <div>
-                    <h3 class="font-bold text-gray-800 mb-3 text-sm border-b pb-2">今週の生配信スケジュール</h3>
-                    <div class="space-y-1 pt-2">
-                        {% for day in siteContent.weeklySchedule %}
-                            <div class="schedule-item text-sm">
-                                <strong class="font-bold w-20 inline-block">{{ day.fields.day }}:</strong>
-                                <span class="text-gray-600">{{ day.fields.time }} {{ day.fields.plan }}</span>
-                            </div>
-                        {% endfor %}
+                    {# カラム3: Contentful管理エリア：週のスケジュール #}
+                    <div class="text-center">
+                        <h3 class="schedule-col-title mb-6">
+                            <span class="text-xl mr-2">📅</span>今週のスケジュール
+                        </h3>
+                        <div class="space-y-3 text-left">
+                            {% if siteContent.weeklySchedule.length > 0 %}
+                                {% for day in siteContent.weeklySchedule %}
+                                    <div class="schedule-item flex items-center p-3 rounded-lg">
+                                        <div class="w-28 flex-shrink-0 text-center pr-3 border-r border-gray-200">
+                                            <div class="schedule-item-day text-sm">{{ day.fields.day }}</div>
+                                        </div>
+                                        <div class="flex-grow pl-4 schedule-item-text text-sm">
+                                            {{ day.fields.time }} {{ day.fields.plan }}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-gray-500 text-sm p-4 text-center">今週のスケジュールは準備中です。</p>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
-                {% endif %}
+                <p class="text-xs text-gray-500 mt-8 text-right border-t border-gray-200 pt-4">※時間や内容はX(旧Twitter)でお知らせします！</p>
             </div>
-            <p class="text-xs text-gray-500 mt-2 text-right">※時間や内容はX(旧Twitter)でお知らせします！</p>
-        </section>
+        </div>
+    </section>
 
-        {# --- メンバーシップ特典セクション --- #}
-        <section>
-            <h2 class="text-xl font-bold mb-4 info-title">
-                <span class="mr-2">✨</span>メンバーシップ特典
-            </h2>
-            <div class="bg-white p-6 rounded-lg shadow space-y-4">
-                <div>
-                    <h3 class="font-bold text-gray-800">【全プラン共通】</h3>
-                    <ul class="mt-2 space-y-2 pl-2 text-sm">
-                        <li><a href="https://www.youtube.com/playlist?list=UUMOMP7QuS4suoONg47Nbi-wrg" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">全ての限定コンテンツ（自動更新）</a></li>
-                        <li><a href="https://youtube.com/playlist?list=PL5rEiNRr-t0kn19gXXeU2156gs-87PnBj&si=TpspUI69In24kqyh" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">主な配信アーカイブ：まぐ会議</a></li>
-                        <li><a href="https://youtube.com/playlist?list=PL5rEiNRr-t0kfXHOm-a9C7ksN7A6FQtvN&si=wEtr_EsuotcFKj-E" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">主な配信アーカイブ：まぐラジ</a></li>
-                         <li><a href="https://youtube.com/playlist?list=PL5rEiNRr-t0n0vpX_d1HtvOKJeI1zV8J7&si=4aV4x1vzq40ih-1p" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">主な配信アーカイブ：まぐ家呑み配信</a></li>
-                        <li><a href="https://youtube.com/playlist?list=PL5rEiNRr-t0n342JXlwEIJGJpwAvNnEH0&si=W1mbh76kPsFKb7K8" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">主な配信アーカイブ：ドラクエ3</a></li>
-                        <li><a href="https://discord.gg/YabfK2buHm" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">Discordコミュニティ（プランごとの限定チャンネル有り）</a></li>
-                    </ul>
+    {# --- メンバーシップ特典セクション --- #}
+    <section id="membership" class="my-10">
+        <div class="schedule-card max-w-7xl mx-auto rounded-2xl shadow-xl p-5 sm:p-8 overflow-hidden">
+            <div style="position: relative; z-index: 2;">
+                <div class="text-center mb-8">
+                    <h2 class="schedule-main-title text-4xl sm:text-5xl">
+                        ✨ メンバーシップ特典
+                    </h2>
                 </div>
-                <div class="border-t border-gray-200 pt-4">
-                    <h3 class="font-bold text-gray-800">【中トロ以上】</h3>
-                    <ul class="mt-2 space-y-2 pl-2 text-sm">
-                        <li><a href="https://www.youtube.com/playlist?list=PL5rEiNRr-t0kHgOa0AN985MkPrCLg9CXW" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">限定ショート動画（毎週 月・土 更新！）</a></li>
-                        <li><a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%BE%E3%81%90%E3%81%AB%E3%81%83/membership" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">オフ会のご案内（コミュニティ投稿をチェック！）</a></li>
-                        <li><a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%BE%E3%81%90%E3%81%AB%E3%81%83/membership" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">「まぐ家」投稿チラ見せ（コミュニティ投稿をチェック！）</a></li>
-                        <li><a href="https://docs.google.com/document/d/1aVax0d8e4TWdn173e9HilPREfg9BatMigU34dTgbRHs/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="font-bold text-custom-green hover:text-custom-green-dark">📜 イベント憲章（参加前に必読）</a></li>
-                    </ul>
-                </div>
-                 <div class="border-t border-gray-200 pt-4">
-                    <h3 class="font-bold text-gray-800">【大トロ限定】</h3>
-                    <ul class="mt-2 space-y-2 pl-2 text-sm">
-                        <li><a href="https://www.youtube.com/playlist?list=PL5rEiNRr-t0mD91iWjslaCHWAWtYachpz" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">プライベート配信</a></li>
-                        <li><a href="https://www.youtube.com/playlist?list=PL5rEiNRr-t0nZOYWf3i0cHLQ6pW_vdcJd" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">動画の無編集版</a></li>
-                        <li><a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%BE%E3%81%90%E3%81%AB%E3%81%83/membership" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">「まぐ家」毎日投稿（コミュニティ投稿をチェック！）</a></li>
-                        <li><a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%BE%E3%81%90%E3%81%AB%E3%81%83/membership" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-custom-green">オンラインオフ会＆リアルキャンプ企画（コミュニティ投稿をチェック！）</a></li>
-                        <li><a href="https://www.youtube.com/post/UgkxuqjCpfvhz2hR_rnvmSmk8l-fF-rVc7A0" target="_blank" rel="noopener noreferrer" class="font-bold text-custom-green hover:text-custom-green-dark">📝 特別な感謝の表現に関するご意向確認フォーム</a></li>
-                    </ul>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    <!-- カラム1: 全プラン共通 -->
+                    <div class="text-center">
+                        <h3 class="membership-tier-title mb-6">【全プラン共通】</h3>
+                        <div class="space-y-3 text-left">
+                            <a href="https://www.youtube.com/playlist?list=UUMOMP7QuS4suoONg47Nbi-wrg" target="_blank" rel="noopener noreferrer" class="membership-item">全ての限定コンテンツ</a>
+                            <a href="https://youtube.com/playlist?list=PL5rEiNRr-t0kn19gXXeU2156gs-87PnBj&si=TpspUI69In24kqyh" target="_blank" rel="noopener noreferrer" class="membership-item">主な配信アーカイブ：まぐ会議</a>
+                            <a href="https://youtube.com/playlist?list=PL5rEiNRr-t0kfXHOm-a9C7ksN7A6FQtvN&si=wEtr_EsuotcFKj-E" target="_blank" rel="noopener noreferrer" class="membership-item">主な配信アーカイブ：まぐラジ</a>
+                            <a href="https://youtube.com/playlist?list=PL5rEiNRr-t0n0vpX_d1HtvOKJeI1zV8J7&si=4aV4x1vzq40ih-1p" target="_blank" rel="noopener noreferrer" class="membership-item">主な配信アーカイブ：まぐ家呑み</a>
+                            <a href="https://youtube.com/playlist?list=PL5rEiNRr-t0n342JXlwEIJGJpwAvNnEH0&si=W1mbh76kPsFKb7K8" target="_blank" rel="noopener noreferrer" class="membership-item">主な配信アーカイブ：ドラクエ3</a>
+                            <a href="https://discord.gg/YabfK2buHm" rel="noopener noreferrer" class="membership-item">Discordコミュニティ</a>
+                        </div>
+                    </div>
+
+                    <!-- カラム2: 中トロ以上 -->
+                    <div class="text-center">
+                        <h3 class="membership-tier-title mb-6">【中トロ以上】</h3>
+                        <div class="space-y-3 text-left">
+                            <a href="https://www.youtube.com/playlist?list=PL5rEiNRr-t0kHgOa0AN985MkPrCLg9CXW" target="_blank" rel="noopener noreferrer" class="membership-item">限定ショート動画</a>
+                            <a href="https://maguro29info.netlify.app/memberevents/" rel="noopener noreferrer" class="membership-item">オフ会のご案内</a>
+                            <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%BE%E3%81%90%E3%81%AB%E3%81%83/membership" target="_blank" rel="noopener noreferrer" class="membership-item">「まぐ家」投稿チラ見せ</a>
+                            <a href="https://docs.google.com/document/d/1aVax0d8e4TWdn173e9HilPREfg9BatMigU34dTgbRHs/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="membership-item">📜 イベント憲章（必読）</a>
+                        </div>
+                    </div>
+
+                    <!-- カラム3: 大トロ限定 -->
+                    <div class="text-center">
+                        <h3 class="membership-tier-title mb-6">【大トロ限定】</h3>
+                        <div class="space-y-3 text-left">
+                            <a href="https://www.youtube.com/playlist?list=PL5rEiNRr-t0mD91iWjslaCHWAWtYachpz" target="_blank" rel="noopener noreferrer" class="membership-item">プライベート配信</a>
+                            <a href="https://www.youtube.com/playlist?list=PL5rEiNRr-t0nZOYWf3i0cHLQ6pW_vdcJd" target="_blank" rel="noopener noreferrer" class="membership-item">動画の無編集版</a>
+                            <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%BE%E3%81%90%E3%81%AB%E3%81%83/membership" target="_blank" rel="noopener noreferrer" class="membership-item">「まぐ家」毎日投稿</a>
+                            <a href="https://maguro29info.netlify.app/memberevents/" rel="noopener noreferrer" class="membership-item">オンライン/リアル企画</a>
+                            <a href="https://www.youtube.com/post/UgkxuqjCpfvhz2hR_rnvmSmk8l-fF-rVc7A0" target="_blank" rel="noopener noreferrer" class="membership-item">📝 感謝表現ご意向確認</a>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </section>
-    </div>
+        </div>
+    </section>
 
-    <section class="mt-8">
+    {# --- グッズ情報 --- #}
+    <section class="my-8">
         <div class="bg-white p-6 rounded-lg shadow">
             <h2 class="text-xl font-bold mb-4 info-title">
                 <span class="mr-2">🛍️</span>グッズ情報
@@ -164,7 +296,8 @@ pageStyles: |
         </div>
     </section>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+    {# --- 歩き方 & ご意見箱 --- #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-8">
         <section>
             <h2 class="text-xl font-bold mb-4 info-title">
                 <span class="mr-2">📖</span>コミュニティの歩き方
@@ -178,12 +311,12 @@ pageStyles: |
                 <p><strong class="text-gray-800">5. 困ったときは、そっと教えて！</strong> 僕やモデレーターにご連絡ください。</p>
                 <p><strong class="text-gray-800">6. イベントでは、みんなで楽しむ空間作りを！</strong> 無断撮影や迷惑行為は控えましょう。</p>
                 <div class="border-t border-gray-200 pt-3 mt-3">
-                     <a href="https://docs.google.com/document/d/1aVax0d8e4TWdn173e9HilPREfg9BatMigU34dTgbRHs/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="font-bold text-custom-green hover:text-custom-green-dark">📜 イベント憲章も必ずご確認ください</a>
+                        <a href="https://docs.google.com/document/d/1aVax0d8e4TWdn173e9HilPREfg9BatMigU34dTgbRHs/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="font-bold text-custom-green hover:text-custom-green-dark">📜 イベント憲章も必ずご確認ください</a>
                 </div>
             </div>
         </section>
         <section>
-             <h2 class="text-xl font-bold mb-4 info-title">
+                <h2 class="text-xl font-bold mb-4 info-title">
                 <span class="mr-2">📬</span>ご意見箱 (匿名フィードバック)
             </h2>
             <div class="bg-white p-6 rounded-lg shadow h-full">

@@ -35,19 +35,18 @@ module.exports = function (eleventyConfig) {
     return DateTime.fromISO(dateObj).setZone('Asia/Tokyo').toFormat('yyyy年MM月dd日');
   });
   
-  // YouTubeの日付をフォーマットするフィルター
+  // YouTubeの日付をフォーマットするフィルター (日本語対応)
   eleventyConfig.addFilter("youtubeDate", (dateObj) => {
     if (!dateObj) return '';
-    return DateTime.fromISO(dateObj).setZone('Asia/Tokyo').toFormat('M/d(EEE) HH:mm');
+    // setLocale('ja-JP') を追加して、曜日を日本語で表示するようにします
+    return DateTime.fromISO(dateObj).setZone('Asia/Tokyo').setLocale('ja-JP').toFormat('M/d(EEE) HH:mm');
   });
 
-  // ▼▼▼ ここからが追記されたコードです ▼▼▼
   // 数字をカンマ区切りにするフィルター (例: 12345 → 12,345)
   eleventyConfig.addFilter("numberFormat", (value) => {
     if (!value && value !== 0) return "0";
     return new Intl.NumberFormat('ja-JP').format(value);
   });
-  // ▲▲▲ ここまでが追記されたコードです ▲▲▲
 
   return {
     dir: {
