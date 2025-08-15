@@ -36,18 +36,18 @@ pageStyles: |
         #suggestion-list.owner-view .delete-suggestion-btn { display: block; }
         
         /* ▼▼▼ ランキングリスト用のスタイル ▼▼▼ */
-        #playlist-scroll-wrapper { display: flex; overflow-x: auto; padding-bottom: 1.5rem; /* For scrollbar space */ gap: 1rem; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
+        #playlist-scroll-wrapper { display: flex; overflow-x: auto; padding-bottom: 1.5rem; gap: 1rem; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
         #playlist-scroll-wrapper::-webkit-scrollbar { display: none; }
-        .playlist-video-card-wrapper { position: relative; flex: 0 0 280px; width: 280px; }
-        .ranking-badge { position: absolute; top: -10px; left: -10px; background-color: #e53e3e; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 5; font-size: 1.25rem; border: 2px solid white; }
+        .playlist-video-card-wrapper { position: relative; flex: 0 0 280px; width: 280px; padding-top: 10px; /* Make space for badge */ }
+        .ranking-badge { position: absolute; top: 0; left: -10px; background-color: #e53e3e; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 15; /* ★★★ 修正点: z-indexを矢印より高くしました ★★★ */ font-size: 1.25rem; border: 2px solid white; }
         .ranking-badge-1 { background-color: #ecc94b; color: #1a202c; } /* Gold */
         .ranking-badge-2 { background-color: #d6d6d6; color: #1a202c; } /* Silver */
         .ranking-badge-3 { background-color: #cd7f32; color: white; } /* Bronze */
         .video-stats { display: flex; justify-content: space-around; padding: 0 1rem 1rem; font-size: 0.9rem; color: #cbd5e0; }
         .scroll-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; background-color: rgba(45, 55, 72, 0.8); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; transition: background-color 0.2s, opacity 0.3s; display: none; }
         .scroll-btn:hover { background-color: #4a5568; }
-        #scroll-left-btn { left: -15px; } /* Position outside the container */
-        #scroll-right-btn { right: -15px; } /* Position outside the container */
+        #scroll-left-btn { left: -15px; }
+        #scroll-right-btn { right: -15px; }
         @media (min-width: 768px) { .scroll-btn { display: block; } }
         .scroll-btn.hidden { opacity: 0; pointer-events: none; }
         /* ▲▲▲ ここまでランキングリスト用のスタイル ▲▲▲ */
@@ -185,7 +185,7 @@ pageStyles: |
         const scrollRightBtn = document.getElementById('scroll-right-btn');
 
         if (scrollWrapper && scrollLeftBtn && scrollRightBtn) {
-            const scrollAmount = 300; // 一度にスクロールする量
+            const scrollAmount = 300;
             const updateArrowVisibility = () => {
                 if (scrollWrapper.scrollWidth <= scrollWrapper.clientWidth) {
                     scrollLeftBtn.classList.add('hidden');
