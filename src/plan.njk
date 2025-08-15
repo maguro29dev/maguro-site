@@ -38,8 +38,8 @@ pageStyles: |
         /* ▼▼▼ ランキングリスト用のスタイル ▼▼▼ */
         #playlist-scroll-wrapper { display: flex; overflow-x: auto; padding-bottom: 1.5rem; gap: 1.5rem; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
         #playlist-scroll-wrapper::-webkit-scrollbar { display: none; }
-        .playlist-video-card { position: relative; flex: 0 0 280px; width: 280px; }
-        .ranking-badge { position: absolute; top: -10px; left: -10px; background-color: #e53e3e; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 5; font-size: 1.25rem; border: 2px solid white; }
+        .playlist-video-card { position: relative; flex: 0 0 280px; width: 280px; padding-top: 15px; /* Make space for badge */ }
+        .ranking-badge { position: absolute; top: 0; left: 0; background-color: #e53e3e; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 5; font-size: 1.25rem; border: 2px solid white; }
         .ranking-badge-1 { background-color: #ecc94b; color: #1a202c; } /* Gold */
         .ranking-badge-2 { background-color: #d6d6d6; color: #1a202c; } /* Silver */
         .ranking-badge-3 { background-color: #cd7f32; color: white; } /* Bronze */
@@ -110,9 +110,9 @@ pageStyles: |
                 <div id="playlist-scroll-wrapper" class="px-2">
                 {% for item in youtube.planningPlaylist %}
                     <a href="https://www.youtube.com/watch?v={{ item.id }}" target="_blank" rel="noopener noreferrer" class="group block bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 playlist-video-card">
-                        <span class="ranking-badge ranking-badge-{{ loop.index }}">{{ loop.index }}</span>
-                        <div class="relative pt-10"> {# Space for badge #}
-                            <img src="{{ item.snippet.thumbnails.medium.url }}" alt="{{ item.snippet.title }}" class="w-full h-auto aspect-video object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
+                        <div class="relative">
+                             <span class="ranking-badge ranking-badge-{{ loop.index }}">{{ loop.index }}</span>
+                            <img src="{{ item.snippet.thumbnails.medium.url }}" alt="{{ item.snippet.title }}" class="w-full h-auto aspect-video object-cover group-hover:scale-105 transition-transform duration-300 rounded-t-lg" loading="lazy">
                         </div>
                         <div class="p-4 flex flex-col flex-grow">
                             <h3 class="text-gray-800 font-semibold leading-tight flex-grow mb-2">{{ item.snippet.title }}</h3>
