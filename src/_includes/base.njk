@@ -8,6 +8,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Roboto:wght@700;900&display=swap" rel="stylesheet">
+    
+    <link rel="preload" href="https://fonts.gstatic.com/s/notosansjp/v28/-F62fjtqLzI2JPCg5ZTyASzkjpgr7g435g.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="https://fonts.gstatic.com/s/roboto/v29/KFOlCnqEu92Fr1MmWUlfBBc4.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    
     {% if page.url == "/plan/" %}
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     {% endif %}
@@ -49,18 +53,18 @@
                 <div class="scroll-container-wrapper">
                     <button id="scroll-left-arrow-desktop" class="scroll-arrow hidden"></button>
                      <div id="scroll-container-desktop" class="scroll-container">
-                        <nav class="flex border-b border-gray-200">
-                            <a href="/" class="tab-item px-1 font-medium text-sm {% if page.url == '/' %}active{% endif %}">総合ハブ</a>
-                            <a href="/members/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/members/' %}active{% endif %}">👑 サポーター殿堂</a>
-                            <a href="/thought/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/thought/' %}active{% endif %}">❤️ メンバーへの想い</a>
-                            <a href="/plan/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/plan/' %}active{% endif %}">🗓️ 企画会議</a>
-                            <a href="/memberevents/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/memberevents/' %}active{% endif %}">🎉 メンバーイベント</a>
-                            <a href="https://discord.gg/YabfK2buHm" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">💬 Discord</a>
-                            <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">▶️ ゲームch</a>
-                            <a href="https://www.youtube.com/c/Maguro29Jp" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🎬 実写ch</a>
-                            <a href="https://x.com/maguro29" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🐦 X(旧Twitter)</a>
-                        </nav>
-                    </div>
+                         <nav class="flex border-b border-gray-200">
+                             <a href="/" class="tab-item px-1 font-medium text-sm {% if page.url == '/' %}active{% endif %}">総合ハブ</a>
+                             <a href="/members/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/members/' %}active{% endif %}">👑 サポーター殿堂</a>
+                             <a href="/thought/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/thought/' %}active{% endif %}">❤️ メンバーへの想い</a>
+                             <a href="/plan/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/plan/' %}active{% endif %}">🗓️ 企画会議</a>
+                             <a href="/memberevents/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/memberevents/' %}active{% endif %}">🎉 メンバーイベント</a>
+                             <a href="https://discord.gg/YabfK2buHm" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">💬 Discord</a>
+                             <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">▶️ ゲームch</a>
+                             <a href="https://www.youtube.com/c/Maguro29Jp" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🎬 実写ch</a>
+                             <a href="https://x.com/maguro29" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🐦 X(旧Twitter)</a>
+                         </nav>
+                     </div>
                     <button id="scroll-right-arrow-desktop" class="scroll-arrow"></button>
                 </div>
             </div>
@@ -84,14 +88,14 @@
                 <div id="scroll-container-mobile" class="scroll-container">
                     <nav class="flex border-b border-gray-200">
                        <a href="/" class="tab-item px-1 font-medium text-sm {% if page.url == '/' %}active{% endif %}">総合ハブ</a>
-                        <a href="/members/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/members/' %}active{% endif %}">👑 サポーター殿堂</a>
-                        <a href="/thought/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/thought/' %}active{% endif %}">❤️ メンバーへの想い</a>
-                        <a href="/plan/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/plan/' %}active{% endif %}">🗓️ 企画会議</a>
-                        <a href="/memberevents/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/memberevents/' %}active{% endif %}">🎉 メンバーイベント</a>
-                        <a href="https://discord.gg/YabfK2buHm" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">💬 Discord</a>
-                        <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">▶️ ゲームch</a>
-                        <a href="https://www.youtube.com/c/Maguro29Jp" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🎬 実写ch</a>
-                        <a href="https://x.com/maguro29" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🐦 X(旧Twitter)</a>
+                         <a href="/members/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/members/' %}active{% endif %}">👑 サポーター殿堂</a>
+                         <a href="/thought/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/thought/' %}active{% endif %}">❤️ メンバーへの想い</a>
+                         <a href="/plan/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/plan/' %}active{% endif %}">🗓️ 企画会議</a>
+                         <a href="/memberevents/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/memberevents/' %}active{% endif %}">🎉 メンバーイベント</a>
+                         <a href="https://discord.gg/YabfK2buHm" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">💬 Discord</a>
+                         <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">▶️ ゲームch</a>
+                         <a href="https://www.youtube.com/c/Maguro29Jp" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🎬 実写ch</a>
+                         <a href="https://x.com/maguro29" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🐦 X(旧Twitter)</a>
                     </nav>
                 </div>
                  <button id="scroll-right-arrow-mobile" class="scroll-arrow"></button>
@@ -104,6 +108,10 @@
             メンバーになる
         </a>
     </footer>
+
+    <!-- ▼▼▼ html2canvasライブラリを読み込みます ▼▼▼ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <script>
         function setupTabScroll(containerId, leftArrowId, rightArrowId) {
             const scrollContainer = document.getElementById(containerId);
@@ -129,9 +137,56 @@
             window.addEventListener('resize', updateArrows);
             setTimeout(updateArrows, 100);
         }
+
         window.addEventListener('load', () => {
+            // タブスクロールのセットアップ
             setupTabScroll('scroll-container-mobile', 'scroll-left-arrow-mobile', 'scroll-right-arrow-mobile');
             setupTabScroll('scroll-container-desktop', 'scroll-left-arrow-desktop', 'scroll-right-arrow-desktop');
+
+            // ▼▼▼ 修正後のスクリーンショット機能 ▼▼▼
+            const captureButton = document.getElementById('capture-schedule-btn');
+            const targetElement = document.getElementById('schedule-capture-area');
+
+            if (captureButton && targetElement) {
+                captureButton.addEventListener('click', () => {
+                    captureButton.textContent = '画像を生成中...';
+                    captureButton.disabled = true;
+
+                    // 撮影直前に補正用クラスを追加
+                    targetElement.classList.add('screenshot-mode');
+
+                    // ▼▼▼ スタイル適用と再描画を待つための遅延処理 ▼▼▼
+                    setTimeout(async () => {
+                        try {
+                            // Webフォントの読み込みが完了するのを待つ
+                            await document.fonts.ready;
+                        } catch (error) {
+                            console.error('フォントの読み込み待機中にエラーが発生しました:', error);
+                        }
+
+                        const originalScrollY = window.scrollY;
+                        window.scrollTo(0, 0);
+
+                        html2canvas(targetElement, {
+                            useCORS: true,
+                            backgroundColor: null,
+                            scale: 2,
+                            allowTaint: true
+                        }).then(canvas => {
+                            const link = document.createElement('a');
+                            link.href = canvas.toDataURL('image/png');
+                            link.download = 'schedule.png';
+                            link.click();
+                        }).finally(() => {
+                            window.scrollTo(0, originalScrollY);
+                            captureButton.textContent = '📷 スケジュールを画像で保存';
+                            captureButton.disabled = false;
+                            // 撮影後に必ず補正用クラスを削除
+                            targetElement.classList.remove('screenshot-mode');
+                        });
+                    }, 1000); // 1000ミリ秒(1秒)待機
+                });
+            }
         });
     </script>
 </body>
