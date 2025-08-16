@@ -16,7 +16,6 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     {% endif %}
     <style>
-        /* ▼▼▼ 全ページ共通のスタイル ▼▼▼ */
         body { font-family: 'Noto Sans JP', sans-serif; background-color: #f9f9f9; color: #0f0f0f; }
         .banner-container { background-image: url('https://i.imgur.com/nvMSuwR.jpeg'); background-size: cover; background-position: center; height: 30vh; max-height: 250px; }
         .tab-item { color: #606060; border-bottom: 3px solid transparent; transition: color 0.2s, border-color 0.2s; white-space: nowrap; padding-top: 1rem; padding-bottom: 1rem; }
@@ -34,7 +33,6 @@
         .hover\:text-custom-green-dark:hover { color: #588142; }
         .bg-custom-green { background-color: #6a994e; }
     </style>
-    <!-- ▼▼▼ ここに各ページ専用のスタイルが挿入されます ▼▼▼ -->
     {{ pageStyles | safe }}
 </head>
 <body class="bg-gray-50 pb-24 sm:pb-0">
@@ -102,66 +100,90 @@
             </div>
         </div>
     </div>
+    
     {{ content | safe }}
+
     <footer class="fixed bottom-0 left-0 right-0 z-10 bg-white/80 backdrop-blur-sm p-4 border-t border-gray-200 sm:hidden">
         <a href="https://www.youtube.com/channel/UCMP7QuS4suoONg47Nbi-wrg/join" target="_blank" rel="noopener noreferrer" class="w-full bg-black text-white font-bold py-3 px-4 rounded-full hover:bg-gray-800 transition-colors duration-300 text-center block">
             メンバーになる
         </a>
     </footer>
 
-    <!-- ▼▼▼ html2canvasライブラリを読み込みます ▼▼▼ -->
+    <div id="confirm-dialog" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg p-6 sm:p-8 shadow-xl text-center w-full max-w-sm">
+            <p class="mb-6 font-bold text-gray-800">スケジュールを画像として保存しますか？</p>
+            <div class="flex justify-center space-x-4">
+                <button id="confirm-yes-btn" class="bg-custom-green text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition-colors">はい</button>
+                <button id="confirm-no-btn" class="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-full hover:bg-gray-300 transition-colors">いいえ</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
-        function setupTabScroll(containerId, leftArrowId, rightArrowId) {
-            const scrollContainer = document.getElementById(containerId);
-            const leftArrow = document.getElementById(leftArrowId);
-            const rightArrow = document.getElementById(rightArrowId);
-            if (!scrollContainer || !leftArrow || !rightArrow) return;
-            function updateArrows() {
-                if (scrollContainer.scrollWidth <= scrollContainer.clientWidth) {
-                    if(leftArrow) leftArrow.classList.add('hidden');
-                    if(rightArrow) rightArrow.classList.add('hidden');
-                    return;
-                }
-                const scrollLeft = scrollContainer.scrollLeft;
-                const scrollWidth = scrollContainer.scrollWidth;
-                const clientWidth = scrollContainer.clientWidth;
-                const tolerance = 1;
-                if(leftArrow) leftArrow.classList.toggle('hidden', scrollLeft <= 0);
-                if(rightArrow) rightArrow.classList.toggle('hidden', scrollLeft + clientWidth >= scrollWidth - tolerance);
-            }
-            if(leftArrow) leftArrow.addEventListener('click', () => { scrollContainer.scrollBy({ left: -200, behavior: 'smooth' }); });
-            if(rightArrow) rightArrow.addEventListener('click', () => { scrollContainer.scrollBy({ left: 200, behavior: 'smooth' }); });
-            scrollContainer.addEventListener('scroll', updateArrows);
-            window.addEventListener('resize', updateArrows);
-            setTimeout(updateArrows, 100);
-        }
-
         window.addEventListener('load', () => {
-            // タブスクロールのセットアップ
+            function setupTabScroll(containerId, leftArrowId, rightArrowId) {
+                const scrollContainer = document.getElementById(containerId);
+                const leftArrow = document.getElementById(leftArrowId);
+                const rightArrow = document.getElementById(rightArrowId);
+                if (!scrollContainer || !leftArrow || !rightArrow) return;
+                function updateArrows() {
+                    if (scrollContainer.scrollWidth <= scrollContainer.clientWidth) {
+                        if(leftArrow) leftArrow.classList.add('hidden');
+                        if(rightArrow) rightArrow.classList.add('hidden');
+                        return;
+                    }
+                    const scrollLeft = scrollContainer.scrollLeft;
+                    const scrollWidth = scrollContainer.scrollWidth;
+                    const clientWidth = scrollContainer.clientWidth;
+                    const tolerance = 1;
+                    if(leftArrow) leftArrow.classList.toggle('hidden', scrollLeft <= 0);
+                    if(rightArrow) rightArrow.classList.toggle('hidden', scrollLeft + clientWidth >= scrollWidth - tolerance);
+                }
+                if(leftArrow) leftArrow.addEventListener('click', () => { scrollContainer.scrollBy({ left: -200, behavior: 'smooth' }); });
+                if(rightArrow) rightArrow.addEventListener('click', () => { scrollContainer.scrollBy({ left: 200, behavior: 'smooth' }); });
+                scrollContainer.addEventListener('scroll', updateArrows);
+                window.addEventListener('resize', updateArrows);
+                setTimeout(updateArrows, 100);
+            }
             setupTabScroll('scroll-container-mobile', 'scroll-left-arrow-mobile', 'scroll-right-arrow-mobile');
             setupTabScroll('scroll-container-desktop', 'scroll-left-arrow-desktop', 'scroll-right-arrow-desktop');
 
-            // ▼▼▼ 修正後のスクリーンショット機能 ▼▼▼
             const captureButton = document.getElementById('capture-schedule-btn');
             const targetElement = document.getElementById('schedule-capture-area');
+            const confirmDialog = document.getElementById('confirm-dialog');
+            const confirmYesBtn = document.getElementById('confirm-yes-btn');
+            const confirmNoBtn = document.getElementById('confirm-no-btn');
 
-            if (captureButton && targetElement) {
+            if (captureButton && targetElement && confirmDialog) {
+                
                 captureButton.addEventListener('click', () => {
-                    captureButton.textContent = '画像を生成中...';
+                    confirmDialog.classList.remove('hidden');
+                });
+
+                const closeDialog = () => confirmDialog.classList.add('hidden');
+                confirmNoBtn.addEventListener('click', closeDialog);
+                confirmDialog.addEventListener('click', (event) => {
+                    if (event.target === confirmDialog) {
+                        closeDialog();
+                    }
+                });
+
+                confirmYesBtn.addEventListener('click', () => {
+                    closeDialog();
+                    
+                    const originalButtonContent = captureButton.innerHTML;
+                    captureButton.innerHTML = '...';
                     captureButton.disabled = true;
 
-                    // 撮影直前に補正用クラスを追加
                     targetElement.classList.add('screenshot-mode');
 
-                    // ▼▼▼ スタイル適用と再描画を待つための遅延処理 ▼▼▼
                     setTimeout(async () => {
                         try {
-                            // Webフォントの読み込みが完了するのを待つ
                             await document.fonts.ready;
                         } catch (error) {
-                            console.error('フォントの読み込み待機中にエラーが発生しました:', error);
+                            console.error('Font loading error:', error);
                         }
 
                         const originalScrollY = window.scrollY;
@@ -171,7 +193,8 @@
                             useCORS: true,
                             backgroundColor: null,
                             scale: 2,
-                            allowTaint: true
+                            allowTaint: true,
+                            ignoreElements: (element) => element.id === 'capture-schedule-btn'
                         }).then(canvas => {
                             const link = document.createElement('a');
                             link.href = canvas.toDataURL('image/png');
@@ -179,12 +202,11 @@
                             link.click();
                         }).finally(() => {
                             window.scrollTo(0, originalScrollY);
-                            captureButton.textContent = '📷 スケジュールを画像で保存';
+                            captureButton.innerHTML = originalButtonContent;
                             captureButton.disabled = false;
-                            // 撮影後に必ず補正用クラスを削除
                             targetElement.classList.remove('screenshot-mode');
                         });
-                    }, 1000); // 1000ミリ秒(1秒)待機
+                    }, 1000);
                 });
             }
         });

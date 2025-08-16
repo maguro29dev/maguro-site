@@ -12,60 +12,51 @@ pageStyles: |
 
         /* ▼▼▼ スケジュール用の新しいスタイル ▼▼▼ */
         .schedule-card {
-            position: relative; /* キャラクター画像を配置するための基準点 */
+            position: relative; /* ボタンを配置するための基準点 */
             border: 3px solid #6a994e;
-            background-image: url("https://i.imgur.com/ew3XjDq.png"); /* ご提供いただいた背景画像 */
-            background-size: cover; /* 画像がカード全体を覆うように調整 */
-            background-position: center; /* 画像の中央が表示されるように調整 */
+            background-image: url("https://i.imgur.com/ew3XjDq.png");
+            background-size: cover;
+            background-position: center;
         }
         .schedule-character {
             position: absolute;
-            top: 50px;      /* 位置を調整 (上からの距離) */
-            left: 5px;      /* 位置を調整 (左からの距離) */
-            width: 160px;   /* サイズを調整 */
+            top: 50px;
+            left: 5px;
+            width: 160px;
             height: auto;
             z-index: 1;
-            pointer-events: none; /* 画像がクリック操作の邪魔にならないように */
+            pointer-events: none;
         }
         .schedule-main-title {
             font-family: 'Noto Sans JP', sans-serif;
-            font-weight: 900; /* 最も太いウェイト */
-            color: #38a169; /* 緑色 */
-            -webkit-text-stroke: 2px white; /* 白い縁取り */
-            paint-order: stroke fill; /* 縁取りを文字の背面に描画 */
-            text-shadow: 3px 3px 5px rgba(0,0,0,0.2); /* ソフトなドロップシャドウ */
+            font-weight: 900;
+            color: #38a169;
+            -webkit-text-stroke: 2px white;
+            paint-order: stroke fill;
+            text-shadow: 3px 3px 5px rgba(0,0,0,0.2);
         }
         .schedule-col-title {
             font-weight: 700;
             color: #2f855a;
-            background-color: rgba(255, 255, 255, 0.8); /* 背景を少し濃くして可読性を上げる */
+            background-color: rgba(255, 255, 255, 0.8);
             padding: 0.5rem 1rem;
-            border-radius: 9999px; /* 丸い形 */
+            border-radius: 9999px;
             display: inline-block;
             border: 2px solid #6a994e;
         }
         .schedule-item {
-            background-color: rgba(255, 255, 255, 0.9); /* 背景画像が少し透けるように */
+            background-color: rgba(255, 255, 255, 0.9);
             border-left: 5px solid #6a994e;
             transition: all 0.2s ease-in-out;
         }
         .schedule-item:hover {
             transform: translateY(-3px) scale(1.02);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            background-color: #ffffff; /* ホバー時は不透明に */
+            background-color: #ffffff;
         }
-        .schedule-item-date {
-            font-weight: 700;
-            color: #c53030; /* 赤系の色 */
-        }
-        .schedule-item-day {
-            font-weight: 900;
-            color: #4a5568;
-        }
-        .schedule-item-text {
-            font-weight: 700;
-            color: #2d3748;
-        }
+        .schedule-item-date { font-weight: 700; color: #c53030; }
+        .schedule-item-day { font-weight: 900; color: #4a5568; }
+        .schedule-item-text { font-weight: 700; color: #2d3748; }
         
         /* ▼▼▼ メンバーシップ特典用のスタイル ▼▼▼ */
         .membership-tier-title {
@@ -73,7 +64,7 @@ pageStyles: |
             color: #2f855a;
             background-color: rgba(255, 255, 255, 0.8);
             padding: 0.5rem 1rem;
-            border-radius: 0.5rem; /* 少し角丸に */
+            border-radius: 0.5rem;
             display: inline-block;
             border: 2px solid #6a994e;
         }
@@ -96,22 +87,35 @@ pageStyles: |
         }
 
         /* ▼▼▼ スクリーンショットの文字ズレ補正用（撮影時のみ適用） ▼▼▼ */
-
-        /* Contentfulから読み込むコンテンツの補正値 */
         #schedule-capture-area.screenshot-mode .schedule-item-text,
         #schedule-capture-area.screenshot-mode .schedule-item-date,
         #schedule-capture-area.screenshot-mode .schedule-item-day {
-            position: relative;
-            top: -5px; /* この数値で微調整済み */
+            transform: translateY(-3px) !important;
         }
-
-        /* タイトルと見出しの「文字だけ」を動かす補正値 */
-        /* こちらの数値を調整して、ピッタリの位置を探してください */
         #schedule-capture-area.screenshot-mode .schedule-main-title > span,
         #schedule-capture-area.screenshot-mode .schedule-col-title > span {
-            position: relative;
             display: inline-block;
-            top: -8px; /* 例: -6px, -8px など */
+            transform: translateY(-4px) !important;
+        }
+
+        /* ▼▼▼ スクショボタン用のスタイル ▼▼▼ */
+        #capture-schedule-btn {
+            position: absolute;
+            bottom: 1rem; /* 16px */
+            right: 1rem;  /* 16px */
+            z-index: 10;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem; /* 24px */
+            line-height: 2rem; /* 32px */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            transition: all 0.2s ease-in-out;
+        }
+        #capture-schedule-btn:hover {
+            transform: scale(1.1);
         }
     </style>
 ---
@@ -120,7 +124,6 @@ pageStyles: |
 
     {# --- ライブ状況＆カウントダウンパネル (全自動) --- #}
     <section id="live-status-panel" class="mb-8">
-        {# ライブ配信中の場合 #}
         {% if youtube.liveVideo %}
             <a href="https://www.youtube.com/watch?v={{ youtube.liveVideo.id.videoId }}" target="_blank" rel="noopener noreferrer" class="block bg-red-600 text-white p-4 rounded-lg shadow-lg hover:bg-red-700 transition-colors duration-300">
                 <div class="flex items-center justify-center space-x-4">
@@ -131,7 +134,6 @@ pageStyles: |
                     <p class="text-lg font-bold">🔴 ライブ配信中！「{{ youtube.liveVideo.snippet.title }}」</p>
                 </div>
             </a>
-        {# ライブ配信中でなく、次の配信予定がある場合 #}
         {% elif youtube.upcomingVideos.length > 0 %}
             {% set nextVideo = youtube.upcomingVideos[0] %}
             <div class="bg-white p-6 rounded-lg shadow text-center">
@@ -153,22 +155,15 @@ pageStyles: |
     <section id="schedule" class="my-10">
         <div id="schedule-capture-area" class="schedule-card max-w-7xl mx-auto rounded-2xl shadow-xl p-5 sm:p-8 overflow-hidden">
             
-            {# 左上に表示するキャラクター画像 #}
             <img src="https://i.imgur.com/r5Novxv.png" alt="キャラクター" class="schedule-character">
 
-            <!-- コンテンツをキャラクターの上に表示するためのラッパー -->
             <div style="position: relative; z-index: 2;">
-                {# ヘッダー部分 #}
                 <div class="text-center mb-8">
                     <h2 class="schedule-main-title text-4xl sm:text-5xl">
                         <span>🗓️ 今後のスケジュール</span>
                     </h2>
                 </div>
-
-                {# PCでは3カラム、スマホでは1カラムになるグリッドレイアウト #}
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    
-                    {# カラム1: 自動更新エリア #}
                     <div class="text-center">
                         <h3 class="schedule-col-title mb-6">
                             <span><span class="text-xl mr-2">🔴</span>配信予定</span>
@@ -190,8 +185,6 @@ pageStyles: |
                             {% endif %}
                         </div>
                     </div>
-
-                    {# カラム2: Contentful管理エリア：リアイベ情報 #}
                     <div class="text-center">
                         <h3 class="schedule-col-title mb-6">
                             <span><span class="text-xl mr-2">🎟️</span>リアイベ情報</span>
@@ -213,8 +206,6 @@ pageStyles: |
                             {% endif %}
                         </div>
                     </div>
-
-                    {# カラム3: Contentful管理エリア：週のスケジュール #}
                     <div class="text-center">
                         <h3 class="schedule-col-title mb-6">
                             <span><span class="text-xl mr-2">📅</span>今週のスケジュール</span>
@@ -239,15 +230,12 @@ pageStyles: |
                 </div>
                 <p class="text-sm font-bold text-red-600 mt-8 text-left border-t border-gray-200 pt-4">※時間や内容はX(旧Twitter)でお知らせします！</p>
             </div>
+            
+            <button id="capture-schedule-btn" class="bg-custom-green text-white shadow-md">
+                📷️
+            </button>
         </div>
     </section>
-
-    <div class="text-center mb-8">
-        <button id="capture-schedule-btn" class="bg-custom-green text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition-colors duration-300 shadow-md">
-            <span class="mr-2">📷</span>スケジュールを画像で保存
-        </button>
-    </div>
-
 
     {# --- メンバーシップ特典セクション --- #}
     <section id="membership" class="my-10">
@@ -259,8 +247,6 @@ pageStyles: |
                     </h2>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    
-                    <!-- カラム1: 全プラン共通 -->
                     <div class="text-center">
                         <h3 class="membership-tier-title mb-6">【全プラン共通】</h3>
                         <div class="space-y-3 text-left">
@@ -272,25 +258,21 @@ pageStyles: |
                             <a href="https://discord.gg/YabfK2buHm" class="membership-item">Discordコミュニティ</a>
                         </div>
                     </div>
-
-                    <!-- カラム2: 中トロ以上 -->
                     <div class="text-center">
                         <h3 class="membership-tier-title mb-6">【中トロ以上】</h3>
                         <div class="space-y-3 text-left">
                             <a href="https://www.youtube.com/playlist?list=PL5rEiNRr-t0kHgOa0AN985MkPrCLg9CXW" target="_blank" rel="noopener noreferrer" class="membership-item">限定ショート動画</a>
                             <a href="https://maguro29info.netlify.app/memberevents/" class="membership-item">オフ会のご案内</a>
-                            <a href="https://www.youtube.com/@%E3%82%B2%E3%83%B3%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83/membership" target="_blank" rel="noopener noreferrer" class="membership-item">「まぐ家」投稿チラ見せ</a>
+                            <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83/membership" target="_blank" rel="noopener noreferrer" class="membership-item">「まぐ家」投稿チラ見せ</a>
                             <a href="https://docs.google.com/document/d/1aVax0d8e4TWdn173e9HilPREfg9BatMigU34dTgbRHs/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="membership-item">📜 イベント憲章（必読）</a>
                         </div>
                     </div>
-
-                    <!-- カラム3: 大トロ限定 -->
                     <div class="text-center">
                         <h3 class="membership-tier-title mb-6">【大トロ限定】</h3>
                         <div class="space-y-3 text-left">
                             <a href="https://www.youtube.com/playlist?list=PL5rEiNRr-t0mD91iWjslaCHWAWtYachpz" target="_blank" rel="noopener noreferrer" class="membership-item">プライベート配信</a>
                             <a href="https://www.youtube.com/playlist?list=PL5rEiNRr-t0nZOYWf3i0cHLQ6pW_vdcJd" target="_blank" rel="noopener noreferrer" class="membership-item">動画の無編集版</a>
-                            <a href="https://www.youtube.com/@%E3%82%B2%E3%83%B3%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83/membership" target="_blank" rel="noopener noreferrer" class="membership-item">「まぐ家」毎日投稿</a>
+                            <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83/membership" target="_blank" rel="noopener noreferrer" class="membership-item">「まぐ家」毎日投稿</a>
                             <a href="https://maguro29info.netlify.app/memberevents/" class="membership-item">オンライン/リアル企画</a>
                             <a href="https://www.youtube.com/post/UgkxuqjCpfvhz2hR_rnvmSmk8l-fF-rVc7A0" target="_blank" rel="noopener noreferrer" class="membership-item">📝 感謝表現ご意向確認</a>
                         </div>
@@ -364,7 +346,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (distance < 0) {
                 clearInterval(interval);
-                // カウントダウン終了後、ページをリロードしてライブ中の表示に切り替える
                 countdownElement.innerHTML = "まもなく開始します！";
                 setTimeout(() => window.location.reload(), 5000);
                 return;
