@@ -37,7 +37,8 @@
 </head>
 <body class="bg-gray-50 pb-24 sm:pb-0">
     <div class="banner-container w-full"></div>
-    <div class="hidden sm:block sticky top-0 z-10 bg-white shadow-sm">
+    <!-- ▼▼▼ z-10 を z-20 に変更 ▼▼▼ -->
+    <div class="hidden sm:block sticky top-0 z-20 bg-white shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col">
                 <div class="flex flex-row items-end -mt-12 space-x-6 pt-4 pb-4">
@@ -79,7 +80,8 @@
             </div>
         </div>
     </div>
-    <div class="block sm:hidden sticky top-0 z-10 bg-white shadow-sm">
+    <!-- ▼▼▼ z-10 を z-20 に変更 ▼▼▼ -->
+    <div class="block sm:hidden sticky top-0 z-20 bg-white shadow-sm">
         <div class="max-w-7xl mx-auto px-4">
             <div class="scroll-container-wrapper">
                 <button id="scroll-left-arrow-mobile" class="scroll-arrow hidden"></button>
@@ -103,7 +105,8 @@
     
     {{ content | safe }}
 
-    <footer class="fixed bottom-0 left-0 right-0 z-10 bg-white/80 backdrop-blur-sm p-4 border-t border-gray-200 sm:hidden">
+    <!-- ▼▼▼ z-10 を z-20 に変更 ▼▼▼ -->
+    <footer class="fixed bottom-0 left-0 right-0 z-20 bg-white/80 backdrop-blur-sm p-4 border-t border-gray-200 sm:hidden">
         <a href="https://www.youtube.com/channel/UCMP7QuS4suoONg47Nbi-wrg/join" target="_blank" rel="noopener noreferrer" class="w-full bg-black text-white font-bold py-3 px-4 rounded-full hover:bg-gray-800 transition-colors duration-300 text-center block">
             メンバーになる
         </a>
@@ -206,7 +209,7 @@
                             captureButton.disabled = false;
                             targetElement.classList.remove('screenshot-mode');
                         });
-                    }, 1000);
+                    }, 100);
                 });
             }
         });
