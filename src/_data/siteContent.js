@@ -24,6 +24,8 @@ module.exports = async function () {
     const settings = await client.getEntries({ content_type: 'siteSettings', limit: 1 });
     const currentEvent = await client.getEntries({ content_type: 'currentEvent', 'fields.isActive': true, limit: 1 });
     const realEvents = await client.getEntries({ content_type: 'realEvent', order: 'fields.order' });
+    // ▼▼▼【追加】メンバーシップ特典を取得 ▼▼▼
+    const membershipBenefits = await client.getEntries({ content_type: 'membershipBenefit', order: 'fields.order' });
 
     console.log("Data fetched successfully!");
 
@@ -35,10 +37,12 @@ module.exports = async function () {
       weeklySchedule: weeklySchedule.items,
       settings: settings.items[0],
       currentEvent: currentEvent.items[0],
-      realEvents: realEvents.items
+      realEvents: realEvents.items,
+      // ▼▼▼【追加】取得したデータを返す ▼▼▼
+      membershipBenefits: membershipBenefits.items,
     };
   } catch (error) {
-    console.error("Error fetching data from Contentful:", error.message);
+    console.error("Error fetching Contentful data:", error.message);
     return {};
   }
 };

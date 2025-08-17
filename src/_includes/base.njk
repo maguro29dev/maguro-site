@@ -34,6 +34,26 @@
         .bg-custom-green { background-color: #6a994e; }
     </style>
     {{ pageStyles | safe }}
+
+    <!-- ▼▼▼【追加】NEWマーク用のスタイル ▼▼▼ -->
+    <style>
+        .new-badge {
+            background-color: #ef4444; /* 赤色 */
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 900;
+            padding: 0.1rem 0.5rem;
+            border-radius: 9999px;
+            margin-left: 0.75rem;
+            line-height: 1;
+            animation: bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.320, 1.275);
+            transform-origin: center;
+        }
+        @keyframes bounce-in {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
 </head>
 <body class="bg-gray-50 pb-24 sm:pb-0">
     <div class="banner-container w-full"></div>
@@ -87,7 +107,7 @@
                 <button id="scroll-left-arrow-mobile" class="scroll-arrow hidden"></button>
                 <div id="scroll-container-mobile" class="scroll-container">
                     <nav class="flex border-b border-gray-200">
-                       <a href="/" class="tab-item px-1 font-medium text-sm {% if page.url == '/' %}active{% endif %}">総合ハブ</a>
+                         <a href="/" class="tab-item px-1 font-medium text-sm {% if page.url == '/' %}active{% endif %}">総合ハブ</a>
                          <a href="/members/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/members/' %}active{% endif %}">👑 サポーター殿堂</a>
                          <a href="/thought/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/thought/' %}active{% endif %}">❤️ メンバーへの想い</a>
                          <a href="/plan/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/plan/' %}active{% endif %}">🗓️ 企画会議</a>

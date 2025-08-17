@@ -111,14 +111,15 @@ pageStyles: |
                 {% for item in youtube.planningPlaylist %}
                     <a href="https://www.youtube.com/watch?v={{ item.id }}" target="_blank" rel="noopener noreferrer" class="group block bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 playlist-video-card">
                         <div class="relative">
-                             <span class="ranking-badge ranking-badge-{{ loop.index }}">{{ loop.index }}</span>
+                            <span class="ranking-badge ranking-badge-{{ loop.index }}">{{ loop.index }}</span>
                             <img src="{{ item.snippet.thumbnails.medium.url }}" alt="{{ item.snippet.title }}" class="w-full h-auto aspect-video object-cover group-hover:scale-105 transition-transform duration-300 rounded-t-lg" loading="lazy">
                         </div>
                         <div class="p-4 flex flex-col flex-grow">
                             <h3 class="text-gray-800 font-semibold leading-tight flex-grow mb-2">{{ item.snippet.title }}</h3>
                             <div class="video-stats border-t border-gray-200 pt-2 mt-auto">
-                                <span>👁️ {{ item.statistics.viewCount | numberFormat }}</span>
-                                <span>👍 {{ item.statistics.likeCount | numberFormat }}</span>
+                                {# ▼▼▼【修正】numberFormat を commaNumber に変更 ▼▼▼ #}
+                                <span>👁️ {{ item.statistics.viewCount | commaNumber }}</span>
+                                <span>👍 {{ item.statistics.likeCount | commaNumber }}</span>
                             </div>
                         </div>
                     </a>

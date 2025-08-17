@@ -43,21 +43,26 @@ module.exports = function (eleventyConfig) {
   });
 
   // 数字をカンマ区切りにするフィルター (例: 12345 → 12,345)
-  eleventyConfig.addFilter("numberFormat", (value) => {
-    if (!value && value !== 0) return "0";
-    return new Intl.NumberFormat('ja-JP').format(value);
+  eleventyConfig.addFilter("commaNumber", (number) => {
+    if (number === undefined || number === null) return '';
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   });
+
+  // Eleventyが監視するファイルを追加
+  eleventyConfig.addWatchTarget("./src/css/");
+
+  // パススルーコピーの設定
+  eleventyConfig.addPassthroughCopy("src/images");
 
   return {
     dir: {
-      input: 'src',
-      output: '_site',
-      includes: '_includes',
-      data: '_data',
+      input: "src",
+      output: "_site",
+      includes: "_includes",
+      data: "_data"
     },
-    templateFormats: ['md', 'njk', 'html'],
-    markdownTemplateEngine: 'njk',
-    htmlTemplateEngine: 'njk',
-    dataTemplateEngine: 'njk',
+    templateFormats: ["html", "njk", "md"],
+    htmlTemplateEngine: "njk",
+    markdownTemplateEngine: "njk",
   };
 };

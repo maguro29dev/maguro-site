@@ -52,6 +52,25 @@ async function fetchRankedPlaylistVideos(playlistId) {
   return rankedVideos;
 }
 
+// ▼▼▼【追加】再生リストの最終更新日時を取得する関数 ▼▼▼
+async function getPlaylistLastUpdate(playlistId) {
+    if (!playlistId || !YOUTUBE_API_KEY) {
+        return null;
+    }
+    try {
+        const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=1&key=${YOUTUBE_API_KEY}`;
+        const data = await EleventyFetch(url, { duration: "1h", type: "json" });
+        // 最新の動画が追加された日時を返す
+        if (data.items && data.items.length > 0) {
+            return data.items[0].snippet.publishedAt;
+        }
+        return null;
+    } catch (error) {
+        console.error(`Error fetching playlist ${playlistId}:`, error.message);
+        return null;
+    }
+}
+
 module.exports = async function() {
   console.log("Fetching YouTube data...");
   try {
@@ -88,7 +107,9 @@ module.exports = async function() {
       upcoming: upcomingData,
       planningPlaylist: rankedPlaylistData, // ランキングデータ
       liveVideo: liveVideo,
-      upcomingVideos: upcomingVideos_detailed
+      upcomingVideos: upcomingVideos_detailed,
+      // ▼▼▼【追加】作成した関数を他のファイルで使えるようにエクスポート ▼▼▼
+      getPlaylistLastUpdate: getPlaylistLastUpdate
     };
   } catch (error) {
     console.error("Error fetching YouTube data:", error.message);
@@ -97,7 +118,9 @@ module.exports = async function() {
       upcoming: { items: [] },
       planningPlaylist: [],
       liveVideo: null,
-      upcomingVideos: []
+      upcomingVideos: [],
+      // ▼▼▼【追加】エラー時も関数として存在させる ▼▼▼
+      getPlaylistLastUpdate: async () => null
     };
   }
 };
