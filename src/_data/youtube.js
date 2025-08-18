@@ -84,8 +84,30 @@ module.exports = async function() {
       rankedPlaylistPromise
     ]);
 
-    // index.njkのための後方互換性データ
-    const liveVideo = liveData.items && liveData.items.length > 0 ? liveData.items[0] : null;
+    // ▼▼▼【ここから変更】ライブ中の動画がプレミア公開か判別するロジックを追加 ▼▼▼
+    let liveVideo = null;
+    if (liveData.items && liveData.items.length > 0) {
+        const videoId = liveData.items[0].id.videoId;
+        // videos APIを叩いて詳細情報を取得
+        const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?key=${YOUTUBE_API_KEY}&part=contentDetails,liveStreamingDetails&id=${videoId}`;
+        const videoDetailsData = await EleventyFetch(videoDetailsUrl, { duration: "1m", type: "json" });
+        
+        let isPremiere = false;
+        if (videoDetailsData.items && videoDetailsData.items.length > 0) {
+            const duration = videoDetailsData.items[0].contentDetails.duration;
+            // durationがPT0Sでなければプレミア公開と判断
+            if (duration !== 'PT0S') {
+                isPremiere = true;
+            }
+        }
+        
+        liveVideo = { 
+            ...liveData.items[0],
+            isPremiere: isPremiere // 判別結果をオブジェクトに追加
+        };
+    }
+    // ▲▲▲【ここまで変更】▲▲▲
+
     const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${YOUTUBE_CHANNEL_ID}&key=${YOUTUBE_API_KEY}`;
     const channelData = await EleventyFetch(channelUrl, { duration: "1d", type: "json" });
     const uploadsPlaylistId = channelData.items[0].contentDetails.relatedPlaylists.uploads;
@@ -105,10 +127,9 @@ module.exports = async function() {
     return {
       live: liveData,
       upcoming: upcomingData,
-      planningPlaylist: rankedPlaylistData, // ランキングデータ
+      planningPlaylist: rankedPlaylistData,
       liveVideo: liveVideo,
       upcomingVideos: upcomingVideos_detailed,
-      // ▼▼▼【追加】作成した関数を他のファイルで使えるようにエクスポート ▼▼▼
       getPlaylistLastUpdate: getPlaylistLastUpdate
     };
   } catch (error) {
@@ -119,7 +140,6 @@ module.exports = async function() {
       planningPlaylist: [],
       liveVideo: null,
       upcomingVideos: [],
-      // ▼▼▼【追加】エラー時も関数として存在させる ▼▼▼
       getPlaylistLastUpdate: async () => null
     };
   }
