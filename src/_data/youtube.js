@@ -52,7 +52,7 @@ async function fetchRankedPlaylistVideos(playlistId) {
   return rankedVideos;
 }
 
-// ▼▼▼【追加】再生リストの最終更新日時を取得する関数 ▼▼▼
+// 再生リストの最終更新日時を取得する関数
 async function getPlaylistLastUpdate(playlistId) {
     if (!playlistId || !YOUTUBE_API_KEY) {
         return null;
@@ -84,27 +84,37 @@ module.exports = async function() {
       rankedPlaylistPromise
     ]);
 
-    // ▼▼▼【ここから変更】ライブ中の動画がプレミア公開か判別するロジックを追加 ▼▼▼
+    // ▼▼▼【ここから変更】ロジックを全面的に見直し ▼▼▼
     let liveVideo = null;
     if (liveData.items && liveData.items.length > 0) {
         const videoId = liveData.items[0].id.videoId;
-        // videos APIを叩いて詳細情報を取得
-        const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?key=${YOUTUBE_API_KEY}&part=contentDetails,liveStreamingDetails&id=${videoId}`;
+        // videos APIを叩いて詳細情報を取得 (snippetも追加で取得)
+        const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?key=${YOUTUBE_API_KEY}&part=snippet,liveStreamingDetails&id=${videoId}`;
         const videoDetailsData = await EleventyFetch(videoDetailsUrl, { duration: "1m", type: "json" });
         
-        let isPremiere = false;
         if (videoDetailsData.items && videoDetailsData.items.length > 0) {
-            const duration = videoDetailsData.items[0].contentDetails.duration;
-            // durationがPT0Sでなければプレミア公開と判断
-            if (duration !== 'PT0S') {
-                isPremiere = true;
+            const details = videoDetailsData.items[0];
+            const liveDetails = details.liveStreamingDetails;
+
+            // 1. ライブが本当に終了していないか最終確認
+            const isTrulyLive = details.snippet.liveBroadcastContent === 'live' && !liveDetails.actualEndTime;
+
+            if (isTrulyLive) {
+                // 2. プレミア公開かライブ配信かを判別
+                let isPremiere = false;
+                if (liveDetails.actualStartTime && liveDetails.scheduledStartTime) {
+                    // 予定時刻と実際の開始時刻が完全一致ならプレミア公開と判断
+                    if (new Date(liveDetails.actualStartTime).getTime() === new Date(liveDetails.scheduledStartTime).getTime()) {
+                        isPremiere = true;
+                    }
+                }
+                
+                liveVideo = { 
+                    ...liveData.items[0],
+                    isPremiere: isPremiere // 判別結果をオブジェクトに追加
+                };
             }
         }
-        
-        liveVideo = { 
-            ...liveData.items[0],
-            isPremiere: isPremiere // 判別結果をオブジェクトに追加
-        };
     }
     // ▲▲▲【ここまで変更】▲▲▲
 
