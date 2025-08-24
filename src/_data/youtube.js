@@ -84,7 +84,6 @@ module.exports = async function() {
       rankedPlaylistPromise
     ]);
 
-    // ▼▼▼【ここから変更】ロジックを全面的に見直し ▼▼▼
     let liveVideo = null;
     if (liveData.items && liveData.items.length > 0) {
         const videoId = liveData.items[0].id.videoId;
@@ -102,12 +101,19 @@ module.exports = async function() {
             if (isTrulyLive) {
                 // 2. プレミア公開かライブ配信かを判別
                 let isPremiere = false;
+                
+                // ▼▼▼【ここを修正】▼▼▼
+                // 予定時刻と実際の開始時刻が完全一致するケースは稀なため、
+                // わずかな時間差（ここでは10秒）を許容して判定するように変更
                 if (liveDetails.actualStartTime && liveDetails.scheduledStartTime) {
-                    // 予定時刻と実際の開始時刻が完全一致ならプレミア公開と判断
-                    if (new Date(liveDetails.actualStartTime).getTime() === new Date(liveDetails.scheduledStartTime).getTime()) {
+                    const timeDifference = Math.abs(new Date(liveDetails.actualStartTime).getTime() - new Date(liveDetails.scheduledStartTime).getTime());
+                    
+                    // 差が10秒（10000ミリ秒）以内であればプレミア公開と判定
+                    if (timeDifference < 10000) {
                         isPremiere = true;
                     }
                 }
+                // ▲▲▲【修正ここまで】▲▲▲
                 
                 liveVideo = { 
                     ...liveData.items[0],
@@ -116,7 +122,6 @@ module.exports = async function() {
             }
         }
     }
-    // ▲▲▲【ここまで変更】▲▲▲
 
     const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${YOUTUBE_CHANNEL_ID}&key=${YOUTUBE_API_KEY}`;
     const channelData = await EleventyFetch(channelUrl, { duration: "1d", type: "json" });
