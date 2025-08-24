@@ -13,7 +13,8 @@ async function fetchChannelVideos(eventType) {
     console.error("API Key or Channel ID is missing. Aborting API call to search endpoint.");
     return { items: [] };
   }
-  const url = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${YOUTUBE_CHANNEL_ID}&part=snippet,id&order=date&maxResults=5&eventType=${eventType}&type=video`;
+  // プレミア公開を確実に捉えるため、maxResultsを少し増やしておく
+  const url = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${YOUTUBE_CHANNEL_ID}&part=snippet,id&order=date&maxResults=10&eventType=${eventType}&type=video`;
   return EleventyFetch(url, { duration: "1m", type: "json" });
 }
 
@@ -23,44 +24,31 @@ async function fetchRankedPlaylistVideos(playlistId) {
     console.warn("API Key or Playlist ID is not set. Skipping playlist fetch.");
     return [];
   }
-
-  // 1. 再生リストから最大50件の動画IDを取得
   const playlistItemsUrl = `https://www.googleapis.com/youtube/v3/playlistItems?key=${YOUTUBE_API_KEY}&part=snippet&playlistId=${playlistId}&maxResults=50`;
   const playlistData = await EleventyFetch(playlistItemsUrl, { duration: "1d", type: "json" });
-
   if (!playlistData.items || playlistData.items.length === 0) {
     return [];
   }
   const videoIds = playlistData.items.map(item => item.snippet.resourceId.videoId);
-
-  // 2. 取得した動画IDを元に、再生回数や高評価などの詳細情報を取得
   const videosUrl = `https://www.googleapis.com/youtube/v3/videos?key=${YOUTUBE_API_KEY}&part=snippet,statistics&id=${videoIds.join(',')}`;
   const videosData = await EleventyFetch(videosUrl, { duration: "1d", type: "json" });
-
-  // 3. スコアを計算し、人気順に並び替えて上位5件を返す
-  const rankedVideos = videosData.items
+  return videosData.items
     .map(video => {
       const viewCount = parseInt(video.statistics.viewCount, 10) || 0;
       const likeCount = parseInt(video.statistics.likeCount, 10) || 0;
-      // スコア計算式: 再生回数 + (高評価数 * 10) ※高評価を10倍重視
       const score = viewCount + (likeCount * 10);
       return { ...video, score: score };
     })
-    .sort((a, b) => b.score - a.score) // スコアの高い順にソート
-    .slice(0, 5); // 上位5件を取得
-
-  return rankedVideos;
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
 }
 
 // 再生リストの最終更新日時を取得する関数
 async function getPlaylistLastUpdate(playlistId) {
-    if (!playlistId || !YOUTUBE_API_KEY) {
-        return null;
-    }
+    if (!playlistId || !YOUTUBE_API_KEY) return null;
     try {
         const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=1&key=${YOUTUBE_API_KEY}`;
         const data = await EleventyFetch(url, { duration: "1h", type: "json" });
-        // 最新の動画が追加された日時を返す
         if (data.items && data.items.length > 0) {
             return data.items[0].snippet.publishedAt;
         }
@@ -75,6 +63,7 @@ module.exports = async function() {
   console.log("Fetching YouTube data...");
   try {
     const livePromise = fetchChannelVideos("live");
+    // upcomingPromiseは今回直接は使わないが、並列取得は維持
     const upcomingPromise = fetchChannelVideos("upcoming");
     const rankedPlaylistPromise = fetchRankedPlaylistVideos(YOUTUBE_PLANNING_PLAYLIST_ID);
 
@@ -87,7 +76,6 @@ module.exports = async function() {
     let liveVideo = null;
     if (liveData.items && liveData.items.length > 0) {
         const videoId = liveData.items[0].id.videoId;
-        // videos APIを叩いて詳細情報を取得 (snippetも追加で取得)
         const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?key=${YOUTUBE_API_KEY}&part=snippet,liveStreamingDetails&id=${videoId}`;
         const videoDetailsData = await EleventyFetch(videoDetailsUrl, { duration: "1m", type: "json" });
         
@@ -95,34 +83,32 @@ module.exports = async function() {
             const details = videoDetailsData.items[0];
             const liveDetails = details.liveStreamingDetails;
 
-            // 1. ライブが本当に終了していないか最終確認
-            const isTrulyLive = details.snippet.liveBroadcastContent === 'live' && !liveDetails.actualEndTime;
+            // ▼▼▼【ここを全面的に修正】▼▼▼
+            // liveBroadcastContentに頼らず、実際の開始時刻と終了時刻で判定する
+            const isCurrentlyStreaming = liveDetails && liveDetails.actualStartTime && !liveDetails.actualEndTime;
 
-            if (isTrulyLive) {
-                // 2. プレミア公開かライブ配信かを判別
+            if (isCurrentlyStreaming) {
                 let isPremiere = false;
-                
-                // ▼▼▼【ここを修正】▼▼▼
-                // 予定時刻と実際の開始時刻が完全一致するケースは稀なため、
-                // わずかな時間差（ここでは10秒）を許容して判定するように変更
-                if (liveDetails.actualStartTime && liveDetails.scheduledStartTime) {
+                // 予定時刻があり、実際の開始時刻との差がわずかであればプレミア公開と判定
+                if (liveDetails.scheduledStartTime) {
                     const timeDifference = Math.abs(new Date(liveDetails.actualStartTime).getTime() - new Date(liveDetails.scheduledStartTime).getTime());
-                    
-                    // 差が10秒（10000ミリ秒）以内であればプレミア公開と判定
-                    if (timeDifference < 10000) {
+                    // 差が60秒（60000ミリ秒）以内であればプレミア公開と判定（少し余裕を持たせる）
+                    if (timeDifference < 60000) {
                         isPremiere = true;
                     }
                 }
-                // ▲▲▲【修正ここまで】▲▲▲
                 
                 liveVideo = { 
-                    ...liveData.items[0],
-                    isPremiere: isPremiere // 判別結果をオブジェクトに追加
+                    ...liveData.items[0], // search API のスニペット情報をベースにする
+                    snippet: details.snippet, // video API の詳細なスニペット情報で上書き
+                    isPremiere: isPremiere
                 };
             }
+            // ▲▲▲【修正ここまで】▲▲▲
         }
     }
 
+    // 配信予定リストの取得ロジック (こちらは変更なし)
     const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${YOUTUBE_CHANNEL_ID}&key=${YOUTUBE_API_KEY}`;
     const channelData = await EleventyFetch(channelUrl, { duration: "1d", type: "json" });
     const uploadsPlaylistId = channelData.items[0].contentDetails.relatedPlaylists.uploads;
