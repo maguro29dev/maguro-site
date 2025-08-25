@@ -351,8 +351,8 @@ pageStyles: |
         </div>
     </section>
 
-    {# --- グッズ情報 --- #}
-    <section class="my-8">
+    <!-- ▼▼▼【変更】IDを追加 ▼▼▼ -->
+    <section id="goods" class="my-8">
         <div class="bg-white p-6 rounded-lg shadow">
             <h2 class="text-xl 
  font-bold mb-4 info-title">
@@ -371,8 +371,8 @@ pageStyles: |
         </div>
     </section>
 
-    {# --- 歩き方 & ご意見箱 --- #}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-8">
+    <!-- ▼▼▼【変更】IDを追加 ▼▼▼ -->
+    <div id="community-info" class="grid grid-cols-1 md:grid-cols-2 gap-8 my-8">
         <section>
             <h2 class="text-xl font-bold mb-4 info-title">
                 <span class="mr-2">📖</span>コミュニティの歩き方
@@ -446,5 +446,36 @@ document.addEventListener('DOMContentLoaded', () => {
             countdownElement.innerHTML = timerHtml;
         }, 1000);
     }
+});
+</script>
+
+<!-- ▼▼▼【追加】このページ専用のナビゲーションメニューを生成するスクリプト ▼▼▼ -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const navMenu = document.getElementById('page-nav-menu');
+    if (!navMenu) return;
+
+    // このページに表示するメニュー項目
+    const menuItems = [
+        { href: '#schedule', text: '🗓️ スケジュール' },
+        { href: '#membership', text: '✨ 特典一覧' },
+        { href: '#goods', text: '🛍️ グッズ情報' },
+        { href: '#community-info', text: '📖 ご意見箱など' },
+        { href: '#top', text: '🔼 一番上へ' }
+    ];
+
+    // メニュー項目をHTMLとして生成
+    menuItems.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'page-nav-item';
+        
+        const a = document.createElement('a');
+        a.href = item.href;
+        a.className = 'page-nav-link';
+        a.textContent = item.text;
+        
+        li.appendChild(a);
+        navMenu.appendChild(li);
+    });
 });
 </script>

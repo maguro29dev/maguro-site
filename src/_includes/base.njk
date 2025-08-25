@@ -35,10 +35,9 @@
     </style>
     {{ pageStyles | safe }}
 
-    <!-- ▼▼▼【追加】NEWマーク用のスタイル ▼▼▼ -->
     <style>
         .new-badge {
-            background-color: #ef4444; /* 赤色 */
+            background-color: #ef4444;
             color: white;
             font-size: 0.7rem;
             font-weight: 900;
@@ -55,24 +54,84 @@
         }
     </style>
 
-    <!-- ▼▼▼【追加】トップに戻るボタン用のスタイル ▼▼▼ -->
+    <!-- ▼▼▼【変更】ページ内ナビゲーション用のスタイル ▼▼▼ -->
     <style>
-        #back-to-top-btn {
+        #page-nav-container {
+            position: fixed;
+            bottom: 1.25rem;
+            right: 1.25rem;
+            z-index: 40;
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
             opacity: 0;
             transform: translateY(1rem);
             pointer-events: none;
         }
-        #back-to-top-btn.visible {
+        #page-nav-container.visible {
             opacity: 1;
             transform: translateY(0);
             pointer-events: auto;
+        }
+        #page-nav-menu {
+            position: absolute;
+            bottom: 4rem; /* ボタンの上に来るように */
+            right: 0;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.5rem;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            opacity: 0;
+            transform: translateY(0.5rem);
+            pointer-events: none;
+        }
+        #page-nav-container.menu-open #page-nav-menu {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .page-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .page-nav-link {
+            background-color: white;
+            color: #1f2937;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .page-nav-link:hover {
+            background-color: #f3f4f6;
+            transform: scale(1.05);
+        }
+        #page-nav-toggle {
+            background-color: #1f2937;
+            color: white;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #page-nav-container.menu-open #page-nav-toggle {
+            transform: rotate(90deg);
         }
     </style>
 </head>
 <body class="bg-gray-50 pb-24 sm:pb-0">
     <div class="banner-container w-full"></div>
-    <!-- ▼▼▼ z-10 を z-20 に変更 ▼▼▼ -->
     <div class="hidden sm:block sticky top-0 z-20 bg-white shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col">
@@ -93,8 +152,9 @@
                              <a href="/thought/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/thought/' %}active{% endif %}">❤️ メンバーへの想い</a>
                              <a href="/plan/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/plan/' %}active{% endif %}">🗓️ 今月の企画</a>
                              <a href="/memberevents/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/memberevents/' %}active{% endif %}">🎉 メンバーイベント</a>
+                             <a href="/archive/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/archive/' %}active{% endif %}">📚 思い出のアルバム</a>
                              <a href="https://discord.gg/YabfK2buHm" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">💬 Discord</a>
-                             <a href="https://www.youtube.com/channel/UCMP7QuS4suoONg47Nbi-wrg" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">▶️ ゲームch</a>
+                             <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">▶️ ゲームch</a>
                              <a href="https://www.youtube.com/c/Maguro29Jp" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🎬 実写ch</a>
                              <a href="https://x.com/maguro29" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🐦 X(旧Twitter)</a>
                          </nav>
@@ -115,7 +175,6 @@
             </div>
         </div>
     </div>
-    <!-- ▼▼▼ z-10 を z-20 に変更 ▼▼▼ -->
     <div class="block sm:hidden sticky top-0 z-20 bg-white shadow-sm">
         <div class="max-w-7xl mx-auto px-4">
             <div class="scroll-container-wrapper">
@@ -127,6 +186,7 @@
                          <a href="/thought/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/thought/' %}active{% endif %}">❤️ メンバーへの想い</a>
                          <a href="/plan/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/plan/' %}active{% endif %}">🗓️ 今月の企画</a>
                          <a href="/memberevents/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/memberevents/' %}active{% endif %}">🎉 メンバーイベント</a>
+                         <a href="/archive/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/archive/' %}active{% endif %}">📚 思い出のアルバム</a>
                          <a href="https://discord.gg/YabfK2buHm" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">💬 Discord</a>
                          <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">▶️ ゲームch</a>
                          <a href="https://www.youtube.com/c/Maguro29Jp" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🎬 実写ch</a>
@@ -140,7 +200,6 @@
     
     {{ content | safe }}
 
-    <!-- ▼▼▼ z-10 を z-20 に変更 ▼▼▼ -->
     <footer class="fixed bottom-0 left-0 right-0 z-20 bg-white/80 backdrop-blur-sm p-4 border-t border-gray-200 sm:hidden">
         <a href="https://www.youtube.com/channel/UCMP7QuS4suoONg47Nbi-wrg/join" target="_blank" rel="noopener noreferrer" class="w-full bg-black text-white font-bold py-3 px-4 rounded-full hover:bg-gray-800 transition-colors duration-300 text-center block">
             メンバーになる
@@ -157,10 +216,16 @@
         </div>
     </div>
 
-    <!-- ▼▼▼【変更】トップに戻るボタンのアイコンをSVGから絵文字に変更 ▼▼▼ -->
-    <button id="back-to-top-btn" title="トップに戻る" class="fixed bottom-24 sm:bottom-8 right-5 z-40 bg-black text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:bg-gray-800">
-        <span class="text-2xl">🐟️</span>
-    </button>
+    <!-- ▼▼▼【変更】ページ内ナビゲーションのHTML ▼▼▼ -->
+    <div id="page-nav-container" class="fixed bottom-5 sm:bottom-8 right-5">
+        <ul id="page-nav-menu">
+            <!-- 各ページのスクリプトによって、ここにメニュー項目が動的に追加されます -->
+        </ul>
+        <button id="page-nav-toggle" title="ページ内メニュー">
+            <span class="text-2xl">🐟️</span>
+        </button>
+    </div>
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -200,11 +265,9 @@
             const confirmNoBtn = document.getElementById('confirm-no-btn');
 
             if (captureButton && targetElement && confirmDialog) {
-                
                 captureButton.addEventListener('click', () => {
                     confirmDialog.classList.remove('hidden');
                 });
-
                 const closeDialog = () => confirmDialog.classList.add('hidden');
                 confirmNoBtn.addEventListener('click', closeDialog);
                 confirmDialog.addEventListener('click', (event) => {
@@ -212,26 +275,20 @@
                         closeDialog();
                     }
                 });
-
                 confirmYesBtn.addEventListener('click', () => {
                     closeDialog();
-                    
                     const originalButtonContent = captureButton.innerHTML;
                     captureButton.innerHTML = '...';
                     captureButton.disabled = true;
-
                     targetElement.classList.add('screenshot-mode');
-
                     setTimeout(async () => {
                         try {
                             await document.fonts.ready;
                         } catch (error) {
                             console.error('Font loading error:', error);
                         }
-
                         const originalScrollY = window.scrollY;
                         window.scrollTo(0, 0);
-
                         html2canvas(targetElement, {
                             useCORS: true,
                             backgroundColor: null,
@@ -253,18 +310,52 @@
                 });
             }
 
-            // ▼▼▼【追加】トップに戻るボタンのJavaScript ▼▼▼
-            const backToTopButton = document.getElementById('back-to-top-btn');
-            if (backToTopButton) {
+            // ▼▼▼【変更】ページ内ナビゲーションのJavaScript ▼▼▼
+            const navContainer = document.getElementById('page-nav-container');
+            const navToggle = document.getElementById('page-nav-toggle');
+            const navMenu = document.getElementById('page-nav-menu');
+
+            if (navContainer && navToggle && navMenu) {
+                // スクロールでボタン表示/非表示
                 window.addEventListener('scroll', () => {
                     if (window.scrollY > 300) {
-                        backToTopButton.classList.add('visible');
+                        navContainer.classList.add('visible');
                     } else {
-                        backToTopButton.classList.remove('visible');
+                        navContainer.classList.remove('visible');
+                        navContainer.classList.remove('menu-open'); // 上に戻ったらメニューも閉じる
                     }
                 });
-                backToTopButton.addEventListener('click', () => {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                // メインボタンクリックでメニューを開閉
+                navToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    navContainer.classList.toggle('menu-open');
+                });
+
+                // メニュー内のリンククリックでスムーズスクロール
+                navMenu.addEventListener('click', (e) => {
+                    const link = e.target.closest('a');
+                    if (!link) return;
+
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href');
+                    
+                    if (targetId === '#top') {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                        const targetElement = document.querySelector(targetId);
+                        if (targetElement) {
+                            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                    navContainer.classList.remove('menu-open');
+                });
+
+                // 外側クリックでメニューを閉じる
+                document.addEventListener('click', (e) => {
+                    if (!navContainer.contains(e.target)) {
+                        navContainer.classList.remove('menu-open');
+                    }
                 });
             }
         });
