@@ -22,8 +22,7 @@ pageStyles: |
             background-color: #f9fafb; 
         }
 
-        /* ▼▼▼【変更】スクリーンショット用のスタイル ▼▼▼ */
-        #current-event-capture-area {
+        .current-event-capture-area {
             position: relative;
             background-color: white;
             padding: 1.5rem;
@@ -33,7 +32,7 @@ pageStyles: |
             background-image: url("https://i.imgur.com/ew3XjDq.png");
             background-size: cover;
             background-position: center;
-            padding-bottom: 4rem; /* ボタン分のスペースを確保 */
+            padding-bottom: 4rem;
         }
         .event-character {
             position: absolute;
@@ -44,7 +43,7 @@ pageStyles: |
             z-index: 1;
             pointer-events: none;
         }
-        #capture-event-btn {
+        .capture-event-btn {
             position: absolute;
             bottom: 1rem;
             right: 1rem;
@@ -61,66 +60,73 @@ pageStyles: |
             color: white;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        #capture-event-btn:hover {
+        .capture-event-btn:hover {
             transform: scale(1.1);
         }
-        #current-event-capture-area .prose,
-        #current-event-capture-area h3,
-        #current-event-capture-area .event-summary {
+        .current-event-capture-area .prose,
+        .current-event-capture-area h3,
+        .current-event-capture-area .event-summary {
             text-shadow: 0px 0px 8px rgba(255, 255, 255, 0.8), 0px 0px 8px rgba(255, 255, 255, 0.8);
         }
-        #current-event-capture-area.screenshot-mode .prose,
-        #current-event-capture-area.screenshot-mode h3,
-        #current-event-capture-area.screenshot-mode .event-summary {
+        .current-event-capture-area.screenshot-mode .prose,
+        .current-event-capture-area.screenshot-mode h3,
+        .current-event-capture-area.screenshot-mode .event-summary {
             transform: translateY(-5px);
         }
     </style>
 ---
 <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
 
-    <!-- 現在募集中のイベント -->
-    {% if siteContent.currentEvent %}
-    <section id="current-event" class="mb-16">
+    <!-- ▼▼▼【変更】現在募集中のイベントセクションをループ処理に対応 ▼▼▼ -->
+    <section id="current-events" class="mb-16">
         <h2 class="text-xl font-bold mb-4 section-title">
             <span class="text-2xl mr-3">📢</span>現在募集中のイベント
         </h2>
         
-        <!-- ▼▼▼【変更】HTMLの構造を変更 ▼▼▼ -->
-        <div class="mt-6">
-            <!-- スクリーンショット対象エリア -->
-            <div id="current-event-capture-area">
-                <img src="https://i.imgur.com/r5Novxv.png" alt="キャラクター" class="event-character">
-                <div style="position: relative; z-index: 2;">
-                    <h3 class="text-2xl sm:text-3xl font-bold text-gray-800">{{ siteContent.currentEvent.fields.title }}</h3>
-                    
-                    <div class="mt-4 text-gray-600 prose max-w-none">
-                        {{ siteContent.currentEvent.fields.description | documentToHtml | safe }}
+        {% if siteContent.currentEvents and siteContent.currentEvents.length > 0 %}
+            <div class="space-y-12 mt-6">
+            {%- for event in siteContent.currentEvents -%}
+                <div>
+                    <!-- スクリーンショット対象エリア -->
+                    <div id="current-event-capture-area-{{ loop.index }}" class="current-event-capture-area">
+                        <img src="https://i.imgur.com/r5Novxv.png" alt="キャラクター" class="event-character">
+                        <div style="position: relative; z-index: 2;">
+                            <h3 class="text-2xl sm:text-3xl font-bold text-gray-800">{{ event.fields.title }}</h3>
+                            
+                            <div class="mt-4 text-gray-600 prose max-w-none">
+                                {{ event.fields.description | documentToHtml | safe }}
+                            </div>
+
+                            <div class="mt-6 bg-gray-50 p-4 rounded-lg border event-summary">
+                                <h4 class="font-bold text-lg text-gray-800 mb-3">イベント概要</h4>
+                                <ul class="space-y-2 text-gray-700">
+                                    <li><strong class="w-24 inline-block">開催日時:</strong> {{ event.fields.eventDate }}</li>
+                                    <li><strong class="w-24 inline-block">開催場所:</strong> {{ event.fields.location }}</li>
+                                    <li><strong class="w-24 inline-block">内容:</strong> {{ event.fields.contentSummary }}</li>
+                                    <li><strong class="w-24 inline-block">参加資格:</strong> {{ event.fields.eligibility }}</li>
+                                    <li><strong class="w-24 inline-block">申込締切:</strong> {{ event.fields.applicationDeadline }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <button id="capture-event-btn-{{ loop.index }}" class="capture-event-btn" title="このイベント情報を画像でシェア">📷️</button>
                     </div>
 
-                    <div class="mt-6 bg-gray-50 p-4 rounded-lg border event-summary">
-                        <h4 class="font-bold text-lg text-gray-800 mb-3">イベント概要</h4>
-                        <ul class="space-y-2 text-gray-700">
-                            <li><strong class="w-24 inline-block">開催日時:</strong> {{ siteContent.currentEvent.fields.eventDate }}</li>
-                            <li><strong class="w-24 inline-block">開催場所:</strong> {{ siteContent.currentEvent.fields.location }}</li>
-                            <li><strong class="w-24 inline-block">内容:</strong> {{ siteContent.currentEvent.fields.contentSummary }}</li>
-                            <li><strong class="w-24 inline-block">参加資格:</strong> {{ siteContent.currentEvent.fields.eligibility }}</li>
-                            <li><strong class="w-24 inline-block">申込締切:</strong> {{ siteContent.currentEvent.fields.applicationDeadline }}</li>
-                        </ul>
+                    <!-- 申し込みボタンエリア (スクリーンショット対象外) -->
+                    <div class="mt-6 text-center">
+                        <p class="font-bold text-gray-800">お申し込みは、メンバー限定のYouTubeコミュニティ投稿から！</p>
+                        <a href="{{ event.fields.applicationLink }}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block bg-black text-white font-bold py-3 px-8 rounded-full hover:bg-gray-800 transition-colors duration-300 shadow-lg">
+                            ▼▼ お申し込みはこちら ▼▼
+                        </a>
                     </div>
                 </div>
-                <button id="capture-event-btn" title="このイベント情報を画像でシェア">📷️</button>
+            {%- endfor -%}
             </div>
-
-            <!-- 申し込みボタンエリア (スクリーンショット対象外) -->
-            <div class="mt-6 text-center">
-                <p class="font-bold text-gray-800">お申し込みは、メンバー限定のYouTubeコミュニティ投稿から！</p>
-                <a href="{{ siteContent.currentEvent.fields.applicationLink }}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block bg-black text-white font-bold py-3 px-8 rounded-full hover:bg-gray-800 transition-colors duration-300 shadow-lg">
-                    ▼▼ お申し込みはこちら ▼▼
-                </a>
+        {% else %}
+            <div class="mt-6 bg-white p-6 rounded-lg shadow text-center text-gray-500">
+                <p>現在募集中のイベントはありません。次回の開催をお楽しみに！</p>
             </div>
-        </div>
+        {% endif %}
     </section>
-    {% endif %}
 
     <!-- 過去のイベントレポート -->
     <section id="past-events">
@@ -151,41 +157,49 @@ pageStyles: |
     </section>
 </div>
 
+<!-- ▼▼▼【変更】スクリーンショット用のスクリプトをループ対応に ▼▼▼ -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const captureButton = document.getElementById('capture-event-btn');
-    const targetElement = document.getElementById('current-event-capture-area');
+    // ページ内にある全ての撮影ボタンを取得
+    const captureButtons = document.querySelectorAll('.capture-event-btn');
+    
+    // 各ボタンに対してイベントリスナーを設定
+    captureButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // ボタンのIDからインデックス番号を取得 (例: capture-event-btn-1 -> 1)
+            const index = button.id.split('-').pop();
+            const targetElement = document.getElementById(`current-event-capture-area-${index}`);
 
-    if (captureButton && targetElement && typeof html2canvas === 'function') {
-        captureButton.addEventListener('click', () => {
-            const originalButtonContent = captureButton.innerHTML;
-            captureButton.innerHTML = '...';
-            captureButton.disabled = true;
-            captureButton.style.display = 'none';
+            if (targetElement && typeof html2canvas === 'function') {
+                const originalButtonContent = button.innerHTML;
+                button.innerHTML = '...';
+                button.disabled = true;
+                button.style.display = 'none';
 
-            targetElement.classList.add('screenshot-mode');
+                targetElement.classList.add('screenshot-mode');
 
-            setTimeout(() => {
-                html2canvas(targetElement, {
-                    useCORS: true,
-                    backgroundColor: null,
-                    scale: 2,
-                    allowTaint: true,
-                    ignoreElements: (element) => element.id === 'capture-event-btn'
-                }).then(canvas => {
-                    const link = document.createElement('a');
-                    const title = targetElement.querySelector('h3').textContent.trim() || 'event_info';
-                    link.download = `${title.replace(/\s+/g, '_')}.png`;
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                }).finally(() => {
-                    targetElement.classList.remove('screenshot-mode');
-                    captureButton.innerHTML = originalButtonContent;
-                    captureButton.disabled = false;
-                    captureButton.style.display = 'flex';
-                });
-            }, 100);
+                setTimeout(() => {
+                    html2canvas(targetElement, {
+                        useCORS: true,
+                        backgroundColor: null,
+                        scale: 2,
+                        allowTaint: true,
+                        ignoreElements: (element) => element.classList.contains('capture-event-btn')
+                    }).then(canvas => {
+                        const link = document.createElement('a');
+                        const title = targetElement.querySelector('h3').textContent.trim() || 'event_info';
+                        link.download = `${title.replace(/\s+/g, '_')}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    }).finally(() => {
+                        targetElement.classList.remove('screenshot-mode');
+                        button.innerHTML = originalButtonContent;
+                        button.disabled = false;
+                        button.style.display = 'flex';
+                    });
+                }, 100);
+            }
         });
-    }
+    });
 });
 </script>
