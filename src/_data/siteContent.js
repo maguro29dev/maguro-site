@@ -22,8 +22,12 @@ module.exports = async function () {
     const eventReports = await client.getEntries({ content_type: 'eventReport', order: '-fields.date' });
     const weeklySchedule = await client.getEntries({ content_type: 'weeklySchedule', order: 'fields.order' });
     const settings = await client.getEntries({ content_type: 'siteSettings', limit: 1 });
-    // ▼▼▼【変更】募集中のイベントを複数取得し、orderで並び替え ▼▼▼
-    const currentEvents = await client.getEntries({ content_type: 'currentEvent', 'fields.isActive': true, order: 'fields.order' });
+    // ▼▼▼【変更】'isActive'の代わりに'status'フィールドで取得するように変更 ▼▼▼
+    const currentEvents = await client.getEntries({ 
+        content_type: 'currentEvent', 
+        'fields.status[in]': '募集中,募集終了', // statusが「募集中」または「募集終了」のものを取得
+        order: 'fields.order' 
+    });
     const realEvents = await client.getEntries({ content_type: 'realEvent', order: 'fields.order' });
     const membershipBenefits = await client.getEntries({ content_type: 'membershipBenefit', order: 'fields.order' });
 
@@ -36,7 +40,6 @@ module.exports = async function () {
       eventReports: eventReports.items,
       weeklySchedule: weeklySchedule.items,
       settings: settings.items[0],
-      // ▼▼▼【変更】変数名を複数形に変更 ▼▼▼
       currentEvents: currentEvents.items,
       realEvents: realEvents.items,
       membershipBenefits: membershipBenefits.items,

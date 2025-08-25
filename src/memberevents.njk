@@ -77,10 +77,9 @@ pageStyles: |
 ---
 <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
 
-    <!-- ▼▼▼【変更】現在募集中のイベントセクションをループ処理に対応 ▼▼▼ -->
     <section id="current-events" class="mb-16">
         <h2 class="text-xl font-bold mb-4 section-title">
-            <span class="text-2xl mr-3">📢</span>現在募集中のイベント
+            <span class="text-2xl mr-3">📢</span>開催予定のイベント
         </h2>
         
         {% if siteContent.currentEvents and siteContent.currentEvents.length > 0 %}
@@ -111,19 +110,26 @@ pageStyles: |
                         <button id="capture-event-btn-{{ loop.index }}" class="capture-event-btn" title="このイベント情報を画像でシェア">📷️</button>
                     </div>
 
-                    <!-- 申し込みボタンエリア (スクリーンショット対象外) -->
+                    <!-- ▼▼▼【変更】statusに応じて表示を切り替え ▼▼▼ -->
                     <div class="mt-6 text-center">
-                        <p class="font-bold text-gray-800">お申し込みは、メンバー限定のYouTubeコミュニティ投稿から！</p>
-                        <a href="{{ event.fields.applicationLink }}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block bg-black text-white font-bold py-3 px-8 rounded-full hover:bg-gray-800 transition-colors duration-300 shadow-lg">
-                            ▼▼ お申し込みはこちら ▼▼
-                        </a>
+                        {% if event.fields.status == '募集中' %}
+                            <p class="font-bold text-gray-800">お申し込みは、メンバー限定のYouTubeコミュニティ投稿から！</p>
+                            <a href="{{ event.fields.applicationLink }}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block bg-black text-white font-bold py-3 px-8 rounded-full hover:bg-gray-800 transition-colors duration-300 shadow-lg">
+                                ▼▼ お申し込みはこちら ▼▼
+                            </a>
+                        {% elif event.fields.status == '募集終了' %}
+                            <div class="bg-gray-100 p-4 rounded-lg">
+                                <p class="font-bold text-gray-600">このイベントの募集は終了しました。</p>
+                                <p class="text-sm text-gray-500">たくさんのご応募ありがとうございました！</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             {%- endfor -%}
             </div>
         {% else %}
             <div class="mt-6 bg-white p-6 rounded-lg shadow text-center text-gray-500">
-                <p>現在募集中のイベントはありません。次回の開催をお楽しみに！</p>
+                <p>現在開催予定のイベントはありません。次回の開催をお楽しみに！</p>
             </div>
         {% endif %}
     </section>
@@ -157,16 +163,12 @@ pageStyles: |
     </section>
 </div>
 
-<!-- ▼▼▼【変更】スクリーンショット用のスクリプトをループ対応に ▼▼▼ -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // ページ内にある全ての撮影ボタンを取得
     const captureButtons = document.querySelectorAll('.capture-event-btn');
     
-    // 各ボタンに対してイベントリスナーを設定
     captureButtons.forEach(button => {
         button.addEventListener('click', () => {
-            // ボタンのIDからインデックス番号を取得 (例: capture-event-btn-1 -> 1)
             const index = button.id.split('-').pop();
             const targetElement = document.getElementById(`current-event-capture-area-${index}`);
 
