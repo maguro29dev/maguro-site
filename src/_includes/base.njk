@@ -54,6 +54,21 @@
             100% { transform: scale(1); opacity: 1; }
         }
     </style>
+
+    <!-- ▼▼▼【追加】トップに戻るボタン用のスタイル ▼▼▼ -->
+    <style>
+        #back-to-top-btn {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            opacity: 0;
+            transform: translateY(1rem);
+            pointer-events: none;
+        }
+        #back-to-top-btn.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+    </style>
 </head>
 <body class="bg-gray-50 pb-24 sm:pb-0">
     <div class="banner-container w-full"></div>
@@ -141,6 +156,11 @@
             </div>
         </div>
     </div>
+
+    <!-- ▼▼▼【追加】トップに戻るボタンのHTML ▼▼▼ -->
+    <button id="back-to-top-btn" title="トップに戻る" class="fixed bottom-24 sm:bottom-8 right-5 z-40 bg-black text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:bg-gray-800">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+    </button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -230,6 +250,21 @@
                             targetElement.classList.remove('screenshot-mode');
                         });
                     }, 100);
+                });
+            }
+
+            // ▼▼▼【追加】トップに戻るボタンのJavaScript ▼▼▼
+            const backToTopButton = document.getElementById('back-to-top-btn');
+            if (backToTopButton) {
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 300) {
+                        backToTopButton.classList.add('visible');
+                    } else {
+                        backToTopButton.classList.remove('visible');
+                    }
+                });
+                backToTopButton.addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
             }
         });
