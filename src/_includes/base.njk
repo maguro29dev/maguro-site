@@ -55,12 +55,23 @@
     </style>
 
     <style>
+        /* ▼▼▼【ここから変更】目次ボタンのスタイルを全面的に書き換え ▼▼▼ */
         #page-nav-container {
             position: fixed;
-            bottom: 1.25rem;
-            right: 1.25rem;
+            right: 1.25rem; /* 20px */
             z-index: 40;
+            /* スマホ表示の時（フッターがある時）は、フッターの高さ分だけ上に配置 */
+            bottom: 5.5rem; /* 88px */
         }
+
+        /* PC表示の時（smサイズ以上）は、フッターが消えるので元の位置に戻す */
+        @media (min-width: 640px) {
+            #page-nav-container {
+                bottom: 2rem; /* 32px */
+            }
+        }
+        /* ▲▲▲【変更ここまで】▲▲▲ */
+
         #page-nav-menu {
             position: absolute;
             bottom: 4rem;
@@ -142,7 +153,6 @@
                              <a href="/thought/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/thought/' %}active{% endif %}">❤️ メンバーへの想い</a>
                              <a href="/plan/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/plan/' %}active{% endif %}">🗓️ 今月の企画</a>
                              <a href="/memberevents/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/memberevents/' %}active{% endif %}">🎉 メンバーイベント</a>
-                             <!-- ▼▼▼【変更】ナビゲーションのテキストを変更 ▼▼▼ -->
                              <a href="/archive/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/archive/' %}active{% endif %}">📚 アーカイブ</a>
                              <a href="https://discord.gg/YabfK2buHm" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">💬 Discord</a>
                              <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">▶️ ゲームch</a>
@@ -177,7 +187,6 @@
                          <a href="/thought/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/thought/' %}active{% endif %}">❤️ メンバーへの想い</a>
                          <a href="/plan/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/plan/' %}active{% endif %}">🗓️ 今月の企画</a>
                          <a href="/memberevents/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/memberevents/' %}active{% endif %}">🎉 メンバーイベント</a>
-                         <!-- ▼▼▼【変更】ナビゲーションのテキストを変更 ▼▼▼ -->
                          <a href="/archive/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/archive/' %}active{% endif %}">📚 アーカイブ</a>
                          <a href="https://discord.gg/YabfK2buHm" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">💬 Discord</a>
                          <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">▶️ ゲームch</a>
@@ -208,7 +217,8 @@
         </div>
     </div>
 
-    <div id="page-nav-container" class="fixed bottom-5 sm:bottom-8 right-5">
+    <!-- ▼▼▼【変更】Tailwindのクラスを削除 ▼▼▼ -->
+    <div id="page-nav-container">
         <ul id="page-nav-menu">
             <!-- 各ページのスクリプトによって、ここにメニュー項目が動的に追加されます -->
         </ul>
