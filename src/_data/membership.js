@@ -14,7 +14,8 @@ module.exports = async function() {
         console.warn("Membership benefits not found in siteContent. Returning empty.");
         return {
             benefits: [],
-            hasNewBenefit: false
+            hasNewBenefit: false,
+            newBenefitTiers: [] // tiers with new benefits
         };
     }
 
@@ -56,9 +57,20 @@ module.exports = async function() {
 
     // 1つでも「NEW」があれば、お知らせバナー表示用のフラグを立てる
     const hasNewBenefit = processedBenefits.some(item => item.isNew);
+    
+    // ▼▼▼【追加】どのプランに新しい特典があるか判別するロジック ▼▼▼
+    const newBenefitTiers = [];
+    if (hasNewBenefit) {
+        processedBenefits.forEach(item => {
+            if (item.isNew && !newBenefitTiers.includes(item.fields.tier)) {
+                newBenefitTiers.push(item.fields.tier);
+            }
+        });
+    }
 
     return {
         benefits: processedBenefits,
-        hasNewBenefit: hasNewBenefit
+        hasNewBenefit: hasNewBenefit,
+        newBenefitTiers: newBenefitTiers // 判別結果を返す
     };
 };

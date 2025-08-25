@@ -182,12 +182,15 @@ pageStyles: |
         {% endif %}
     </section>
 
-    {# ▼▼▼【追加】メンバーシップ特典に新規情報がある場合のお知らせバナー ▼▼▼ #}
+    {# ▼▼▼【ここから変更】メンバーシップ特典のお知らせバナー ▼▼▼ #}
     {% if membership.hasNewBenefit %}
         <div class="p-4 mb-8 text-sm text-center text-green-800 rounded-lg bg-green-100 shadow">
-            <a href="#membership" class="font-bold hover:underline">✨ メンバーシップ特典に新しい情報があります！</a>
+            <a href="#membership" class="font-bold hover:underline">
+                ✨ メンバーシップ特典に新しい情報があります！ ({{ membership.newBenefitTiers | join(', ') }})
+            </a>
         </div>
     {% endif %}
+    {# ▲▲▲【ここまで変更】▲▲▲ #}
 
     {# --- スケジュールセクション (新デザイン) --- #}
     <section id="schedule" class="my-10">
