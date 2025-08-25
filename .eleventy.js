@@ -54,6 +54,19 @@ module.exports = function (eleventyConfig) {
   // パススルーコピーの設定
   eleventyConfig.addPassthroughCopy("src/images");
 
+  // 日付でソートするためのカスタムフィルター
+  eleventyConfig.addFilter("sortByDate", (values) => {
+    if (!values || !Array.isArray(values)) {
+      return values;
+    }
+    return values.slice().sort((a, b) => {
+      // ▼▼▼【変更】'fields.date'から'sys.createdAt'に変更 ▼▼▼
+      const dateA = new Date(a.sys.createdAt);
+      const dateB = new Date(b.sys.createdAt);
+      return dateB - dateA; // 新しい順
+    });
+  });
+
   return {
     dir: {
       input: "src",
