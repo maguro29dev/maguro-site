@@ -83,46 +83,66 @@ module.exports = async function() {
             const details = videoDetailsData.items[0];
             const liveDetails = details.liveStreamingDetails;
 
-            // ▼▼▼【ここを全面的に修正】▼▼▼
-            // liveBroadcastContentに頼らず、実際の開始時刻と終了時刻で判定する
             const isCurrentlyStreaming = liveDetails && liveDetails.actualStartTime && !liveDetails.actualEndTime;
 
             if (isCurrentlyStreaming) {
                 let isPremiere = false;
-                // 予定時刻があり、実際の開始時刻との差がわずかであればプレミア公開と判定
                 if (liveDetails.scheduledStartTime) {
                     const timeDifference = Math.abs(new Date(liveDetails.actualStartTime).getTime() - new Date(liveDetails.scheduledStartTime).getTime());
-                    // 差が60秒（60000ミリ秒）以内であればプレミア公開と判定（少し余裕を持たせる）
                     if (timeDifference < 60000) {
                         isPremiere = true;
                     }
                 }
                 
                 liveVideo = { 
-                    ...liveData.items[0], // search API のスニペット情報をベースにする
-                    snippet: details.snippet, // video API の詳細なスニペット情報で上書き
+                    ...liveData.items[0],
+                    snippet: details.snippet,
                     isPremiere: isPremiere
                 };
             }
-            // ▲▲▲【修正ここまで】▲▲▲
         }
     }
 
-    // 配信予定リストの取得ロジック (こちらは変更なし)
     const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${YOUTUBE_CHANNEL_ID}&key=${YOUTUBE_API_KEY}`;
     const channelData = await EleventyFetch(channelUrl, { duration: "1d", type: "json" });
     const uploadsPlaylistId = channelData.items[0].contentDetails.relatedPlaylists.uploads;
     const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=50&key=${YOUTUBE_API_KEY}`;
     const playlistData = await EleventyFetch(playlistUrl, { duration: "1h", type: "json" });
     const videoIds = (playlistData.items || []).map(item => item.snippet.resourceId.videoId).filter(id => id);
+    
     let upcomingVideos_detailed = [];
+    let allVideos_detailed = []; // popularVideosで使うための変数
+    
     if (videoIds.length > 0) {
-        const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${videoIds.join(',')}&key=${YOUTUBE_API_KEY}`;
+        // ▼▼▼【変更】 statistics を part に追加 ▼▼▼
+        const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails,statistics&id=${videoIds.join(',')}&key=${YOUTUBE_API_KEY}`;
         const videosData = await EleventyFetch(videosUrl, { duration: "1h", type: "json" });
-        upcomingVideos_detailed = (videosData.items || [])
+        
+        allVideos_detailed = videosData.items || []; // 全ての詳細データを保持
+
+        upcomingVideos_detailed = allVideos_detailed
             .filter(item => item.snippet.liveBroadcastContent === 'upcoming' && item.liveStreamingDetails?.scheduledStartTime)
             .sort((a, b) => new Date(a.liveStreamingDetails.scheduledStartTime) - new Date(b.liveStreamingDetails.scheduledStartTime));
     }
+
+    // --- ▼▼▼【ここから新規追加】今月の人気動画ランキングのロジック ▼▼▼ ---
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const popularVideos = allVideos_detailed
+      .filter(video => {
+        const publishedAt = new Date(video.snippet.publishedAt);
+        // ライブ配信のアーカイブなどは liveBroadcastContent が 'none' になるので、それも考慮
+        return video.snippet.liveBroadcastContent !== 'upcoming' && publishedAt >= firstDayOfMonth && publishedAt <= lastDayOfMonth;
+      })
+      .sort((a, b) => {
+          const statsA = a.statistics ? parseInt(a.statistics.viewCount, 10) : 0;
+          const statsB = b.statistics ? parseInt(b.statistics.viewCount, 10) : 0;
+          return statsB - statsA;
+      })
+      .slice(0, 5);
+    // --- ▲▲▲【新規追加ここまで】▲▲▲ ---
 
     console.log("Data fetched successfully!");
     return {
@@ -131,6 +151,7 @@ module.exports = async function() {
       planningPlaylist: rankedPlaylistData,
       liveVideo: liveVideo,
       upcomingVideos: upcomingVideos_detailed,
+      popularVideos: popularVideos, // <-- データを追加
       getPlaylistLastUpdate: getPlaylistLastUpdate
     };
   } catch (error) {
@@ -141,6 +162,7 @@ module.exports = async function() {
       planningPlaylist: [],
       liveVideo: null,
       upcomingVideos: [],
+      popularVideos: [], // <-- エラー時も空配列を返す
       getPlaylistLastUpdate: async () => null
     };
   }
