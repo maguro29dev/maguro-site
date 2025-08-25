@@ -54,7 +54,6 @@
         }
     </style>
 
-    <!-- ▼▼▼【変更】ページ内ナビゲーション用のスタイル ▼▼▼ -->
     <style>
         #page-nav-container {
             position: fixed;
@@ -64,7 +63,7 @@
         }
         #page-nav-menu {
             position: absolute;
-            bottom: 4rem; /* ボタンの上に来るように */
+            bottom: 4rem;
             right: 0;
             list-style: none;
             padding: 0;
@@ -143,7 +142,8 @@
                              <a href="/thought/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/thought/' %}active{% endif %}">❤️ メンバーへの想い</a>
                              <a href="/plan/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/plan/' %}active{% endif %}">🗓️ 今月の企画</a>
                              <a href="/memberevents/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/memberevents/' %}active{% endif %}">🎉 メンバーイベント</a>
-                             <a href="/archive/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/archive/' %}active{% endif %}">📚 思い出のアルバム</a>
+                             <!-- ▼▼▼【変更】ナビゲーションのテキストを変更 ▼▼▼ -->
+                             <a href="/archive/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/archive/' %}active{% endif %}">📚 アーカイブ</a>
                              <a href="https://discord.gg/YabfK2buHm" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">💬 Discord</a>
                              <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">▶️ ゲームch</a>
                              <a href="https://www.youtube.com/c/Maguro29Jp" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🎬 実写ch</a>
@@ -177,7 +177,8 @@
                          <a href="/thought/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/thought/' %}active{% endif %}">❤️ メンバーへの想い</a>
                          <a href="/plan/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/plan/' %}active{% endif %}">🗓️ 今月の企画</a>
                          <a href="/memberevents/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/memberevents/' %}active{% endif %}">🎉 メンバーイベント</a>
-                         <a href="/archive/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/archive/' %}active{% endif %}">📚 思い出のアルバム</a>
+                         <!-- ▼▼▼【変更】ナビゲーションのテキストを変更 ▼▼▼ -->
+                         <a href="/archive/" class="tab-item ml-8 px-1 font-medium text-sm {% if page.url == '/archive/' %}active{% endif %}">📚 アーカイブ</a>
                          <a href="https://discord.gg/YabfK2buHm" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">💬 Discord</a>
                          <a href="https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%be%E3%81%90%E3%81%AB%E3%81%83" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">▶️ ゲームch</a>
                          <a href="https://www.youtube.com/c/Maguro29Jp" target="_blank" rel="noopener noreferrer" class="tab-item ml-8 px-1 font-medium text-sm">🎬 実写ch</a>
@@ -300,19 +301,16 @@
                 });
             }
 
-            // ▼▼▼【変更】ページ内ナビゲーションのJavaScript ▼▼▼
             const navContainer = document.getElementById('page-nav-container');
             const navToggle = document.getElementById('page-nav-toggle');
             const navMenu = document.getElementById('page-nav-menu');
 
             if (navContainer && navToggle && navMenu) {
-                // メインボタンクリックでメニューを開閉
                 navToggle.addEventListener('click', (e) => {
                     e.stopPropagation();
                     navContainer.classList.toggle('menu-open');
                 });
 
-                // メニュー内のリンククリックでスムーズスクロール
                 navMenu.addEventListener('click', (e) => {
                     const link = e.target.closest('a');
                     if (!link) return;
@@ -331,7 +329,6 @@
                     navContainer.classList.remove('menu-open');
                 });
 
-                // 外側クリックでメニューを閉じる
                 document.addEventListener('click', (e) => {
                     if (!navContainer.contains(e.target)) {
                         navContainer.classList.remove('menu-open');

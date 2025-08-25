@@ -1,12 +1,11 @@
 ---
 layout: base.njk
-title: 思い出のアルバム
-header_title: 思い出のアルバム
+title: 過去の企画やイベントレポート
+header_title: 過去の企画やイベントレポート
 header_subtitle: "@ゲームまぐにぃ / これまでの企画やイベントを振り返る場所"
 permalink: /archive/
 pageStyles: |
     <style>
-        /* ▼▼▼【追加】目次用のスタイル ▼▼▼ */
         .table-of-contents {
             background-color: white;
             padding: 1rem;
@@ -44,7 +43,6 @@ pageStyles: |
 ---
 <div class="max-w-7xl mx-auto p-4 sm:p-6">
     
-    <!-- ▼▼▼【追加】目次セクション ▼▼▼ -->
     <div class="table-of-contents mt-8">
         <h2 class="text-center font-bold text-lg mb-4 text-gray-700">目次</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -54,7 +52,6 @@ pageStyles: |
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-16 mt-8">
-        <!-- ▼▼▼ 過去の企画セクション ▼▼▼ -->
         <section id="plan-archive-section">
             <h2 class="section-title">📜 過去の企画一覧 📜</h2>
             
@@ -82,7 +79,6 @@ pageStyles: |
             </div>
         </section>
 
-        <!-- ▼▼▼ 過去のイベントレポートセクション ▼▼▼ -->
         <section id="event-archive-section">
             <h2 class="section-title">📚 イベントレポート 📚</h2>
             
@@ -114,7 +110,6 @@ pageStyles: |
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // 汎用ソート関数
     const setupSortButtons = (listId, newestBtnId, oldestBtnId) => {
         const list = document.getElementById(listId);
         const newestBtn = document.getElementById(newestBtnId);
@@ -144,14 +139,37 @@ document.addEventListener('DOMContentLoaded', () => {
             newestBtn.classList.remove('active');
         });
 
-        // 初期表示は新しい順にソート
         sortItems('newest');
     };
 
-    // 企画アーカイブのソートをセットアップ
     setupSortButtons('plan-archive-list', 'sort-plans-newest', 'sort-plans-oldest');
-
-    // イベントレポートのソートをセットアップ
     setupSortButtons('event-archive-list', 'sort-events-newest', 'sort-events-oldest');
+});
+</script>
+
+<!-- ▼▼▼【追加】このページ専用のナビゲーションメニューを生成するスクリプト ▼▼▼ -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const navMenu = document.getElementById('page-nav-menu');
+    if (!navMenu) return;
+
+    const menuItems = [
+        { href: '#plan-archive-section', text: '📜 過去の企画' },
+        { href: '#event-archive-section', text: '📚 イベントレポート' },
+        { href: '#top', text: '🔼 一番上へ' }
+    ];
+
+    menuItems.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'page-nav-item';
+        
+        const a = document.createElement('a');
+        a.href = item.href;
+        a.className = 'page-nav-link';
+        a.textContent = item.text;
+        
+        li.appendChild(a);
+        navMenu.appendChild(li);
+    });
 });
 </script>
