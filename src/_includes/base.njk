@@ -61,15 +61,6 @@
             bottom: 1.25rem;
             right: 1.25rem;
             z-index: 40;
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-            opacity: 0;
-            transform: translateY(1rem);
-            pointer-events: none;
-        }
-        #page-nav-container.visible {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
         }
         #page-nav-menu {
             position: absolute;
@@ -216,7 +207,6 @@
         </div>
     </div>
 
-    <!-- ▼▼▼【変更】ページ内ナビゲーションのHTML ▼▼▼ -->
     <div id="page-nav-container" class="fixed bottom-5 sm:bottom-8 right-5">
         <ul id="page-nav-menu">
             <!-- 各ページのスクリプトによって、ここにメニュー項目が動的に追加されます -->
@@ -316,16 +306,6 @@
             const navMenu = document.getElementById('page-nav-menu');
 
             if (navContainer && navToggle && navMenu) {
-                // スクロールでボタン表示/非表示
-                window.addEventListener('scroll', () => {
-                    if (window.scrollY > 300) {
-                        navContainer.classList.add('visible');
-                    } else {
-                        navContainer.classList.remove('visible');
-                        navContainer.classList.remove('menu-open'); // 上に戻ったらメニューも閉じる
-                    }
-                });
-
                 // メインボタンクリックでメニューを開閉
                 navToggle.addEventListener('click', (e) => {
                     e.stopPropagation();
