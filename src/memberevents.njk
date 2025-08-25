@@ -21,6 +21,59 @@ pageStyles: |
             border-left-color: #e5e7eb; 
             background-color: #f9fafb; 
         }
+
+        /* ▼▼▼【変更】スクリーンショット用のスタイル ▼▼▼ */
+        #current-event-capture-area {
+            position: relative;
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            border: 3px solid #6a994e;
+            background-image: url("https://i.imgur.com/ew3XjDq.png");
+            background-size: cover;
+            background-position: center;
+            padding-bottom: 4rem; /* ボタン分のスペースを確保 */
+        }
+        .event-character {
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            width: 120px;
+            height: auto;
+            z-index: 1;
+            pointer-events: none;
+        }
+        #capture-event-btn {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 10;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            transition: all 0.2s ease-in-out;
+            background-color: #6a994e;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #capture-event-btn:hover {
+            transform: scale(1.1);
+        }
+        #current-event-capture-area .prose,
+        #current-event-capture-area h3,
+        #current-event-capture-area .event-summary {
+            text-shadow: 0px 0px 8px rgba(255, 255, 255, 0.8), 0px 0px 8px rgba(255, 255, 255, 0.8);
+        }
+        #current-event-capture-area.screenshot-mode .prose,
+        #current-event-capture-area.screenshot-mode h3,
+        #current-event-capture-area.screenshot-mode .event-summary {
+            transform: translateY(-5px);
+        }
     </style>
 ---
 <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
@@ -31,24 +84,34 @@ pageStyles: |
         <h2 class="text-xl font-bold mb-4 section-title">
             <span class="text-2xl mr-3">📢</span>現在募集中のイベント
         </h2>
-        <div class="mt-6 bg-white p-6 sm:p-8 rounded-lg shadow-lg border-2 border-custom-green">
-            <h3 class="text-2xl sm:text-3xl font-bold text-gray-800">{{ siteContent.currentEvent.fields.title }}</h3>
-            
-            <div class="mt-4 text-gray-600 prose max-w-none">
-                {{ siteContent.currentEvent.fields.description | documentToHtml | safe }}
+        
+        <!-- ▼▼▼【変更】HTMLの構造を変更 ▼▼▼ -->
+        <div class="mt-6">
+            <!-- スクリーンショット対象エリア -->
+            <div id="current-event-capture-area">
+                <img src="https://i.imgur.com/r5Novxv.png" alt="キャラクター" class="event-character">
+                <div style="position: relative; z-index: 2;">
+                    <h3 class="text-2xl sm:text-3xl font-bold text-gray-800">{{ siteContent.currentEvent.fields.title }}</h3>
+                    
+                    <div class="mt-4 text-gray-600 prose max-w-none">
+                        {{ siteContent.currentEvent.fields.description | documentToHtml | safe }}
+                    </div>
+
+                    <div class="mt-6 bg-gray-50 p-4 rounded-lg border event-summary">
+                        <h4 class="font-bold text-lg text-gray-800 mb-3">イベント概要</h4>
+                        <ul class="space-y-2 text-gray-700">
+                            <li><strong class="w-24 inline-block">開催日時:</strong> {{ siteContent.currentEvent.fields.eventDate }}</li>
+                            <li><strong class="w-24 inline-block">開催場所:</strong> {{ siteContent.currentEvent.fields.location }}</li>
+                            <li><strong class="w-24 inline-block">内容:</strong> {{ siteContent.currentEvent.fields.contentSummary }}</li>
+                            <li><strong class="w-24 inline-block">参加資格:</strong> {{ siteContent.currentEvent.fields.eligibility }}</li>
+                            <li><strong class="w-24 inline-block">申込締切:</strong> {{ siteContent.currentEvent.fields.applicationDeadline }}</li>
+                        </ul>
+                    </div>
+                </div>
+                <button id="capture-event-btn" title="このイベント情報を画像でシェア">📷️</button>
             </div>
 
-            <div class="mt-6 bg-gray-50 p-4 rounded-lg border">
-                <h4 class="font-bold text-lg text-gray-800 mb-3">イベント概要</h4>
-                <ul class="space-y-2 text-gray-700">
-                    <li><strong class="w-24 inline-block">開催日時:</strong> {{ siteContent.currentEvent.fields.eventDate }}</li>
-                    <li><strong class="w-24 inline-block">開催場所:</strong> {{ siteContent.currentEvent.fields.location }}</li>
-                    <li><strong class="w-24 inline-block">内容:</strong> {{ siteContent.currentEvent.fields.contentSummary }}</li>
-                    <li><strong class="w-24 inline-block">参加資格:</strong> {{ siteContent.currentEvent.fields.eligibility }}</li>
-                    <li><strong class="w-24 inline-block">申込締切:</strong> {{ siteContent.currentEvent.fields.applicationDeadline }}</li>
-                </ul>
-            </div>
-
+            <!-- 申し込みボタンエリア (スクリーンショット対象外) -->
             <div class="mt-6 text-center">
                 <p class="font-bold text-gray-800">お申し込みは、メンバー限定のYouTubeコミュニティ投稿から！</p>
                 <a href="{{ siteContent.currentEvent.fields.applicationLink }}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block bg-black text-white font-bold py-3 px-8 rounded-full hover:bg-gray-800 transition-colors duration-300 shadow-lg">
@@ -87,3 +150,42 @@ pageStyles: |
         </div>
     </section>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const captureButton = document.getElementById('capture-event-btn');
+    const targetElement = document.getElementById('current-event-capture-area');
+
+    if (captureButton && targetElement && typeof html2canvas === 'function') {
+        captureButton.addEventListener('click', () => {
+            const originalButtonContent = captureButton.innerHTML;
+            captureButton.innerHTML = '...';
+            captureButton.disabled = true;
+            captureButton.style.display = 'none';
+
+            targetElement.classList.add('screenshot-mode');
+
+            setTimeout(() => {
+                html2canvas(targetElement, {
+                    useCORS: true,
+                    backgroundColor: null,
+                    scale: 2,
+                    allowTaint: true,
+                    ignoreElements: (element) => element.id === 'capture-event-btn'
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    const title = targetElement.querySelector('h3').textContent.trim() || 'event_info';
+                    link.download = `${title.replace(/\s+/g, '_')}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }).finally(() => {
+                    targetElement.classList.remove('screenshot-mode');
+                    captureButton.innerHTML = originalButtonContent;
+                    captureButton.disabled = false;
+                    captureButton.style.display = 'flex';
+                });
+            }, 100);
+        });
+    }
+});
+</script>
