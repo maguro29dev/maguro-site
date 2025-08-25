@@ -158,6 +158,13 @@ pageStyles: |
                 </div>
             {% endif %}
         </div>
+        
+        <!-- ▼▼▼【追加】アーカイブページへのリンク ▼▼▼ -->
+        <div class="text-center mt-12">
+            <a href="/archive/#event-archive-section" class="inline-block bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-full hover:bg-gray-300 transition-colors duration-300">
+                過去のイベントレポートを見る
+            </a>
+        </div>
     </section>
 </div>
 
@@ -204,7 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<!-- ▼▼▼【追加】このページ専用のナビゲーションメニューを生成するスクリプト ▼▼▼ -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const navMenu = document.getElementById('page-nav-menu');
