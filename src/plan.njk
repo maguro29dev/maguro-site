@@ -104,7 +104,6 @@ pageStyles: |
             pointer-events: none;
         }
 
-        /* ▼▼▼【変更】スクリーンショット撮影時用の文字ズレ補正 ▼▼▼ */
         #modal-content.screenshot-mode .modal-description-text,
         #modal-content.screenshot-mode #modal-title {
             transform: translateY(-5px);
@@ -116,7 +115,8 @@ pageStyles: |
     </style>
 ---
 <div class="max-w-7xl mx-auto p-4 sm:p-6">
-    <section class="mb-12 mt-8">
+    <!-- ▼▼▼【変更】IDを追加 ▼▼▼ -->
+    <section id="main-plans" class="mb-12 mt-8">
         <h2 class="section-title">🎉 8月の決定済み企画 🎉</h2>
         <div class="space-y-4 mt-8">
             {%- for plan in siteContent.mainPlans -%}
@@ -129,7 +129,8 @@ pageStyles: |
         </div>
     </section>
 
-    <section class="mb-12">
+    <!-- ▼▼▼【変更】IDを追加 ▼▼▼ -->
+    <section id="collab-plans" class="mb-12">
         <h2 class="section-title">🤝 コラボ企画 🤝</h2>
         <div class="space-y-4 mt-8">
             {%- for plan in siteContent.collabPlans -%}
@@ -142,7 +143,8 @@ pageStyles: |
         </div>
     </section>
 
-    <section class="mt-16">
+    <!-- ▼▼▼【変更】IDを追加 ▼▼▼ -->
+    <section id="whiteboard" class="mt-16">
         <h2 class="section-title">📝 企画会議ホワイトボード 📝</h2>
         <div class="bg-white p-6 rounded-lg shadow-inner mt-8">
             <div id="whiteboard-area" title="オーナーとしてログインすると編集できます"></div>
@@ -163,7 +165,8 @@ pageStyles: |
         </div>
     </section>
 
-    <section class="mt-16">
+    <!-- ▼▼▼【変更】IDを追加 ▼▼▼ -->
+    <section id="ranking" class="mt-16">
         <h2 class="section-title">👑 企画会議の人気動画ランキング 👑</h2>
         <div class="relative mt-8">
             <button id="scroll-left-btn" class="scroll-btn hidden" aria-label="Scroll Left">‹</button>
@@ -213,7 +216,6 @@ pageStyles: |
     import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, serverTimestamp, query, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     document.addEventListener('DOMContentLoaded', async () => {
-        // ... (Firebaseのコードは変更なし) ...
         const firebaseConfig = { apiKey: "AIzaSyDwjh5FCorVXZDdMse_uTcLbvjXwmw2jhk", authDomain: "maguro29-planning.firebaseapp.com", projectId: "maguro29-planning", storageBucket: "maguro29-planning.appspot.com", messagingSenderId: "525505583082", appId: "1:525505583082:web:2cb02294dfd3d9ca91c493" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -235,7 +237,6 @@ pageStyles: |
         planCards.forEach(card => { card.addEventListener('click', () => { 
             launchConfetti(); 
             document.getElementById('modal-title').innerHTML = card.dataset.title; 
-            // ▼▼▼【変更】日付テキストをspanで囲む ▼▼▼
             document.getElementById('modal-date').innerHTML = `<span class="date-badge py-2 px-4 rounded-lg"><span class="date-badge-text">${card.dataset.date}</span></span>`; 
             const planId = card.dataset.planId; 
             const descriptionDiv = document.getElementById('modal-description'); 
@@ -280,7 +281,6 @@ pageStyles: |
         const q = query(suggestionsColRef);
         onSnapshot(q, (snapshot) => { suggestionList.innerHTML = ''; snapshot.forEach((doc) => { const data = doc.data(); const item = document.createElement('div'); item.className = 'suggestion-item'; const itemText = document.createElement('span'); itemText.textContent = `💡 ${data.text}`; item.appendChild(itemText); const deleteBtn = document.createElement('button'); deleteBtn.className = 'delete-suggestion-btn'; deleteBtn.textContent = '×'; deleteBtn.onclick = async () => { try { await deleteDoc(doc.ref); } catch (error) { console.error("Error removing document: ", error); } }; item.appendChild(deleteBtn); suggestionList.appendChild(item); }); });
 
-        // 横スクロールを制御するJavaScript
         const scrollWrapper = document.getElementById('playlist-scroll-wrapper');
         const scrollLeftBtn = document.getElementById('scroll-left-btn');
         const scrollRightBtn = document.getElementById('scroll-right-btn');
@@ -304,7 +304,6 @@ pageStyles: |
             window.addEventListener('resize', updateArrowVisibility);
         }
 
-        // モーダルのスクリーンショット機能
         const captureModalBtn = document.getElementById('capture-modal-btn');
         const modalContent = document.getElementById('modal-content');
         const modalTitle = document.getElementById('modal-title');
@@ -341,4 +340,35 @@ pageStyles: |
             });
         }
     });
+</script>
+
+<!-- ▼▼▼【追加】このページ専用のナビゲーションメニューを生成するスクリプト ▼▼▼ -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const navMenu = document.getElementById('page-nav-menu');
+    if (!navMenu) return;
+
+    // このページに表示するメニュー項目
+    const menuItems = [
+        { href: '#main-plans', text: '🎉 決定済み企画' },
+        { href: '#collab-plans', text: '🤝 コラボ企画' },
+        { href: '#whiteboard', text: '📝 ホワイトボード' },
+        { href: '#ranking', text: '👑 人気動画' },
+        { href: '#top', text: '🔼 一番上へ' }
+    ];
+
+    // メニュー項目をHTMLとして生成
+    menuItems.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'page-nav-item';
+        
+        const a = document.createElement('a');
+        a.href = item.href;
+        a.className = 'page-nav-link';
+        a.textContent = item.text;
+        
+        li.appendChild(a);
+        navMenu.appendChild(li);
+    });
+});
 </script>
