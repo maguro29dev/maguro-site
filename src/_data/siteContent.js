@@ -19,12 +19,15 @@ module.exports = async function () {
     const mainPlans = await client.getEntries({ content_type: 'mainPlan', 'fields.archive[ne]': true, order: 'fields.order' });
     const collabPlans = await client.getEntries({ content_type: 'collabPlan', 'fields.archive[ne]': true, order: 'fields.order' });
     
-    // ▼▼▼【変更】並び順を'date'から'sys.createdAt'に変更 ▼▼▼
     const archivedMainPlans = await client.getEntries({ content_type: 'mainPlan', 'fields.archive': true, order: '-sys.createdAt' });
     const archivedCollabPlans = await client.getEntries({ content_type: 'collabPlan', 'fields.archive': true, order: '-sys.createdAt' });
 
     const members = await client.getEntries({ content_type: 'member', order: 'fields.order' });
-    const eventReports = await client.getEntries({ content_type: 'eventReport', order: '-fields.date' });
+    
+    // ▼▼▼【変更】アーカイブ対象とそうでないものを分ける ▼▼▼
+    const eventReports = await client.getEntries({ content_type: 'eventReport', 'fields.archive[ne]': true, order: '-fields.date' });
+    const archivedEventReports = await client.getEntries({ content_type: 'eventReport', 'fields.archive': true, order: '-fields.date' });
+
     const weeklySchedule = await client.getEntries({ content_type: 'weeklySchedule', order: 'fields.order' });
     const settings = await client.getEntries({ content_type: 'siteSettings', limit: 1 });
     const currentEvents = await client.getEntries({ 
@@ -43,6 +46,8 @@ module.exports = async function () {
       archivedPlans: [...archivedMainPlans.items, ...archivedCollabPlans.items],
       members: members.items,
       eventReports: eventReports.items,
+      // ▼▼▼【追加】アーカイブ用イベントレポートを返す ▼▼▼
+      archivedEventReports: archivedEventReports.items,
       weeklySchedule: weeklySchedule.items,
       settings: settings.items[0],
       currentEvents: currentEvents.items,

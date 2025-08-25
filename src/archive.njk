@@ -1,17 +1,41 @@
 ---
 layout: base.njk
-title: 過去の企画アーカイブ
-header_title: 過去の企画アーカイブ
-header_subtitle: "@ゲームまぐにぃ / これまでの企画を振り返る場所"
+title: 思い出のアルバム
+header_title: 思い出のアルバム
+header_subtitle: "@ゲームまぐにぃ / これまでの企画やイベントを振り返る場所"
 permalink: /archive/
 pageStyles: |
     <style>
-        .section-title { font-family: 'Roboto', sans-serif; font-weight: 900; font-size: 2.25rem; color: #333; text-align: center; margin-bottom: 1rem; border-bottom: 3px solid #6a994e; padding-bottom: 0.75rem; }
-        .archive-card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); padding: 1.5rem; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        /* ▼▼▼【追加】目次用のスタイル ▼▼▼ */
+        .table-of-contents {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            margin-bottom: 2rem;
+        }
+        .toc-link {
+            display: block;
+            padding: 0.75rem 1.25rem;
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            color: #4b5563;
+            text-align: center;
+            transition: all 0.2s ease-in-out;
+        }
+        .toc-link:hover {
+            background-color: #6a994e;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .section-title { font-family: 'Roboto', sans-serif; font-weight: 900; font-size: 2rem; color: #333; text-align: center; margin-bottom: 1rem; border-bottom: 3px solid #6a994e; padding-bottom: 0.75rem; }
+        .archive-card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); padding: 1.5rem; transition: transform 0.2s ease, box-shadow 0.2s ease; height: 100%; display: flex; flex-direction: column; }
         .archive-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
-        .archive-card-title { color: #6a994e; font-weight: 700; font-size: 1.5rem; }
+        .archive-card-title { color: #6a994e; font-weight: 700; font-size: 1.25rem; }
         .archive-card-date { color: #718096; font-size: 0.9rem; margin-bottom: 1rem; }
-        .archive-card-description { color: #4a5568; }
+        .archive-card-description { color: #4a5568; margin-top: 1rem; flex-grow: 1; }
         .sort-buttons { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
         .sort-btn { background-color: #e2e8f0; color: #4a5568; font-weight: bold; padding: 0.5rem 1rem; border-radius: 9999px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
         .sort-btn:hover { background-color: #cbd5e0; }
@@ -19,59 +43,115 @@ pageStyles: |
     </style>
 ---
 <div class="max-w-7xl mx-auto p-4 sm:p-6">
-    <section class="mb-12 mt-8">
-        <h2 class="section-title">📜 過去の企画一覧 📜</h2>
-        
-        <div class="sort-buttons mt-8">
-            <button id="sort-newest" class="sort-btn active">新しい順</button>
-            <button id="sort-oldest" class="sort-btn">古い順</button>
+    
+    <!-- ▼▼▼【追加】目次セクション ▼▼▼ -->
+    <div class="table-of-contents mt-8">
+        <h2 class="text-center font-bold text-lg mb-4 text-gray-700">目次</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <a href="#plan-archive-section" class="toc-link">📜 過去の企画一覧へ</a>
+            <a href="#event-archive-section" class="toc-link">📚 イベントレポートへ</a>
         </div>
+    </div>
 
-        <div id="archive-list" class="space-y-6">
-            {%- for plan in siteContent.archivedPlans | sortByDate -%}
-            <div class="archive-card" data-date="{{ plan.sys.createdAt }}">
-                <p class="archive-card-date">{{ plan.fields.date }}</p>
-                <h3 class="archive-card-title">{{ plan.fields.title }}</h3>
-                <div class="archive-card-description prose max-w-none mt-4">
-                    {{ plan.fields.description | markdownToHtml | safe }}
-                </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-16 mt-8">
+        <!-- ▼▼▼ 過去の企画セクション ▼▼▼ -->
+        <section id="plan-archive-section">
+            <h2 class="section-title">📜 過去の企画一覧 📜</h2>
+            
+            <div class="sort-buttons mt-8">
+                <button id="sort-plans-newest" class="sort-btn active">新しい順</button>
+                <button id="sort-plans-oldest" class="sort-btn">古い順</button>
             </div>
-            {%- endfor -%}
-        </div>
-    </section>
+
+            <div id="plan-archive-list" class="space-y-6">
+                {% if siteContent.archivedPlans.length > 0 %}
+                    {% for plan in siteContent.archivedPlans %}
+                    <div class="archive-card" data-date="{{ plan.sys.createdAt }}">
+                        <div>
+                            <p class="archive-card-date">{{ plan.fields.date }}</p>
+                            <h3 class="archive-card-title">{{ plan.fields.title }}</h3>
+                        </div>
+                        <div class="archive-card-description prose max-w-none">
+                            {{ plan.fields.description | markdownToHtml | safe }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center text-gray-500 py-8">アーカイブ済みの企画はまだありません。</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- ▼▼▼ 過去のイベントレポートセクション ▼▼▼ -->
+        <section id="event-archive-section">
+            <h2 class="section-title">📚 イベントレポート 📚</h2>
+            
+            <div class="sort-buttons mt-8">
+                <button id="sort-events-newest" class="sort-btn active">新しい順</button>
+                <button id="sort-events-oldest" class="sort-btn">古い順</button>
+            </div>
+
+            <div id="event-archive-list" class="space-y-6">
+                 {% if siteContent.archivedEventReports.length > 0 %}
+                    {% for report in siteContent.archivedEventReports %}
+                    <div class="archive-card" data-date="{{ report.fields.date }}">
+                         <div>
+                            <p class="archive-card-date">開催日：{{ report.fields.date | formatDate }}</p>
+                            <h3 class="archive-card-title">{{ report.fields.title }}</h3>
+                        </div>
+                        <div class="archive-card-description prose max-w-none">
+                            {{ report.fields.report | documentToHtml | safe }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center text-gray-500 py-8">アーカイブ済みのイベントレポートはまだありません。</p>
+                {% endif %}
+            </div>
+        </section>
+    </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const sortNewestBtn = document.getElementById('sort-newest');
-    const sortOldestBtn = document.getElementById('sort-oldest');
-    const archiveList = document.getElementById('archive-list');
+    // 汎用ソート関数
+    const setupSortButtons = (listId, newestBtnId, oldestBtnId) => {
+        const list = document.getElementById(listId);
+        const newestBtn = document.getElementById(newestBtnId);
+        const oldestBtn = document.getElementById(oldestBtnId);
 
-    if (sortNewestBtn && sortOldestBtn && archiveList) {
-        const sortPlans = (order) => {
-            const plans = Array.from(archiveList.children);
-            plans.sort((a, b) => {
+        if (!list || !newestBtn || !oldestBtn) return;
+
+        const sortItems = (order) => {
+            const items = Array.from(list.children);
+            items.sort((a, b) => {
                 const dateA = new Date(a.dataset.date);
                 const dateB = new Date(b.dataset.date);
                 return order === 'newest' ? dateB - dateA : dateA - dateB;
             });
-            plans.forEach(plan => archiveList.appendChild(plan));
+            items.forEach(item => list.appendChild(item));
         };
 
-        sortNewestBtn.addEventListener('click', () => {
-            sortPlans('newest');
-            sortNewestBtn.classList.add('active');
-            sortOldestBtn.classList.remove('active');
+        newestBtn.addEventListener('click', () => {
+            sortItems('newest');
+            newestBtn.classList.add('active');
+            oldestBtn.classList.remove('active');
         });
 
-        sortOldestBtn.addEventListener('click', () => {
-            sortPlans('oldest');
-            sortOldestBtn.classList.add('active');
-            sortNewestBtn.classList.remove('active');
+        oldestBtn.addEventListener('click', () => {
+            sortItems('oldest');
+            oldestBtn.classList.add('active');
+            newestBtn.classList.remove('active');
         });
 
         // 初期表示は新しい順にソート
-        sortPlans('newest');
-    }
+        sortItems('newest');
+    };
+
+    // 企画アーカイブのソートをセットアップ
+    setupSortButtons('plan-archive-list', 'sort-plans-newest', 'sort-plans-oldest');
+
+    // イベントレポートのソートをセットアップ
+    setupSortButtons('event-archive-list', 'sort-events-newest', 'sort-events-oldest');
 });
 </script>
