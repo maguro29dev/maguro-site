@@ -1,7 +1,7 @@
 ---
 layout: base.njk
-title: まぐにぃゲーム実況本館 企画会議
-header_title: まぐにぃゲーム実況本館 企画会議
+title: まぐにぃゲーム実況本館 今月の企画
+header_title: まぐにぃゲーム実況本館 今月の企画
 header_subtitle: "@ゲームまぐにぃ / 月例企画会議イベント会場"
 permalink: /plan/
 pageStyles: |
@@ -13,11 +13,34 @@ pageStyles: |
         .plan-card-arrow { font-size: 1.5rem; color: #9ca3af; }
         #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 50; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
         #modal-overlay.visible { opacity: 1; visibility: visible; }
-        #modal-content { background-color: white; padding: 2.5rem; border-radius: 1rem; width: 90%; max-width: 640px; max-height: 90vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.3s ease; }
+        
+        #modal-content { 
+            position: relative; 
+            padding: 2.5rem; 
+            border-radius: 1rem; 
+            width: 90%; 
+            max-width: 800px;
+            max-height: 95vh;
+            overflow-y: auto; 
+            transform: scale(0.95); 
+            transition: transform 0.3s ease;
+            background-color: white;
+            background-image: url("https://i.imgur.com/ew3XjDq.png");
+            background-size: cover;
+            background-position: center;
+            border: 3px solid #6a994e;
+        }
         #modal-overlay.visible #modal-content { transform: scale(1); }
-        #modal-close { position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; color: #9ca3af; cursor: pointer; line-height: 1; }
+        #modal-close { position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; color: #9ca3af; cursor: pointer; line-height: 1; z-index: 10; }
         #modal-close:hover { color: #1f2937; }
-        .modal-description-text { color: #374151; line-height: 1.8; font-size: 1.125rem; margin-top: 1rem; }
+
+        .modal-description-text { 
+            color: #374151; 
+            line-height: 1.8; 
+            font-size: 1.125rem; 
+            margin-top: 1rem;
+            text-shadow: 0px 0px 8px rgba(255, 255, 255, 0.8), 0px 0px 8px rgba(255, 255, 255, 0.8);
+        }
         .modal-description-text p:first-child { margin-top: 0; }
         .modal-description-text p:last-child { margin-bottom: 0; }
         .modal-description-text img { max-width: 100%; height: auto; border-radius: 0.5rem; margin-top: 1rem; display: block; }
@@ -35,14 +58,14 @@ pageStyles: |
         .delete-suggestion-btn:hover { background-color: #dc2626; }
         #suggestion-list.owner-view .delete-suggestion-btn { display: block; }
         
-        /* ▼▼▼ ランキングリスト用のスタイル ▼▼▼ */
+        /* ランキングリスト用のスタイル */
         #playlist-scroll-wrapper { display: flex; overflow-x: auto; padding-bottom: 1.5rem; gap: 1.5rem; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
         #playlist-scroll-wrapper::-webkit-scrollbar { display: none; }
-        .playlist-video-card { position: relative; flex: 0 0 280px; width: 280px; padding-top: 15px; /* Make space for badge */ }
+        .playlist-video-card { position: relative; flex: 0 0 280px; width: 280px; padding-top: 15px; }
         .ranking-badge { position: absolute; top: 0; left: 0; background-color: #e53e3e; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 5; font-size: 1.25rem; border: 2px solid white; }
-        .ranking-badge-1 { background-color: #ecc94b; color: #1a202c; } /* Gold */
-        .ranking-badge-2 { background-color: #d6d6d6; color: #1a202c; } /* Silver */
-        .ranking-badge-3 { background-color: #cd7f32; color: white; } /* Bronze */
+        .ranking-badge-1 { background-color: #ecc94b; color: #1a202c; }
+        .ranking-badge-2 { background-color: #d6d6d6; color: #1a202c; }
+        .ranking-badge-3 { background-color: #cd7f32; color: white; }
         .video-stats { display: flex; justify-content: space-around; padding: 0 1rem 1rem; font-size: 0.9rem; color: #4a5568; }
         .scroll-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; background-color: rgba(255, 255, 255, 0.9); color: #4a5568; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; transition: all 0.2s; display: none; }
         .scroll-btn:hover { background-color: #fff; transform: translateY(-50%) scale(1.1); }
@@ -50,7 +73,46 @@ pageStyles: |
         #scroll-right-btn { right: -20px; }
         @media (min-width: 768px) { .scroll-btn { display: block; } }
         .scroll-btn.hidden { opacity: 0; pointer-events: none; }
-        /* ▲▲▲ ここまでランキングリスト用のスタイル ▲▲▲ */
+
+        #capture-modal-btn {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 10;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            transition: all 0.2s ease-in-out;
+            background-color: #6a994e;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #capture-modal-btn:hover {
+            transform: scale(1.1);
+        }
+        .modal-character {
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            width: 120px;
+            height: auto;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* ▼▼▼【変更】スクリーンショット撮影時用の文字ズレ補正 ▼▼▼ */
+        #modal-content.screenshot-mode .modal-description-text,
+        #modal-content.screenshot-mode #modal-title {
+            transform: translateY(-5px);
+        }
+        #modal-content.screenshot-mode .date-badge-text {
+            display: inline-block;
+            transform: translateY(-5px);
+        }
     </style>
 ---
 <div class="max-w-7xl mx-auto p-4 sm:p-6">
@@ -101,7 +163,6 @@ pageStyles: |
         </div>
     </section>
 
-    {# ▼▼▼ ランキングリストのセクションを更新しました ▼▼▼ #}
     <section class="mt-16">
         <h2 class="section-title">👑 企画会議の人気動画ランキング 👑</h2>
         <div class="relative mt-8">
@@ -117,7 +178,6 @@ pageStyles: |
                         <div class="p-4 flex flex-col flex-grow">
                             <h3 class="text-gray-800 font-semibold leading-tight flex-grow mb-2">{{ item.snippet.title }}</h3>
                             <div class="video-stats border-t border-gray-200 pt-2 mt-auto">
-                                {# ▼▼▼【修正】numberFormat を commaNumber に変更 ▼▼▼ #}
                                 <span>👁️ {{ item.statistics.viewCount | commaNumber }}</span>
                                 <span>👍 {{ item.statistics.likeCount | commaNumber }}</span>
                             </div>
@@ -131,10 +191,21 @@ pageStyles: |
             <button id="scroll-right-btn" class="scroll-btn" aria-label="Scroll Right">›</button>
         </div>
     </section>
-    {# ▲▲▲ ここまでがランキングリストのセクションです ▲▲▲ #}
 </div>
 
-<div id="modal-overlay"><div id="modal-content"><div id="modal-close">&times;</div><h2 id="modal-title" class="text-4xl font-bold text-gray-800"></h2><div id="modal-date" class="mt-4 mb-6"></div><div id="modal-description" class="modal-description-text"></div><div id="modal-link-container" class="mt-6 text-right"></div></div></div>
+<div id="modal-overlay">
+    <div id="modal-content">
+        <img src="https://i.imgur.com/r5Novxv.png" alt="キャラクター" class="modal-character">
+        <div id="modal-close">&times;</div>
+        <div style="position: relative; z-index: 2;">
+            <h2 id="modal-title" class="text-4xl font-bold text-gray-800"></h2>
+            <div id="modal-date" class="mt-4 mb-6"></div>
+            <div id="modal-description" class="modal-description-text"></div>
+            <div id="modal-link-container" class="mt-6 text-right"></div>
+        </div>
+        <button id="capture-modal-btn" title="この企画を画像でシェア">📷️</button>
+    </div>
+</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -161,7 +232,38 @@ pageStyles: |
         function launchConfetti() { if (typeof confetti === 'function') { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); } }
         const planCards = document.querySelectorAll('.plan-card');
         const modalOverlay = document.getElementById('modal-overlay');
-        planCards.forEach(card => { card.addEventListener('click', () => { launchConfetti(); document.getElementById('modal-title').innerHTML = card.dataset.title; document.getElementById('modal-date').innerHTML = `<span class="date-badge py-2 px-4 rounded-lg">${card.dataset.date}</span>`; const planId = card.dataset.planId; const descriptionDiv = document.getElementById('modal-description'); descriptionDiv.innerHTML = ''; if (planId) { const template = document.getElementById(`plan-content-${planId}`); if (template) { descriptionDiv.appendChild(template.content.cloneNode(true)); const linksInDescription = descriptionDiv.querySelectorAll('a'); linksInDescription.forEach(link => { link.target = '_blank'; link.rel = 'noopener noreferrer'; }); } } const linkContainer = document.getElementById('modal-link-container'); linkContainer.innerHTML = ''; if (card.dataset.link) { const link = document.createElement('a'); link.href = card.dataset.link; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.className = 'inline-block bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-full hover:bg-gray-300 transition-colors duration-300'; link.textContent = card.dataset.linkText || '詳細を見る'; linkContainer.appendChild(link); } modalOverlay.classList.add('visible'); }); });
+        planCards.forEach(card => { card.addEventListener('click', () => { 
+            launchConfetti(); 
+            document.getElementById('modal-title').innerHTML = card.dataset.title; 
+            // ▼▼▼【変更】日付テキストをspanで囲む ▼▼▼
+            document.getElementById('modal-date').innerHTML = `<span class="date-badge py-2 px-4 rounded-lg"><span class="date-badge-text">${card.dataset.date}</span></span>`; 
+            const planId = card.dataset.planId; 
+            const descriptionDiv = document.getElementById('modal-description'); 
+            descriptionDiv.innerHTML = ''; 
+            if (planId) { 
+                const template = document.getElementById(`plan-content-${planId}`); 
+                if (template) { 
+                    descriptionDiv.appendChild(template.content.cloneNode(true)); 
+                    const linksInDescription = descriptionDiv.querySelectorAll('a'); 
+                    linksInDescription.forEach(link => { 
+                        link.target = '_blank'; 
+                        link.rel = 'noopener noreferrer'; 
+                    }); 
+                } 
+            } 
+            const linkContainer = document.getElementById('modal-link-container'); 
+            linkContainer.innerHTML = ''; 
+            if (card.dataset.link) { 
+                const link = document.createElement('a'); 
+                link.href = card.dataset.link; 
+                link.target = '_blank'; 
+                link.rel = 'noopener noreferrer'; 
+                link.className = 'inline-block bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-full hover:bg-gray-300 transition-colors duration-300'; 
+                link.textContent = card.dataset.linkText || '詳細を見る'; 
+                linkContainer.appendChild(link); 
+            } 
+            modalOverlay.classList.add('visible'); 
+        }); });
         function closeModal() { modalOverlay.classList.remove('visible'); }
         document.getElementById('modal-close').addEventListener('click', closeModal);
         modalOverlay.addEventListener('click', (event) => { if (event.target === modalOverlay) { closeModal(); } });
@@ -178,7 +280,7 @@ pageStyles: |
         const q = query(suggestionsColRef);
         onSnapshot(q, (snapshot) => { suggestionList.innerHTML = ''; snapshot.forEach((doc) => { const data = doc.data(); const item = document.createElement('div'); item.className = 'suggestion-item'; const itemText = document.createElement('span'); itemText.textContent = `💡 ${data.text}`; item.appendChild(itemText); const deleteBtn = document.createElement('button'); deleteBtn.className = 'delete-suggestion-btn'; deleteBtn.textContent = '×'; deleteBtn.onclick = async () => { try { await deleteDoc(doc.ref); } catch (error) { console.error("Error removing document: ", error); } }; item.appendChild(deleteBtn); suggestionList.appendChild(item); }); });
 
-        // ▼▼▼ 横スクロールを制御するJavaScript ▼▼▼
+        // 横スクロールを制御するJavaScript
         const scrollWrapper = document.getElementById('playlist-scroll-wrapper');
         const scrollLeftBtn = document.getElementById('scroll-left-btn');
         const scrollRightBtn = document.getElementById('scroll-right-btn');
@@ -201,6 +303,42 @@ pageStyles: |
             setTimeout(updateArrowVisibility, 500);
             window.addEventListener('resize', updateArrowVisibility);
         }
-        // ▲▲▲ ここまでが横スクロール用のJavaScriptです ▲▲▲
+
+        // モーダルのスクリーンショット機能
+        const captureModalBtn = document.getElementById('capture-modal-btn');
+        const modalContent = document.getElementById('modal-content');
+        const modalTitle = document.getElementById('modal-title');
+
+        if (captureModalBtn && modalContent && typeof html2canvas === 'function') {
+            captureModalBtn.addEventListener('click', () => {
+                const originalButtonContent = captureModalBtn.innerHTML;
+                captureModalBtn.innerHTML = '...';
+                captureModalBtn.disabled = true;
+                captureModalBtn.style.display = 'none';
+                
+                modalContent.classList.add('screenshot-mode');
+
+                setTimeout(() => {
+                    html2canvas(modalContent, {
+                        useCORS: true,
+                        backgroundColor: null,
+                        scale: 2,
+                        allowTaint: true,
+                        ignoreElements: (element) => element.id === 'modal-close' || element.id === 'capture-modal-btn'
+                    }).then(canvas => {
+                        const link = document.createElement('a');
+                        const fileName = modalTitle.textContent.trim().replace(/\s+/g, '_') || 'plan';
+                        link.download = `${fileName}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    }).finally(() => {
+                        modalContent.classList.remove('screenshot-mode');
+                        captureModalBtn.innerHTML = originalButtonContent;
+                        captureModalBtn.disabled = false;
+                        captureModalBtn.style.display = 'flex';
+                    });
+                }, 100);
+            });
+        }
     });
 </script>
