@@ -17,14 +17,14 @@ module.exports = async function () {
 
   try {
     const mainPlans = await client.getEntries({ content_type: 'mainPlan', order: 'fields.order' });
-    const collabPlans = await client.getEntries({ content_type: 'collabPlan' });
+    // ▼▼▼【変更】collabPlansにも並び順を指定 ▼▼▼
+    const collabPlans = await client.getEntries({ content_type: 'collabPlan', order: 'fields.order' });
     const members = await client.getEntries({ content_type: 'member', order: 'fields.order' });
     const eventReports = await client.getEntries({ content_type: 'eventReport', order: '-fields.date' });
     const weeklySchedule = await client.getEntries({ content_type: 'weeklySchedule', order: 'fields.order' });
     const settings = await client.getEntries({ content_type: 'siteSettings', limit: 1 });
     const currentEvent = await client.getEntries({ content_type: 'currentEvent', 'fields.isActive': true, limit: 1 });
     const realEvents = await client.getEntries({ content_type: 'realEvent', order: 'fields.order' });
-    // ▼▼▼【追加】メンバーシップ特典を取得 ▼▼▼
     const membershipBenefits = await client.getEntries({ content_type: 'membershipBenefit', order: 'fields.order' });
 
     console.log("Data fetched successfully!");
@@ -38,7 +38,6 @@ module.exports = async function () {
       settings: settings.items[0],
       currentEvent: currentEvent.items[0],
       realEvents: realEvents.items,
-      // ▼▼▼【追加】取得したデータを返す ▼▼▼
       membershipBenefits: membershipBenefits.items,
     };
   } catch (error) {
