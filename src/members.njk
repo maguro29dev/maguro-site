@@ -14,52 +14,56 @@ pageStyles: |
     </style>
 ---
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <header class="text-left mb-8">
-        <h1 class="font-roboto-black text-2xl font-black text-custom-green tracking-wider">
-            SPECIAL SUPPORTERS
-        </h1>
-        <p class="text-gray-600">このチャンネルを力強く支えてくださっている、最高のメンバー（大トロ）の皆様です。</p>
-        <p class="text-sm text-gray-500 mt-2">※ここに表示されているメンバーは、掲載に同意いただいた方のみです。掲載順は、同意フォームにご回答いただいた順番です。</p>
-    </header>
+    <!-- ▼▼▼【変更】IDを追加 ▼▼▼ -->
+    <section id="supporters">
+        <header class="text-left mb-8">
+            <h1 class="font-roboto-black text-2xl font-black text-custom-green tracking-wider">
+                SPECIAL SUPPORTERS
+            </h1>
+            <p class="text-gray-600">このチャンネルを力強く支えてくださっている、最高のメンバー（大トロ）の皆様です。</p>
+            <p class="text-sm text-gray-500 mt-2">※ここに表示されているメンバーは、掲載に同意いただいた方のみです。掲載順は、同意フォームにご回答いただいた順番です。</p>
+        </header>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
-    {%- for member in siteContent.members -%}
-        {%- set member_url = member.fields.url -%}
-        {%- if member_url -%}
-        <a href="{{ member_url }}" target="_blank" rel="noopener noreferrer" class="video-card group block">
-        {%- else -%}
-        <div class="video-card group block">
-        {%- endif -%}
-            <div class="thumbnail-container rounded-xl shadow-md group-hover:shadow-xl">
-                {% if member.fields.thumbnail and member.fields.thumbnail.fields.file %}
-                <img src="https://{{ member.fields.thumbnail.fields.file.url }}" alt="{{ member.fields.name }}のサムネイル">
-                {% else %}
-                <img src="https://i.imgur.com/MB8DzWq.png" alt="デフォルトのサムネイル">
-                {% endif %}
-            </div>
-            <div class="flex items-start mt-3">
-                <img class="w-9 h-9 rounded-full mr-3" src="https://i.imgur.com/P1l89ZB.png" alt="チャンネルアイコン">
-                <div>
-                    <h3 class="font-bold text-base text-black leading-snug">{{ member.fields.name }}</h3>
-                    <p class="text-sm text-gray-600">スペシャルサポーター</p>
-                    <p class="text-xs text-custom-green font-bold">OTORO MEMBER</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+        {%- for member in siteContent.members -%}
+            {%- set member_url = member.fields.url -%}
+            {%- if member_url -%}
+            <a href="{{ member_url }}" target="_blank" rel="noopener noreferrer" class="video-card group block">
+            {%- else -%}
+            <div class="video-card group block">
+            {%- endif -%}
+                <div class="thumbnail-container rounded-xl shadow-md group-hover:shadow-xl">
+                    {% if member.fields.thumbnail and member.fields.thumbnail.fields.file %}
+                    <img src="https://{{ member.fields.thumbnail.fields.file.url }}" alt="{{ member.fields.name }}のサムネイル">
+                    {% else %}
+                    <img src="https://i.imgur.com/MB8DzWq.png" alt="デフォルトのサムネイル">
+                    {% endif %}
                 </div>
+                <div class="flex items-start mt-3">
+                    <img class="w-9 h-9 rounded-full mr-3" src="https://i.imgur.com/P1l89ZB.png" alt="チャンネルアイコン">
+                    <div>
+                        <h3 class="font-bold text-base text-black leading-snug">{{ member.fields.name }}</h3>
+                        <p class="text-sm text-gray-600">スペシャルサポーター</p>
+                        <p class="text-xs text-custom-green font-bold">OTORO MEMBER</p>
+                    </div>
+                </div>
+            {%- if member_url -%}
+            </a>
+            {%- else -%}
             </div>
-        {%- if member_url -%}
-        </a>
-        {%- else -%}
+            {%- endif -%}
+        {%- endfor -%}
+        </div>
+
+        {%- if siteContent.settings and siteContent.settings.fields.totalOtoroMembers > siteContent.members.length -%}
+        <div class="text-center mt-16 text-gray-600">
+            <p>...and {{ siteContent.settings.fields.totalOtoroMembers - siteContent.members.length }} other special supporters.</p>
         </div>
         {%- endif -%}
-    {%- endfor -%}
-    </div>
+    </section>
 
-    {%- if siteContent.settings and siteContent.settings.fields.totalOtoroMembers > siteContent.members.length -%}
-    <div class="text-center mt-16 text-gray-600">
-        <p>...and {{ siteContent.settings.fields.totalOtoroMembers - siteContent.members.length }} other special supporters.</p>
-    </div>
-    {%- endif -%}
-
-    <div class="text-center mt-12 pt-10 border-t border-gray-200">
+    <!-- ▼▼▼【変更】IDを追加 ▼▼▼ -->
+    <section id="join-us" class="text-center mt-12 pt-10 border-t border-gray-200">
         <h2 class="text-xl font-bold text-gray-800">あなたも、この殿堂へ。</h2>
         <p class="max-w-xl mx-auto mt-2 text-gray-600">
             メンバーシップ「大トロ」にご参加いただいている皆様へ。
@@ -70,5 +74,32 @@ pageStyles: |
                 掲載同意フォームはこちら
             </a>
         </div>
-    </div>
+    </section>
 </div>
+
+<!-- ▼▼▼【追加】このページ専用のナビゲーションメニューを生成するスクリプト ▼▼▼ -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const navMenu = document.getElementById('page-nav-menu');
+    if (!navMenu) return;
+
+    const menuItems = [
+        { href: '#supporters', text: '👑 サポーター殿堂' },
+        { href: '#join-us', text: '✍️ 掲載フォーム' },
+        { href: '#top', text: '🔼 一番上へ' }
+    ];
+
+    menuItems.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'page-nav-item';
+        
+        const a = document.createElement('a');
+        a.href = item.href;
+        a.className = 'page-nav-link';
+        a.textContent = item.text;
+        
+        li.appendChild(a);
+        navMenu.appendChild(li);
+    });
+});
+</script>

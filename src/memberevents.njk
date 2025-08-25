@@ -110,7 +110,6 @@ pageStyles: |
                         <button id="capture-event-btn-{{ loop.index }}" class="capture-event-btn" title="このイベント情報を画像でシェア">📷️</button>
                     </div>
 
-                    <!-- ▼▼▼【変更】statusに応じて表示を切り替え ▼▼▼ -->
                     <div class="mt-6 text-center">
                         {% if event.fields.status == '募集中' %}
                             <p class="font-bold text-gray-800">お申し込みは、メンバー限定のYouTubeコミュニティ投稿から！</p>
@@ -134,7 +133,6 @@ pageStyles: |
         {% endif %}
     </section>
 
-    <!-- 過去のイベントレポート -->
     <section id="past-events">
         <h2 class="text-xl font-bold mb-4 section-title">
             <span class="text-2xl mr-3">📚</span>過去のイベントレポート
@@ -202,6 +200,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 100);
             }
         });
+    });
+});
+</script>
+
+<!-- ▼▼▼【追加】このページ専用のナビゲーションメニューを生成するスクリプト ▼▼▼ -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const navMenu = document.getElementById('page-nav-menu');
+    if (!navMenu) return;
+
+    const menuItems = [
+        { href: '#current-events', text: '📢 開催予定のイベント' },
+        { href: '#past-events', text: '📚 過去のレポート' },
+        { href: '#top', text: '🔼 一番上へ' }
+    ];
+
+    menuItems.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'page-nav-item';
+        
+        const a = document.createElement('a');
+        a.href = item.href;
+        a.className = 'page-nav-link';
+        a.textContent = item.text;
+        
+        li.appendChild(a);
+        navMenu.appendChild(li);
     });
 });
 </script>
