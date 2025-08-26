@@ -152,21 +152,16 @@ pageStyles: |
 
     <section id="live-status-panel" class="mb-8">
         {% if youtube.liveVideo %}
-            {% if youtube.liveVideo.isPremiere %}
-                <a href="https://www.youtube.com/watch?v={{ youtube.liveVideo.id.videoId }}" target="_blank" rel="noopener noreferrer" class="block bg-purple-600 text-white p-4 rounded-lg shadow-lg hover:bg-purple-700 transition-colors duration-300">
-                    <div class="flex items-center justify-center space-x-4">
-                        <div class="relative flex h-5 w-5"><span class="live-now-pulse absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span><span class="relative inline-flex rounded-full h-5 w-5 bg-white"></span></div>
-                        <p class="text-lg font-bold">✨ プレミア公開中！！「{{ youtube.liveVideo.snippet.title }}」</p>
+            {# isPremiereの分岐を削除し、常に通常のライブ配信として表示 #}
+            <a href="https://www.youtube.com/watch?v={{ youtube.liveVideo.id.videoId }}" target="_blank" rel="noopener noreferrer" class="block bg-red-600 text-white p-4 rounded-lg shadow-lg hover:bg-red-700 transition-colors duration-300">
+                <div class="flex items-center justify-center space-x-4">
+                    <div class="relative flex h-5 w-5">
+                        <span class="live-now-pulse absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-5 w-5 bg-white"></span>
                     </div>
-                </a>
-            {% else %}
-                <a href="https://www.youtube.com/watch?v={{ youtube.liveVideo.id.videoId }}" target="_blank" rel="noopener noreferrer" class="block bg-red-600 text-white p-4 rounded-lg shadow-lg hover:bg-red-700 transition-colors duration-300">
-                    <div class="flex items-center justify-center space-x-4">
-                        <div class="relative flex h-5 w-5"><span class="live-now-pulse absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span><span class="relative inline-flex rounded-full h-5 w-5 bg-white"></span></div>
-                        <p class="text-lg font-bold">🔴 ライブ配信中！「{{ youtube.liveVideo.snippet.title }}」</p>
-                    </div>
-                </a>
-            {% endif %}
+                    <p class="text-lg font-bold">🔴 ライブ配信中！「{{ youtube.liveVideo.snippet.title }}」</p>
+                </div>
+            </a>
         {% elif youtube.upcomingVideos.length > 0 %}
             {% set nextVideo = youtube.upcomingVideos[0] %}
             <div class="bg-white p-6 rounded-lg shadow text-center">
@@ -174,6 +169,10 @@ pageStyles: |
                 <div id="countdown-timer" class="text-4xl md:text-5xl font-black text-gray-900 tracking-tight" style="font-family: 'Roboto', sans-serif;" data-target-time="{{ nextVideo.liveStreamingDetails.scheduledStartTime }}"></div>
                 <p class="text-xs text-gray-500 mt-2"><a href="https://www.youtube.com/watch?v={{ nextVideo.id }}" target="_blank" rel="noopener noreferrer" class="hover:text-custom-green">{{ nextVideo.snippet.title }}</a></p>
             </div>
+        {% else %}
+             <div class="bg-white p-6 rounded-lg shadow text-center">
+                <p class="text-lg font-bold text-gray-800">次回の配信は未定です</p>
+             </div>
         {% endif %}
     </section>
 
@@ -267,39 +266,11 @@ pageStyles: |
     </div>
 </div>
 
-<!-- ▼▼▼【ここから変更】カウントダウンとプレミア公開チェック用のスクリプト ▼▼▼ -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const countdownElement = document.getElementById('countdown-timer');
-    const liveStatusPanel = document.getElementById('live-status-panel');
-    
-    // Nunjucksから次の動画データをJSONとして受け取る
-    const nextVideo = {{ youtube.upcomingVideos[0] | dump | safe if youtube.upcomingVideos.length > 0 else 'null' }};
-
-    // プレミア公開中 or ライブ配信中の表示を生成する関数
-    function createLivePanel(video, isPremiere) {
-        const bgColor = isPremiere ? 'bg-purple-600' : 'bg-red-600';
-        const hoverBgColor = isPremiere ? 'hover:bg-purple-700' : 'hover:bg-red-700';
-        const icon = isPremiere ? '✨' : '🔴';
-        const text = isPremiere ? 'プレミア公開中！！' : 'ライブ配信中！';
-
-        return `
-            <a href="https://www.youtube.com/watch?v=${video.id}" target="_blank" rel="noopener noreferrer" class="block ${bgColor} text-white p-4 rounded-lg shadow-lg ${hoverBgColor} transition-colors duration-300">
-                <div class="flex items-center justify-center space-x-4">
-                    <div class="relative flex h-5 w-5">
-                        <span class="live-now-pulse absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-5 w-5 bg-white"></span>
-                    </div>
-                    <p class="text-lg font-bold">${icon} ${text}「${video.snippet.title}」</p>
-                </div>
-            </a>
-        `;
-    }
-
-    // カウントダウンタイマーの処理
-    if (countdownElement && nextVideo) {
+    if (countdownElement) {
         const targetDate = new Date(countdownElement.dataset.targetTime).getTime();
-        
         const interval = setInterval(() => {
             const now = new Date().getTime();
             const distance = targetDate - now;
@@ -307,25 +278,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (distance < 0) {
                 clearInterval(interval);
                 countdownElement.innerHTML = "まもなく開始します！";
-
-                // カウントダウン終了後、Netlify Functionを呼び出してステータスを確認
-                fetch(`/.netlify/functions/get-video-status?videoId=${nextVideo.id}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.status === 'live') {
-                            // プレミア公開中 or ライブ中なら、パネルを書き換える
-                            // isPremiereの厳密な判定は難しいが、このフローはほぼプレミア公開なのでtrueとして扱う
-                            liveStatusPanel.innerHTML = createLivePanel({id: nextVideo.id, snippet: {title: data.title}}, true);
-                        } else {
-                            // ライブになっていなかった場合、5秒後にリロードして再確認（保険）
-                            setTimeout(() => window.location.reload(), 5000);
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Status check failed:', err);
-                        // API呼び出しに失敗した場合も、5秒後にリロード（保険）
-                        setTimeout(() => window.location.reload(), 5000);
-                    });
+                // 5秒後にページをリロードする元のシンプルな動作に戻す
+                setTimeout(() => window.location.reload(), 5000);
                 return;
             }
 

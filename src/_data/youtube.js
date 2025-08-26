@@ -74,28 +74,19 @@ module.exports = async function() {
     let liveVideo = null;
     if (liveData.items && liveData.items.length > 0) {
         const videoId = liveData.items[0].id.videoId;
-        // ▼▼▼【ここから変更】APIリクエストに contentDetails を追加 ▼▼▼
-        const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?key=${YOUTUBE_API_KEY}&part=snippet,liveStreamingDetails,contentDetails&id=${videoId}`;
+        const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?key=${YOUTUBE_API_KEY}&part=snippet,liveStreamingDetails&id=${videoId}`;
         const videoDetailsData = await EleventyFetch(videoDetailsUrl, { duration: "1m", type: "json" });
         
         if (videoDetailsData.items && videoDetailsData.items.length > 0) {
             const details = videoDetailsData.items[0];
             const liveDetails = details.liveStreamingDetails;
             const isCurrentlyStreaming = liveDetails && liveDetails.actualStartTime && !liveDetails.actualEndTime;
-
             if (isCurrentlyStreaming) {
-                // ▼▼▼【ここから変更】プレミア公開の判定ロジックを更新 ▼▼▼
-                let isPremiere = false;
-                // contentDetails.duration が存在し、かつその値が 'P0D' (再生時間0) でなければプレミア公開とみなす
-                if (details.contentDetails && details.contentDetails.duration && details.contentDetails.duration !== 'P0D') {
-                    isPremiere = true;
-                }
-                // ▲▲▲【変更ここまで】▲▲▲
-
+                // isPremiereの判定を削除し、常にfalseとして扱う（＝通常のライブとして表示）
                 liveVideo = { 
                     ...liveData.items[0],
                     snippet: details.snippet,
-                    isPremiere: isPremiere
+                    isPremiere: false 
                 };
             }
         }
@@ -118,7 +109,14 @@ module.exports = async function() {
         allVideos_detailed = videosData.items || [];
 
         upcomingVideos_detailed = allVideos_detailed
-            .filter(item => item.snippet.liveBroadcastContent === 'upcoming' && item.liveStreamingDetails?.scheduledStartTime)
+            .filter(item => {
+                // 過去の配信（アーカイブ済み）を upcoming として扱わないように判定を強化
+                const isUpcoming = item.snippet.liveBroadcastContent === 'upcoming';
+                const scheduledTime = new Date(item.liveStreamingDetails?.scheduledStartTime).getTime();
+                const now = new Date().getTime();
+                // 予定時刻が過去のものは除外（1時間の猶予を持たせる）
+                return isUpcoming && scheduledTime > (now - 3600 * 1000);
+            })
             .sort((a, b) => new Date(a.liveStreamingDetails.scheduledStartTime) - new Date(b.liveStreamingDetails.scheduledStartTime));
     }
 
@@ -144,11 +142,7 @@ module.exports = async function() {
       upcoming: upcomingData,
       planningPlaylist: rankedPlaylistData,
       liveVideo: liveVideo,
-      upcomingVideos: upcomingVideos_detailed.map(video => ({
-        id: video.id,
-        snippet: video.snippet,
-        liveStreamingDetails: video.liveStreamingDetails
-      })),
+      upcomingVideos: upcomingVideos_detailed,
       popularVideos: popularVideos,
       getPlaylistLastUpdate: getPlaylistLastUpdate
     };
