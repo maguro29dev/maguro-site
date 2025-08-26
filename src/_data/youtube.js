@@ -74,21 +74,24 @@ module.exports = async function() {
     let liveVideo = null;
     if (liveData.items && liveData.items.length > 0) {
         const videoId = liveData.items[0].id.videoId;
-        const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?key=${YOUTUBE_API_KEY}&part=snippet,liveStreamingDetails&id=${videoId}`;
+        // ▼▼▼【ここから変更】APIリクエストに contentDetails を追加 ▼▼▼
+        const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?key=${YOUTUBE_API_KEY}&part=snippet,liveStreamingDetails,contentDetails&id=${videoId}`;
         const videoDetailsData = await EleventyFetch(videoDetailsUrl, { duration: "1m", type: "json" });
         
         if (videoDetailsData.items && videoDetailsData.items.length > 0) {
             const details = videoDetailsData.items[0];
             const liveDetails = details.liveStreamingDetails;
             const isCurrentlyStreaming = liveDetails && liveDetails.actualStartTime && !liveDetails.actualEndTime;
+
             if (isCurrentlyStreaming) {
+                // ▼▼▼【ここから変更】プレミア公開の判定ロジックを更新 ▼▼▼
                 let isPremiere = false;
-                if (liveDetails.scheduledStartTime) {
-                    const timeDifference = Math.abs(new Date(liveDetails.actualStartTime).getTime() - new Date(liveDetails.scheduledStartTime).getTime());
-                    if (timeDifference < 60000) {
-                        isPremiere = true;
-                    }
+                // contentDetails.duration が存在し、かつその値が 'P0D' (再生時間0) でなければプレミア公開とみなす
+                if (details.contentDetails && details.contentDetails.duration && details.contentDetails.duration !== 'P0D') {
+                    isPremiere = true;
                 }
+                // ▲▲▲【変更ここまで】▲▲▲
+
                 liveVideo = { 
                     ...liveData.items[0],
                     snippet: details.snippet,
@@ -141,9 +144,8 @@ module.exports = async function() {
       upcoming: upcomingData,
       planningPlaylist: rankedPlaylistData,
       liveVideo: liveVideo,
-      // ▼▼▼【ここを変更】upcomingVideosのデータ構造を少しだけ変えます ▼▼▼
       upcomingVideos: upcomingVideos_detailed.map(video => ({
-        id: video.id, // videoIdをトップレベルに保持
+        id: video.id,
         snippet: video.snippet,
         liveStreamingDetails: video.liveStreamingDetails
       })),
