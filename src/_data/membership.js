@@ -20,7 +20,7 @@ module.exports = async function() {
     }
 
     // NEW! と判断する期間（例：7日以内）
-    const NEW_THRESHOLD_DAYS = 7;
+    const NEW_THRESHOLD_DAYS = 3;
     const now = DateTime.now();
 
     // Contentfulから取得した各特典を処理
