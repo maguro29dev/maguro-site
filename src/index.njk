@@ -134,7 +134,10 @@ pageStyles: |
         .popular-video-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1); }
         .popular-video-card a { text-decoration: none; color: inherit; display: block; border-radius: 0.5rem; overflow: hidden; }
         .popular-video-card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-        .popular-video-card .video-title { font-weight: 700; padding: 0.75rem 1rem; margin: 0; font-size: 0.9rem; line-height: 1.4; color: #2d3748; height: 4.5em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+        
+        /* 【変更】タイトルの高さを自動にし、折り返し表示を許容する */
+        .popular-video-card .video-title { font-weight: 700; padding: 0.75rem 1rem; margin: 0; font-size: 0.9rem; line-height: 1.4; color: #2d3748; }
+
         .ranking-badge { position: absolute; top: 0; left: 0; background-color: #718096; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 5; font-size: 1.25rem; border: 2px solid white; }
         .ranking-badge-1 { background-color: #ecc94b; color: #1a202c; }
         .ranking-badge-2 { background-color: #d6d6d6; color: #1a202c; }
@@ -178,6 +181,41 @@ pageStyles: |
 
     {% if membership.hasNewBenefit %}<div class="p-4 mb-8 text-sm text-center text-green-800 rounded-lg bg-green-100 shadow"><a href="#membership" class="font-bold hover:underline">✨ メンバーシップ特典に新しい情報があります！ ({{ membership.newBenefitTiers | join(', ') }})</a></div>{% endif %}
 
+    <div class="flex flex-col md:flex-row gap-8 my-10">
+        
+        <section id="latest-video" class="w-full md:w-1/3">
+            <div class="bg-white p-6 rounded-lg shadow h-full">
+                <h2 class="text-xl font-bold mb-6 info-title"><span class="mr-2">🆕</span>最新の動画</h2>
+                {% if youtube.latestVideo %}
+                    {% set video = youtube.latestVideo %}
+                    <div class="popular-video-card" style="margin: 0 auto;"> {# 横スクロール用ではないので中央寄せ #}
+                        <a href="https://www.youtube.com/watch?v={{ video.id.videoId }}" target="_blank" rel="noopener noreferrer">
+                            <img src="{{ video.snippet.thumbnails.medium.url }}" alt="{{ video.snippet.title }}" loading="lazy">
+                            <p class="video-title">{{ video.snippet.title }}</p>
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-gray-500 text-sm text-center">最新動画の読み込みに失敗しました。</p>
+                {% endif %}
+            </div>
+        </section>
+
+        {% if youtube.popularVideos.length > 0 %}
+        <section id="popular-videos" class="w-full md:w-2/3">
+            <div class="bg-white p-6 rounded-lg shadow h-full">
+                <h2 class="text-xl font-bold mb-6 info-title"><span class="mr-2">🏆</span>今月の人気動画ランキング</h2>
+                <div class="relative">
+                    <button id="popular-scroll-left-btn" class="scroll-btn hidden" aria-label="Scroll Left">‹</button>
+                    <div id="popular-scroll-wrapper" class="px-2">
+                        {% for video in youtube.popularVideos %}<div class="popular-video-card"><span class="ranking-badge ranking-badge-{{ loop.index }}">{{ loop.index }}</span><a href="https://www.youtube.com/watch?v={{ video.id }}" target="_blank" rel="noopener noreferrer"><img src="{{ video.snippet.thumbnails.medium.url }}" alt="{{ video.snippet.title }}" loading="lazy"><p class="video-title">{{ video.snippet.title }}</p></a></div>{% endfor %}
+                    </div>
+                    <button id="popular-scroll-right-btn" class="scroll-btn" aria-label="Scroll Right">›</button>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+    </div>
     <section id="schedule" class="my-10">
         <div id="schedule-capture-area" class="schedule-card max-w-7xl mx-auto rounded-2xl shadow-xl p-5 sm:p-8 overflow-hidden">
             <img src="https://i.imgur.com/r5Novxv.png" alt="キャラクター" class="schedule-character">
@@ -221,21 +259,6 @@ pageStyles: |
             </div>
         </div>
     </section>
-
-    {% if youtube.popularVideos.length > 0 %}
-    <section id="popular-videos" class="my-10">
-        <div class="bg-white p-6 rounded-lg shadow">
-            <h2 class="text-xl font-bold mb-6 info-title"><span class="mr-2">🏆</span>今月の人気動画ランキング</h2>
-            <div class="relative">
-                <button id="popular-scroll-left-btn" class="scroll-btn hidden" aria-label="Scroll Left">‹</button>
-                <div id="popular-scroll-wrapper" class="px-2">
-                    {% for video in youtube.popularVideos %}<div class="popular-video-card"><span class="ranking-badge ranking-badge-{{ loop.index }}">{{ loop.index }}</span><a href="https://www.youtube.com/watch?v={{ video.id }}" target="_blank" rel="noopener noreferrer"><img src="{{ video.snippet.thumbnails.medium.url }}" alt="{{ video.snippet.title }}" loading="lazy"><p class="video-title">{{ video.snippet.title }}</p></a></div>{% endfor %}
-                </div>
-                <button id="popular-scroll-right-btn" class="scroll-btn" aria-label="Scroll Right">›</button>
-            </div>
-        </div>
-    </section>
-    {% endif %}
 
     <section id="goods" class="my-8">
         <div class="bg-white p-6 rounded-lg shadow">
@@ -327,9 +350,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const navMenu = document.getElementById('page-nav-menu');
     if (!navMenu) return;
     const menuItems = [
+        // 【変更】目次メニューに人気動画へのリンクを戻し、順番を調整
+        { href: '#latest-video', text: '🆕 最新動画' },
+        { href: '#popular-videos', text: '🏆 人気動画' },
         { href: '#schedule', text: '🗓️ スケジュール' },
         { href: '#membership', text: '✨ 特典一覧' },
-        { href: '#popular-videos', text: '🏆 人気動画' },
         { href: '#goods', text: '🛍️ グッズ情報' },
         { href: '#community-info', text: '📖 ご意見箱など' },
         { href: '#top', text: '🔼 一番上へ' }
