@@ -45,18 +45,14 @@ pageStyles: |
         .modal-description-text p:last-child { margin-bottom: 0; }
         .modal-description-text img { max-width: 100%; height: auto; border-radius: 0.5rem; margin-top: 1rem; display: block; }
         .date-badge { background-color: #6a994e; color: white; font-size: 0.9rem; font-weight: bold; display: inline-block; }
-        #whiteboard-area { background-color: #f8f8f8; border: 2px solid #ccc; border-radius: 8px; padding: 1.5rem; min-height: 300px; line-height: 1.8; font-size: 1rem; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); cursor: not-allowed; }
-        #whiteboard-area.editable { background-color: #fffff0; border-color: #6a994e; cursor: text; }
+        #whiteboard-area { background-color: #f8f8f8; border: 2px solid #ccc; border-radius: 8px; padding: 1.5rem; min-height: 300px; line-height: 1.8; font-size: 1rem; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        #whiteboard-area.editable { background-color: #fffff0; border-color: #6a994e; }
         #whiteboard-area.editable:focus { box-shadow: inset 0 2px 4px rgba(0,0,0,0.05), 0 0 0 3px rgba(106, 153, 78, 0.4); }
         #suggestion-wrapper { transition: all 0.5s ease-in-out; max-height: 0; opacity: 0; overflow: hidden; }
         #suggestion-wrapper.open { max-height: 1000px; opacity: 1; }
-        #owner-controls { display: none; }
-        #owner-controls.visible { display: block; }
-        #suggestion-list { margin-top: 1rem; max-height: 400px; overflow-y: auto; background-color: #f9f9f9; padding: 1rem; border-radius: 8px; }
         .suggestion-item { position: relative; background-color: white; padding: 0.75rem 1rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 0.5rem; padding-right: 2.5rem; }
         .delete-suggestion-btn { display: none; position: absolute; top: 50%; right: 0.5rem; transform: translateY(-50%); background-color: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-weight: bold; line-height: 24px; text-align: center; cursor: pointer; transition: background-color 0.2s; }
         .delete-suggestion-btn:hover { background-color: #dc2626; }
-        #suggestion-list.owner-view .delete-suggestion-btn { display: block; }
         
         /* ランキングリスト用のスタイル */
         #playlist-scroll-wrapper { display: flex; overflow-x: auto; padding-bottom: 1.5rem; gap: 1.5rem; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
@@ -74,48 +70,26 @@ pageStyles: |
         @media (min-width: 768px) { .scroll-btn { display: block; } }
         .scroll-btn.hidden { opacity: 0; pointer-events: none; }
 
-        #capture-modal-btn {
-            position: absolute;
-            bottom: 1rem;
-            right: 1rem;
-            z-index: 10;
-            width: 50px;
-            height: 50px;
-            font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 9999px;
-            transition: all 0.2s ease-in-out;
-            background-color: #6a994e;
-            color: white;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        #capture-modal-btn:hover {
-            transform: scale(1.1);
-        }
-        .modal-character {
-            position: absolute;
-            top: 50px;
-            right: 20px;
-            width: 120px;
-            height: auto;
-            z-index: 1;
-            pointer-events: none;
-        }
+        #capture-modal-btn { position: absolute; bottom: 1rem; right: 1rem; z-index: 10; width: 50px; height: 50px; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; border-radius: 9999px; transition: all 0.2s ease-in-out; background-color: #6a994e; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        #capture-modal-btn:hover { transform: scale(1.1); }
+        .modal-character { position: absolute; top: 50px; right: 20px; width: 120px; height: auto; z-index: 1; pointer-events: none; }
 
         #modal-content.screenshot-mode .modal-description-text,
-        #modal-content.screenshot-mode #modal-title {
-            transform: translateY(-5px);
-        }
-        #modal-content.screenshot-mode .date-badge-text {
-            display: inline-block;
-            transform: translateY(-5px);
-        }
+        #modal-content.screenshot-mode #modal-title { transform: translateY(-5px); }
+        #modal-content.screenshot-mode .date-badge-text { display: inline-block; transform: translateY(-5px); }
     </style>
 ---
 <div class="max-w-7xl mx-auto p-4 sm:p-6">
-    <section id="main-plans" class="mb-12 mt-8">
+
+    <div id="admin-auth-section" class="my-8 p-4 bg-gray-100 rounded-lg flex justify-center items-center min-h-[52px] hidden">
+        <button id="admin-login-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">管理者としてGoogleログイン</button>
+        <div id="admin-info" class="hidden items-center justify-center space-x-4">
+            <p id="admin-name" class="font-bold"></p>
+            <button id="admin-logout-btn" class="bg-gray-500 text-white font-bold py-1 px-3 rounded-lg hover:bg-gray-600 transition-colors text-sm">ログアウト</button>
+        </div>
+    </div>
+    
+    <section id="main-plans" class="mb-12">
         <h2 class="section-title">🎉 8月の決定済み企画 🎉</h2>
         <div class="space-y-4 mt-8">
             {%- for plan in siteContent.mainPlans -%}
@@ -144,8 +118,8 @@ pageStyles: |
     <section id="whiteboard" class="mt-16">
         <h2 class="section-title">📝 企画会議ホワイトボード 📝</h2>
         <div class="bg-white p-6 rounded-lg shadow-inner mt-8">
-            <div id="whiteboard-area" title="オーナーとしてログインすると編集できます"></div>
-            <div id="owner-controls" class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div id="whiteboard-area" contenteditable="false"></div>
+            <div id="owner-controls" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <p class="font-bold text-green-800">オーナー用パネル</p>
                 <button id="toggle-suggestions-btn" class="mt-2 bg-blue-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">アイデア受付を管理</button>
             </div>
@@ -190,7 +164,6 @@ pageStyles: |
             <button id="scroll-right-btn" class="scroll-btn" aria-label="Scroll Right">›</button>
         </div>
         
-        <!-- ▼▼▼【追加】アーカイブページへのリンク ▼▼▼ -->
         <div class="text-center mt-12">
             <a href="/archive/#plan-archive-section" class="inline-block bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-full hover:bg-gray-300 transition-colors duration-300">
                 過去の企画はこちら
@@ -214,26 +187,172 @@ pageStyles: |
 </div>
 
 <script type="module">
+    // Firebase SDKの必要な関数をインポート
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, serverTimestamp, query, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    document.addEventListener('DOMContentLoaded', () => {
+        // Firebaseの初期化
         const firebaseConfig = { apiKey: "AIzaSyDwjh5FCorVXZDdMse_uTcLbvjXwmw2jhk", authDomain: "maguro29-planning.firebaseapp.com", projectId: "maguro29-planning", storageBucket: "maguro29-planning.appspot.com", messagingSenderId: "525505583082", appId: "1:525505583082:web:2cb02294dfd3d9ca91c493" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        let userId = null;
+
+        let currentUser = null;
         let isOwner = false;
-        try { await signInAnonymously(auth); userId = auth.currentUser.uid; } catch (error) { console.error("Anonymous Auth Error:", error); }
+
+        // 必要なHTML要素を取得
+        const adminAuthSection = document.getElementById('admin-auth-section');
         const whiteboardArea = document.getElementById('whiteboard-area');
         const ownerControls = document.getElementById('owner-controls');
+        const suggestionList = document.getElementById('suggestion-list');
+        const adminLoginBtn = document.getElementById('admin-login-btn');
+        const adminLogoutBtn = document.getElementById('admin-logout-btn');
+        const adminInfo = document.getElementById('admin-info');
+        const adminName = document.getElementById('admin-name');
         const toggleSuggestionsBtn = document.getElementById('toggle-suggestions-btn');
         const suggestionWrapper = document.getElementById('suggestion-wrapper');
-        const suggestionList = document.getElementById('suggestion-list');
-        const ownerPassword = "Flexiblefish354";
-        document.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'm' && !isOwner) { const inputPassword = prompt("オーナー用パスワードを入力してください:"); if (inputPassword === ownerPassword) { isOwner = true; enableEditing(); alert("オーナーとしてログインしました。"); } else if (inputPassword) { alert("パスワードが違います。"); } } });
-        function enableEditing() { whiteboardArea.contentEditable = true; whiteboardArea.classList.add('editable'); whiteboardArea.title = "ここにメモを入力できます"; ownerControls.classList.add('visible'); suggestionList.classList.add('owner-view'); let debounceTimer; whiteboardArea.addEventListener('input', () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => { setDoc(eventDocRef, { content: whiteboardArea.innerHTML }, { merge: true }); }, 500); }); }
+
+        // --- 【追加】秘密のキーでログインボタンを表示 ---
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'm' && !isOwner) {
+                adminAuthSection.classList.remove('hidden');
+            }
+        });
+
+        // --- ログイン状態の監視 ---
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            if (user && !user.isAnonymous) {
+                // Googleアカウントでログインしている場合
+                const idTokenResult = await user.getIdTokenResult();
+                isOwner = idTokenResult.claims.admin === true;
+
+                if (isOwner) {
+                    adminAuthSection.classList.remove('hidden');
+                    adminLoginBtn.style.display = 'none';
+                    adminInfo.classList.remove('hidden');
+                    adminName.textContent = `管理者: ${user.displayName || user.email}`;
+                    enableEditing();
+                } else {
+                    // 管理者ではないGoogleアカウントの場合
+                    signOut(auth); // 強制的にログアウトさせる
+                }
+            } else {
+                // ログアウトしているか、匿名ユーザーの場合
+                isOwner = false;
+                adminLoginBtn.style.display = 'block';
+                adminInfo.classList.add('hidden');
+                disableEditing();
+                if (!user) {
+                    signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
+                }
+            }
+        });
+
+        // --- 管理者ログイン処理 ---
+        adminLoginBtn.addEventListener('click', () => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).catch(error => console.error("Google sign-in failed:", error));
+        });
+
+        // --- ログアウト処理 ---
+        adminLogoutBtn.addEventListener('click', () => {
+            signOut(auth).catch(error => console.error("Sign-out failed:", error));
+        });
+
+        // --- 編集モードの有効/無効 ---
+        function enableEditing() {
+            whiteboardArea.contentEditable = true;
+            whiteboardArea.classList.add('editable');
+            ownerControls.classList.remove('hidden');
+            suggestionList.classList.add('owner-view');
+        }
+
+        function disableEditing() {
+            whiteboardArea.contentEditable = false;
+            whiteboardArea.classList.remove('editable');
+            ownerControls.classList.add('hidden');
+            suggestionList.classList.remove('owner-view');
+        }
+        
+        // --- ホワイトボードのリアルタイム更新 ---
+        const eventDocRef = doc(db, "planning_data/main");
+        onSnapshot(eventDocRef, (doc) => {
+            const data = doc.exists() ? doc.data() : {};
+            const content = data.content || `<h3>【企画会議ホワイトボード】</h3><ul><li><strong>新しいMODシリーズ：</strong></li></ul><p><em>ここにアイデアを書き込んでいきましょう！</em></p>`;
+            if (whiteboardArea.innerHTML !== content) {
+                whiteboardArea.innerHTML = content;
+            }
+            const isSuggestionsOpen = data.isOpen || false;
+            if (isSuggestionsOpen) {
+                suggestionWrapper.classList.add('open');
+            } else {
+                suggestionWrapper.classList.remove('open');
+            }
+            if (isOwner) {
+                toggleSuggestionsBtn.textContent = isSuggestionsOpen ? 'アイデア受付を終了する' : 'アイデア受付を開始する';
+                toggleSuggestionsBtn.classList.toggle('bg-red-600', isSuggestionsOpen);
+                toggleSuggestionsBtn.classList.toggle('hover:bg-red-700', isSuggestionsOpen);
+                toggleSuggestionsBtn.classList.toggle('bg-blue-600', !isSuggestionsOpen);
+                toggleSuggestionsBtn.classList.toggle('hover:bg-blue-700', !isSuggestionsOpen);
+            }
+        });
+
+        // ホワイトボードの編集内容をDBに保存
+        let debounceTimer;
+        whiteboardArea.addEventListener('input', () => {
+            if (isOwner) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    setDoc(eventDocRef, { content: whiteboardArea.innerHTML }, { merge: true });
+                }, 500);
+            }
+        });
+
+        // --- アイデア投稿機能 ---
+        const suggestionsColRef = collection(db, "planning_data/main/suggestions");
+        toggleSuggestionsBtn.addEventListener('click', () => {
+             const currentIsOpen = suggestionWrapper.classList.contains('open');
+             setDoc(eventDocRef, { isOpen: !currentIsOpen }, { merge: true });
+        });
+
+        const suggestionInput = document.getElementById('suggestion-input');
+        const suggestionSubmit = document.getElementById('suggestion-submit');
+        suggestionSubmit.addEventListener('click', async () => {
+            const text = suggestionInput.value.trim();
+            if (text && currentUser) {
+                try {
+                    await addDoc(suggestionsColRef, { text: text, author: currentUser.uid.substring(0, 6), createdAt: serverTimestamp() });
+                    suggestionInput.value = '';
+                } catch (error) { console.error("Error adding suggestion:", error); }
+            }
+        });
+        suggestionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { suggestionSubmit.click(); } });
+
+        // アイデアリストのリアルタイム表示
+        const q = query(suggestionsColRef);
+        onSnapshot(q, (snapshot) => {
+            suggestionList.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                item.textContent = `💡 ${data.text}`;
+                if(isOwner) {
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-suggestion-btn';
+                    deleteBtn.textContent = '×';
+                    deleteBtn.style.display = 'block';
+                    deleteBtn.onclick = async () => { await deleteDoc(doc.ref); };
+                    item.appendChild(deleteBtn);
+                }
+                suggestionList.appendChild(item);
+            });
+        });
+
+        // --- ここから下は、元のファイルのモーダルやスクロールなどのUI制御ロジック（変更なし） ---
         function launchConfetti() { if (typeof confetti === 'function') { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); } }
         const planCards = document.querySelectorAll('.plan-card');
         const modalOverlay = document.getElementById('modal-overlay');
@@ -271,23 +390,10 @@ pageStyles: |
         function closeModal() { modalOverlay.classList.remove('visible'); }
         document.getElementById('modal-close').addEventListener('click', closeModal);
         modalOverlay.addEventListener('click', (event) => { if (event.target === modalOverlay) { closeModal(); } });
-        const suggestionInput = document.getElementById('suggestion-input');
-        const suggestionSubmit = document.getElementById('suggestion-submit');
-        const eventDocRef = doc(db, "planning_data/main");
-        const suggestionsColRef = collection(db, "planning_data/main/suggestions");
-        const placeholderMemo = `<h3>【企画会議ホワイトボード】</h3><ul><li><strong>新しいMODシリーズ：</strong></li></ul><p><em>ここにアイデアを書き込んでいきましょう！</em></p>`;
-        let isSuggestionsOpen = false;
-        onSnapshot(eventDocRef, (doc) => { const data = doc.exists() ? doc.data() : {}; const content = data.content || placeholderMemo; if (whiteboardArea.innerHTML !== content) { whiteboardArea.innerHTML = content; } isSuggestionsOpen = data.isOpen || false; if (isSuggestionsOpen) { suggestionWrapper.classList.add('open'); } else { suggestionWrapper.classList.remove('open'); } if (isOwner) { toggleSuggestionsBtn.textContent = isSuggestionsOpen ? 'アイデア受付を終了する' : 'アイデア受付を開始する'; toggleSuggestionsBtn.classList.toggle('bg-red-600', isSuggestionsOpen); toggleSuggestionsBtn.classList.toggle('hover:bg-red-700', isSuggestionsOpen); toggleSuggestionsBtn.classList.toggle('bg-blue-600', !isSuggestionsOpen); toggleSuggestionsBtn.classList.toggle('hover:bg-blue-700', !isSuggestionsOpen); } });
-        toggleSuggestionsBtn.addEventListener('click', () => { setDoc(eventDocRef, { isOpen: !isSuggestionsOpen }, { merge: true }); });
-        suggestionSubmit.addEventListener('click', async () => { const text = suggestionInput.value.trim(); if (text && userId) { try { await addDoc(suggestionsColRef, { text: text, author: userId.substring(0, 6), createdAt: serverTimestamp() }); suggestionInput.value = ''; } catch (error) { console.error("Error adding suggestion:", error); } } });
-        suggestionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { suggestionSubmit.click(); } });
-        const q = query(suggestionsColRef);
-        onSnapshot(q, (snapshot) => { suggestionList.innerHTML = ''; snapshot.forEach((doc) => { const data = doc.data(); const item = document.createElement('div'); item.className = 'suggestion-item'; const itemText = document.createElement('span'); itemText.textContent = `💡 ${data.text}`; item.appendChild(itemText); const deleteBtn = document.createElement('button'); deleteBtn.className = 'delete-suggestion-btn'; deleteBtn.textContent = '×'; deleteBtn.onclick = async () => { try { await deleteDoc(doc.ref); } catch (error) { console.error("Error removing document: ", error); } }; item.appendChild(deleteBtn); suggestionList.appendChild(item); }); });
-
+        
         const scrollWrapper = document.getElementById('playlist-scroll-wrapper');
         const scrollLeftBtn = document.getElementById('scroll-left-btn');
         const scrollRightBtn = document.getElementById('scroll-right-btn');
-
         if (scrollWrapper && scrollLeftBtn && scrollRightBtn) {
             const scrollAmount = 300;
             const updateArrowVisibility = () => {
@@ -302,7 +408,6 @@ pageStyles: |
             scrollLeftBtn.addEventListener('click', () => { scrollWrapper.scrollLeft -= scrollAmount; });
             scrollRightBtn.addEventListener('click', () => { scrollWrapper.scrollLeft += scrollAmount; });
             scrollWrapper.addEventListener('scroll', updateArrowVisibility);
-            
             setTimeout(updateArrowVisibility, 500);
             window.addEventListener('resize', updateArrowVisibility);
         }
@@ -310,24 +415,15 @@ pageStyles: |
         const captureModalBtn = document.getElementById('capture-modal-btn');
         const modalContent = document.getElementById('modal-content');
         const modalTitle = document.getElementById('modal-title');
-
         if (captureModalBtn && modalContent && typeof html2canvas === 'function') {
             captureModalBtn.addEventListener('click', () => {
                 const originalButtonContent = captureModalBtn.innerHTML;
                 captureModalBtn.innerHTML = '...';
                 captureModalBtn.disabled = true;
                 captureModalBtn.style.display = 'none';
-                
                 modalContent.classList.add('screenshot-mode');
-
                 setTimeout(() => {
-                    html2canvas(modalContent, {
-                        useCORS: true,
-                        backgroundColor: null,
-                        scale: 2,
-                        allowTaint: true,
-                        ignoreElements: (element) => element.id === 'modal-close' || element.id === 'capture-modal-btn'
-                    }).then(canvas => {
+                    html2canvas(modalContent, { useCORS: true, backgroundColor: null, scale: 2, allowTaint: true, ignoreElements: (element) => element.id === 'modal-close' || element.id === 'capture-modal-btn' }).then(canvas => {
                         const link = document.createElement('a');
                         const fileName = modalTitle.textContent.trim().replace(/\s+/g, '_') || 'plan';
                         link.download = `${fileName}.png`;
@@ -344,7 +440,6 @@ pageStyles: |
         }
     });
 </script>
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const navMenu = document.getElementById('page-nav-menu');
@@ -361,12 +456,10 @@ document.addEventListener('DOMContentLoaded', () => {
     menuItems.forEach(item => {
         const li = document.createElement('li');
         li.className = 'page-nav-item';
-        
         const a = document.createElement('a');
         a.href = item.href;
         a.className = 'page-nav-link';
         a.textContent = item.text;
-        
         li.appendChild(a);
         navMenu.appendChild(li);
     });
