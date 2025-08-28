@@ -142,6 +142,7 @@ module.exports = async function() {
       upcoming: upcomingData,
       planningPlaylist: rankedPlaylistData,
       liveVideo: liveVideo,
+      latestVideo: latestVideo, 
       upcomingVideos: upcomingVideos_detailed,
       popularVideos: popularVideos,
       getPlaylistLastUpdate: getPlaylistLastUpdate
