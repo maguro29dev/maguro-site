@@ -189,7 +189,7 @@ pageStyles: |
                 {% if youtube.latestVideo %}
                     {% set video = youtube.latestVideo %}
                     <div class="popular-video-card" style="margin: 0 auto;"> {# 横スクロール用ではないので中央寄せ #}
-                        <a href="https://www.youtube.com/watch?v={{ video.id.videoId }}" target="_blank" rel="noopener noreferrer">
+                        <a href="https://www.youtube.com/watch?v={{ video.id }}" target="_blank" rel="noopener noreferrer">
                             <img src="{{ video.snippet.thumbnails.medium.url }}" alt="{{ video.snippet.title }}" loading="lazy">
                             <p class="video-title">{{ video.snippet.title }}</p>
                         </a>

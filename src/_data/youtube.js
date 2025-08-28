@@ -136,6 +136,10 @@ module.exports = async function() {
       })
       .slice(0, 5);
 
+ // 全動画を公開日で並び替え、先頭の動画を「最新動画」とする
+    allVideos_detailed.sort((a, b) => new Date(b.snippet.publishedAt) - new Date(a.snippet.publishedAt));
+    const latestVideo = allVideos_detailed.length > 0 ? allVideos_detailed[0] : null;
+
     console.log("Data fetched successfully!");
     return {
       live: liveData,
