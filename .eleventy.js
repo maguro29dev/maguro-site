@@ -53,6 +53,7 @@ module.exports = function (eleventyConfig) {
 
   // パススルーコピーの設定
   eleventyConfig.addPassthroughCopy("src/images");
+  eleventyConfig.addPassthroughCopy("src/manifest.json"); // ← この行を追加しました
 
   // 日付でソートするためのカスタムフィルター
   eleventyConfig.addFilter("sortByDate", (values) => {
