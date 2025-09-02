@@ -76,17 +76,16 @@ module.exports = async function() {
         const videoId = liveData.items[0].id.videoId;
         const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?key=${YOUTUBE_API_KEY}&part=snippet,liveStreamingDetails&id=${videoId}`;
         const videoDetailsData = await EleventyFetch(videoDetailsUrl, { duration: "1m", type: "json" });
-        
+
         if (videoDetailsData.items && videoDetailsData.items.length > 0) {
             const details = videoDetailsData.items[0];
             const liveDetails = details.liveStreamingDetails;
             const isCurrentlyStreaming = liveDetails && liveDetails.actualStartTime && !liveDetails.actualEndTime;
             if (isCurrentlyStreaming) {
-                // isPremiereの判定を削除し、常にfalseとして扱う（＝通常のライブとして表示）
-                liveVideo = { 
+                liveVideo = {
                     ...liveData.items[0],
                     snippet: details.snippet,
-                    isPremiere: false 
+                    isPremiere: false
                 };
             }
         }
@@ -98,23 +97,21 @@ module.exports = async function() {
     const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=50&key=${YOUTUBE_API_KEY}`;
     const playlistData = await EleventyFetch(playlistUrl, { duration: "1h", type: "json" });
     const videoIds = (playlistData.items || []).map(item => item.snippet.resourceId.videoId).filter(id => id);
-    
+
     let upcomingVideos_detailed = [];
     let allVideos_detailed = [];
-    
+
     if (videoIds.length > 0) {
         const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails,statistics&id=${videoIds.join(',')}&key=${YOUTUBE_API_KEY}`;
         const videosData = await EleventyFetch(videosUrl, { duration: "1h", type: "json" });
-        
+
         allVideos_detailed = videosData.items || [];
 
         upcomingVideos_detailed = allVideos_detailed
             .filter(item => {
-                // 過去の配信（アーカイブ済み）を upcoming として扱わないように判定を強化
                 const isUpcoming = item.snippet.liveBroadcastContent === 'upcoming';
                 const scheduledTime = new Date(item.liveStreamingDetails?.scheduledStartTime).getTime();
                 const now = new Date().getTime();
-                // 予定時刻が過去のものは除外（1時間の猶予を持たせる）
                 return isUpcoming && scheduledTime > (now - 3600 * 1000);
             })
             .sort((a, b) => new Date(a.liveStreamingDetails.scheduledStartTime) - new Date(b.liveStreamingDetails.scheduledStartTime));
@@ -136,18 +133,28 @@ module.exports = async function() {
       })
       .slice(0, 5);
 
-// 全動画を「配信開始日」で並び替え、先頭の動画を「最新動画」とする
-    allVideos_detailed.sort((a, b) => {
-      // ライブ配信やプレミア公開の場合は scheduledStartTime を、それ以外の動画は publishedAt を基準にする
-      const dateA = new Date(a.liveStreamingDetails?.scheduledStartTime || a.snippet.publishedAt);
-      const dateB = new Date(b.liveStreamingDetails?.scheduledStartTime || b.snippet.publishedAt);
+    // --- ▼▼▼ ここからが修正箇所です ▼▼▼ ---
+
+    // 「現在視聴可能な動画」のみをフィルタリングする
+    const availableVideos = allVideos_detailed.filter(video => {
+      // ライブ配信の予定時刻、なければ動画の公開時刻を取得
+      const effectiveDate = new Date(video.liveStreamingDetails?.scheduledStartTime || video.snippet.publishedAt);
       
-      // 日付の新しい順に並び替え
-      return dateB - dateA;
+      // 未来の予定は除外する
+      return effectiveDate <= now;
     });
 
-    // 並び替えた後の最初の動画を「最新動画」として設定
-    const latestVideo = allVideos_detailed.length > 0 ? allVideos_detailed[0] : null;
+    // 視聴可能な動画を、配信開始日または公開日の新しい順に並び替える
+    availableVideos.sort((a, b) => {
+      const dateA = new Date(a.liveStreamingDetails?.scheduledStartTime || a.snippet.publishedAt);
+      const dateB = new Date(b.liveStreamingDetails?.scheduledStartTime || b.snippet.publishedAt);
+      return dateB - dateA; // 新しい順
+    });
+
+    // リストの先頭にあるものを「最新の動画」とする
+    const latestVideo = availableVideos.length > 0 ? availableVideos[0] : null;
+
+    // --- ▲▲▲ ここまでが修正箇所です ▲▲▲ ---
 
     console.log("Data fetched successfully!");
     return {
@@ -155,7 +162,7 @@ module.exports = async function() {
       upcoming: upcomingData,
       planningPlaylist: rankedPlaylistData,
       liveVideo: liveVideo,
-      latestVideo: latestVideo, 
+      latestVideo: latestVideo,
       upcomingVideos: upcomingVideos_detailed,
       popularVideos: popularVideos,
       getPlaylistLastUpdate: getPlaylistLastUpdate
