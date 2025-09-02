@@ -136,8 +136,17 @@ module.exports = async function() {
       })
       .slice(0, 5);
 
- // 全動画を公開日で並び替え、先頭の動画を「最新動画」とする
-    allVideos_detailed.sort((a, b) => new Date(b.snippet.publishedAt) - new Date(a.snippet.publishedAt));
+// 全動画を「配信開始日」で並び替え、先頭の動画を「最新動画」とする
+    allVideos_detailed.sort((a, b) => {
+      // ライブ配信やプレミア公開の場合は scheduledStartTime を、それ以外の動画は publishedAt を基準にする
+      const dateA = new Date(a.liveStreamingDetails?.scheduledStartTime || a.snippet.publishedAt);
+      const dateB = new Date(b.liveStreamingDetails?.scheduledStartTime || b.snippet.publishedAt);
+      
+      // 日付の新しい順に並び替え
+      return dateB - dateA;
+    });
+
+    // 並び替えた後の最初の動画を「最新動画」として設定
     const latestVideo = allVideos_detailed.length > 0 ? allVideos_detailed[0] : null;
 
     console.log("Data fetched successfully!");
