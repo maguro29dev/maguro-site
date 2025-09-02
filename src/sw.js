@@ -4,7 +4,7 @@ const CACHE_NAME = 'maguro-site-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/css/style.css', // ← パスをプロジェクトの構成に合わせて修正しました
+  '/css/style.css',
   '/js/main.js',
   '/images/apple-touch-icon.png',
   '/images/favicon-32x32.png',
@@ -23,20 +23,24 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// リクエストへの応答処理 (キャッシュファースト戦略)
+// ▼▼▼【ここから変更】キャッシュ戦略を「Stale-While-Revalidate」に変更 ▼▼▼
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // キャッシュにヒットすれば、それを返す
-        if (response) {
-          return response;
-        }
-        // キャッシュになければ、ネットワークに取りに行く
-        return fetch(event.request);
-      })
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.match(event.request).then((cachedResponse) => {
+        const fetchedResponse = fetch(event.request).then((networkResponse) => {
+          // ネットワークから取得したレスポンスをキャッシュに保存
+          cache.put(event.request, networkResponse.clone());
+          return networkResponse;
+        });
+
+        // キャッシュがあればそれを返し、なければネットワークからの応答を待つ
+        return cachedResponse || fetchedResponse;
+      });
+    })
   );
 });
+// ▲▲▲【変更ここまで】▲▲▲
 
 // 古いキャッシュの削除処理
 self.addEventListener('activate', (event) => {
