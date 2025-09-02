@@ -1,6 +1,7 @@
 // src/sw.js
 
-const CACHE_NAME = 'maguro-site-cache-v1';
+const STATIC_CACHE_NAME = 'maguro-site-static-cache-v1';
+const DYNAMIC_CACHE_NAME = 'maguro-site-dynamic-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -15,36 +16,17 @@ const urlsToCache = [
 // Service Workerのインストール処理
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches.open(STATIC_CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
+        console.log('Opened static cache');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-// ▼▼▼【ここから変更】キャッシュ戦略を「Stale-While-Revalidate」に変更 ▼▼▼
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.match(event.request).then((cachedResponse) => {
-        const fetchedResponse = fetch(event.request).then((networkResponse) => {
-          // ネットワークから取得したレスポンスをキャッシュに保存
-          cache.put(event.request, networkResponse.clone());
-          return networkResponse;
-        });
-
-        // キャッシュがあればそれを返し、なければネットワークからの応答を待つ
-        return cachedResponse || fetchedResponse;
-      });
-    })
-  );
-});
-// ▲▲▲【変更ここまで】▲▲▲
-
 // 古いキャッシュの削除処理
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
+  const cacheWhitelist = [STATIC_CACHE_NAME, DYNAMIC_CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -57,3 +39,38 @@ self.addEventListener('activate', (event) => {
     })
   );
 });
+
+// ▼▼▼【ここから変更】APIと静的アセットでキャッシュ戦略を分離 ▼▼▼
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+
+  // APIリクエストの判定 (ContentfulとYouTube API)
+  if (url.hostname.includes('contentful.com') || url.hostname.includes('googleapis.com')) {
+    event.respondWith(
+      caches.open(DYNAMIC_CACHE_NAME).then((cache) => {
+        return fetch(event.request).then((networkResponse) => {
+          // ネットワークから取得したレスポンスを動的キャッシュに保存
+          cache.put(event.request, networkResponse.clone());
+          return networkResponse;
+        }).catch(() => {
+          // オフライン時はキャッシュから返す
+          return cache.match(event.request);
+        });
+      })
+    );
+  } else {
+    // 静的アセットの処理 (Stale-While-Revalidate)
+    event.respondWith(
+      caches.open(STATIC_CACHE_NAME).then((cache) => {
+        return cache.match(event.request).then((cachedResponse) => {
+          const fetchedResponse = fetch(event.request).then((networkResponse) => {
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          });
+          return cachedResponse || fetchedResponse;
+        });
+      })
+    );
+  }
+});
+// ▲▲▲【変更ここまで】▲▲▲
