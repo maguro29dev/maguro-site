@@ -1,7 +1,7 @@
 // src/js/main.js
 
-// VAPIDキーの公開鍵（以前に生成したもの）
-const VAPID_PUBLIC_KEY = 'ここに先ほど生成した公開鍵（Public Key）を貼り付け';
+// VAPIDキーの公開鍵
+const VAPID_PUBLIC_KEY = 'BE6Sq3yc-0Viy_acHHlc0QQ_z2Wb3nav_owd1cHNdyircgu82IKSa9VCmblcFvvIkwK-rDWd452mFlpePlJKJuc';
 
 /**
  * URL-safe Base64をUint8Arrayに変換する
@@ -23,31 +23,34 @@ function urlBase64ToUint8Array(base64String) {
 async function setupPushNotifications() {
   if ('serviceWorker' in navigator && 'PushManager' in window) {
     try {
-      // Service Workerを登録
       const registration = await navigator.serviceWorker.register('/sw.js');
       console.log('ServiceWorker registration successful:', registration);
-
-      // ▼▼▼【ここから変更】Service Workerが有効になるのを待つ ▼▼▼
-      // registration の代わりに、準備が整った registration を使う
+      
       const readyRegistration = await navigator.serviceWorker.ready;
       console.log('ServiceWorker is active and ready.');
       
-      // 通知の許可を求める
       const permission = await window.Notification.requestPermission();
       if (permission !== 'granted') {
         console.log('Push notification permission not granted.');
         return;
       }
 
-      // プッシュ通知の購読
       const subscription = await readyRegistration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
       });
       console.log('Push subscription successful:', subscription);
+      
+      // ▼▼▼【ここから変更】購読情報をサーバーに送信する処理 ▼▼▼
+      await fetch('/.netlify/functions/subscribe-push', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(subscription),
+      });
+      console.log('Subscription data sent to server.');
       // ▲▲▲【変更ここまで】▲▲▲
-
-      // ★★★ この後のステップで、購読情報をサーバーに送信する処理を追加します ★★★
 
     } catch (error) {
       console.error('ServiceWorker registration or Push subscription failed: ', error);
