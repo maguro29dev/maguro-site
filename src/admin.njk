@@ -5,8 +5,13 @@ permalink: /admin/
 
 <div class="container mx-auto p-4">
 
-    <!-- ログインボタン -->
-    <div id="login-area" class="max-w-md mx-auto my-10 text-center">
+    <!-- ローディング表示 -->
+    <div id="loading" class="text-center py-10">
+        <p class="text-gray-600">認証情報を確認中...</p>
+    </div>
+
+    <!-- ログインボタン (初期状態では非表示) -->
+    <div id="login-area" class="max-w-md mx-auto my-10 text-center" style="display: none;">
         <h1 class="text-2xl font-bold mb-6">管理者ログイン</h1>
         <button id="google-login-button" class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow inline-flex items-center">
             <img src="https://www.google.com/favicon.ico" alt="Google icon" class="w-5 h-5 mr-2">
@@ -58,17 +63,17 @@ permalink: /admin/
 <script>
     // ▼▼▼【要設定】ご自身のFirebaseプロジェクトの設定情報を貼り付けてください▼▼▼
     const firebaseConfig = {
-      apiKey: "AIzaSyDwjh5FCorVXZDdMse_uTcLbvjXwmw2jhk",
-      authDomain: "maguro29-planning.firebaseapp.com",
-      projectId: "maguro29-planning",
-      storageBucket: "maguro29-planning.firebasestorage.app",
-      messagingSenderId: "525505583082",
-      appId: "1:525505583082:web:2cb02294dfd3d9ca91c493"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
     // ▲▲▲【要設定】ご自身のFirebaseプロジェクトの設定情報を貼り付けてください▲▲▲
 
     // ▼▼▼【重要】管理者として許可するユーザーのUIDを設定してください▼▼▼
-    const ADMIN_UIDS = ["3EUoL7xIozgIdQX52cVQ4Gfwt0v2"]; 
+    const ADMIN_UIDS = ["ここに管理者ユーザーのUIDを貼り付け"]; 
     // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     // Firebaseを初期化
@@ -78,6 +83,7 @@ permalink: /admin/
     const auth = firebase.auth();
 
     // UI要素を取得
+    const loading = document.getElementById('loading');
     const loginArea = document.getElementById('login-area');
     const adminContent = document.getElementById('admin-content');
     const googleLoginButton = document.getElementById('google-login-button');
@@ -87,17 +93,17 @@ permalink: /admin/
 
     // 認証状態の監視
     auth.onAuthStateChanged(user => {
+        loading.style.display = 'none'; // まずローディングを非表示
+
         if (user) {
             // ログイン済みの場合、管理者UIDかどうかをチェック
             if (ADMIN_UIDS.includes(user.uid)) {
                 // 管理者の場合
-                loginArea.style.display = 'none';
                 adminContent.style.display = 'block';
                 authStatus.textContent = '';
             } else {
                 // 管理者ではない一般ユーザーの場合
                 loginArea.style.display = 'block';
-                adminContent.style.display = 'none';
                 loginError.textContent = '管理者権限がありません。';
                 authStatus.textContent = `${user.displayName}としてログインしていますが、アクセス権がありません。`;
                 // 必要であれば、ここで自動的にログアウトさせることも可能です
@@ -106,7 +112,6 @@ permalink: /admin/
         } else {
             // 未ログインの場合
             loginArea.style.display = 'block';
-            adminContent.style.display = 'none';
             loginError.textContent = '';
             authStatus.textContent = '';
         }
