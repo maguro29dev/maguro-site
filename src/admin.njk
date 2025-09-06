@@ -57,17 +57,43 @@ permalink: /admin/
             </form>
         </div>
     </div>
+
+    <!-- ▼▼▼ ここからが今回の追加箇所 ▼▼▼ -->
+    <!-- 確認モーダル -->
+    <div id="confirmation-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center" style="display: none; z-index: 9999;">
+      <div class="bg-white p-8 rounded-lg shadow-xl w-11/12 md:max-w-md mx-auto">
+        <h2 class="text-xl font-bold mb-4">送信内容の確認</h2>
+        <div class="mb-6 space-y-3">
+          <div>
+            <p class="font-semibold text-gray-700">タイトル:</p>
+            <p id="confirm-title" class="text-gray-800 bg-gray-100 p-2 rounded"></p>
+          </div>
+          <div>
+            <p class="font-semibold text-gray-700">本文:</p>
+            <p id="confirm-body" class="text-gray-800 bg-gray-100 p-2 rounded whitespace-pre-wrap"></p>
+          </div>
+          <div>
+            <p class="font-semibold text-gray-700">URL:</p>
+            <p id="confirm-url" class="text-gray-800 bg-gray-100 p-2 rounded break-all"></p>
+          </div>
+        </div>
+        <div class="flex justify-end space-x-4">
+          <button id="cancel-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+            キャンセル
+          </button>
+          <button id="confirm-send-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            はい、送信します
+          </button>
+        </div>
+        <div id="modal-sending-message" class="text-center mt-4 text-blue-600" style="display: none;">送信中です...</div>
+      </div>
+    </div>
+    <!-- ▲▲▲ 追加箇所ここまで ▲▲▲ -->
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-    import { 
-        getAuth, 
-        onAuthStateChanged, 
-        signOut, 
-        GoogleAuthProvider, 
-        signInWithPopup // ★ リダイレクトからポップアップに戻す
-    } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDwjh5FCorVXZDdMse_uTcLbvjXwmw2jhk",
@@ -87,7 +113,88 @@ permalink: /admin/
     const loadingSpinner = document.getElementById('loading-spinner');
     const notificationForm = document.getElementById('notification-form');
     const loginArea = document.getElementById('login-area');
+    
+    // ▼▼▼ ここからが今回の修正箇所 ▼▼▼
+    const modal = document.getElementById('confirmation-modal');
+    const confirmSendBtn = document.getElementById('confirm-send-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const modalSendingMessage = document.getElementById('modal-sending-message');
 
+    // フォームが送信されたときの処理
+    notificationForm.addEventListener('submit', (event) => {
+        event.preventDefault(); // 本来のフォーム送信をキャンセル
+        
+        // フォームの内容を取得
+        const title = notificationForm.title.value;
+        const body = notificationForm.body.value;
+        const url = notificationForm.url.value;
+
+        // モーダルに内容を表示
+        document.getElementById('confirm-title').textContent = title;
+        document.getElementById('confirm-body').textContent = body;
+        document.getElementById('confirm-url').textContent = url || '(未入力)';
+
+        // モーダルを表示
+        modal.style.display = 'flex';
+    });
+
+    // キャンセルボタンの処理
+    cancelBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+        modalSendingMessage.style.display = 'none';
+        confirmSendBtn.disabled = false;
+    });
+    
+    // 「はい、送信します」ボタンが押されたときの処理
+    confirmSendBtn.addEventListener('click', async () => {
+        const user = auth.currentUser;
+        if (!user) {
+            alert('ログインしていません。再度ログインしてください。');
+            modal.style.display = 'none';
+            return;
+        }
+
+        // 送信中の表示
+        modalSendingMessage.style.display = 'block';
+        confirmSendBtn.disabled = true;
+
+        const title = document.getElementById('confirm-title').textContent;
+        const body = document.getElementById('confirm-body').textContent;
+        let url = document.getElementById('confirm-url').textContent;
+        if (url === '(未入力)') url = '';
+
+        try {
+            const idToken = await user.getIdToken(true);
+            const response = await fetch('/.netlify/functions/send-push', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
+                body: JSON.stringify({ title, body, url })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ details: response.statusText }));
+                throw new Error(`通知の送信に失敗しました (Status: ${response.status}). ${errorData.details}`);
+            }
+
+            const result = await response.json();
+            alert(`通知が送信されました！\nサーバーからのメッセージ: ${result.message}`);
+            notificationForm.reset();
+        } catch (error) {
+            console.error('送信エラー:', error);
+            alert(`エラーが発生しました: ${error.message}`);
+        } finally {
+            // モーダルを閉じて初期状態に戻す
+            modal.style.display = 'none';
+            modalSendingMessage.style.display = 'none';
+            confirmSendBtn.disabled = false;
+        }
+    });
+    // ▲▲▲ 修正箇所ここまで ▲▲▲
+
+    // --- 既存のログイン・ログアウト処理 ---
     function updateUI(user) {
         loadingSpinner.style.display = 'none';
         if (user) {
@@ -99,12 +206,10 @@ permalink: /admin/
         }
     }
 
-    // 認証状態の監視 (これがUIを更新する唯一の仕組み)
     onAuthStateChanged(auth, user => {
       updateUI(user);
     });
     
-    // ★ ログイン処理をポップアップ方式に戻す
     loginBtn.addEventListener('click', () => {
         const provider = new GoogleAuthProvider();
         signInWithPopup(auth, provider)
@@ -114,49 +219,8 @@ permalink: /admin/
             });
     });
 
-    // ログアウト処理
     logoutBtn.addEventListener('click', () => {
         signOut(auth).catch(error => console.error("ログアウト失敗:", error));
-    });
-
-    // 通知送信フォームの処理 (変更なし)
-    notificationForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const user = auth.currentUser;
-        if (!user) {
-            alert('ログインしていません。再度ログインしてください。');
-            return;
-        }
-        const title = event.target.title.value;
-        const body = event.target.body.value;
-        const url = event.target.url.value;
-        const sendButton = event.target.querySelector('button');
-        sendButton.disabled = true;
-        sendButton.textContent = '送信中...';
-        try {
-            const idToken = await user.getIdToken(true);
-            const response = await fetch('/.netlify/functions/send-push', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${idToken}`
-                },
-                body: JSON.stringify({ title, body, url })
-            });
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ details: response.statusText }));
-                throw new Error(`通知の送信に失敗しました (Status: ${response.status}). ${errorData.details}`);
-            }
-            const result = await response.json();
-            alert(`通知が送信されました！\nサーバーからのメッセージ: ${result.message}`);
-        } catch (error) {
-            console.error('送信エラー:', error);
-            alert(`エラーが発生しました: ${error.message}`);
-        } finally {
-            sendButton.disabled = false;
-            sendButton.textContent = '通知を送信';
-            notificationForm.reset();
-        }
     });
 </script>
 
