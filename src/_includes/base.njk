@@ -56,22 +56,18 @@
     </style>
 
     <style>
-        /* ▼▼▼【ここから変更】目次ボタンのスタイルを全面的に書き換え ▼▼▼ */
         #page-nav-container {
             position: fixed;
             right: 1.25rem; /* 20px */
             z-index: 40;
-            /* スマホ表示の時（フッターがある時）は、フッターの高さ分だけ上に配置 */
             bottom: 5.5rem; /* 88px */
         }
 
-        /* PC表示の時（smサイズ以上）は、フッターが消えるので元の位置に戻す */
         @media (min-width: 640px) {
             #page-nav-container {
                 bottom: 2rem; /* 32px */
             }
         }
-        /* ▲▲▲【変更ここまで】▲▲▲ */
 
         #page-nav-menu {
             position: absolute;
@@ -202,27 +198,21 @@
     
     {{ content | safe }}
 
-    <!-- ▼▼▼ ここからが変更・追加箇所です ▼▼▼ -->
-    <!-- スマホ専用フッター：既存の「メンバーになる」ボタンの下に「通知設定」リンクを追加 -->
     <footer class="fixed bottom-0 left-0 right-0 z-20 bg-white/80 backdrop-blur-sm p-4 border-t border-gray-200 sm:hidden">
         <a href="https://www.youtube.com/channel/UCMP7QuS4suoONg47Nbi-wrg/join" target="_blank" rel="noopener noreferrer" class="w-full bg-black text-white font-bold py-3 px-4 rounded-full hover:bg-gray-800 transition-colors duration-300 text-center block">
             メンバーになる
         </a>
-        <!-- 「通知設定」へのリンクをボタンの下に追加 -->
         <div class="text-center mt-2">
             <a href="/notifications/" class="text-xs text-gray-500 hover:text-gray-800">通知設定</a>
         </div>
     </footer>
 
-    <!-- PC専用フッター：新しくシンプルなフッターを追加 -->
     <footer class="hidden sm:block bg-white mt-12 border-t border-gray-200">
         <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500">
-            <p>&copy; 2025 まぐにぃ. All Rights Reserved.</p>
-            <!-- 「通知設定」へのリンクを著作権表示の下に追加 -->
+            <p>&copy; 2024 まぐにぃ. All Rights Reserved.</p>
             <a href="/notifications/" class="mt-2 inline-block hover:text-gray-800">通知設定</a>
         </div>
     </footer>
-    <!-- ▲▲▲ 変更・追加箇所はここまで ▲▲▲ -->
 
 
     <div id="confirm-dialog" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -243,127 +233,13 @@
         </button>
     </div>
 
-
+    <!-- ▼▼▼ ここからが変更箇所です ▼▼▼ -->
+    <!-- 外部ライブラリとメインのJSファイルを読み込みます -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="/js/main.js"></script>
     
-    <script>
-        window.addEventListener('load', () => {
-            function setupTabScroll(containerId, leftArrowId, rightArrowId) {
-                const scrollContainer = document.getElementById(containerId);
-                const leftArrow = document.getElementById(leftArrowId);
-                const rightArrow = document.getElementById(rightArrowId);
-                if (!scrollContainer || !leftArrow || !rightArrow) return;
-                function updateArrows() {
-                    if (scrollContainer.scrollWidth <= scrollContainer.clientWidth) {
-                        if(leftArrow) leftArrow.classList.add('hidden');
-                        if(rightArrow) rightArrow.classList.add('hidden');
-                        return;
-                    }
-                    const scrollLeft = scrollContainer.scrollLeft;
-                    const scrollWidth = scrollContainer.scrollWidth;
-                    const clientWidth = scrollContainer.clientWidth;
-                    const tolerance = 1;
-                    if(leftArrow) leftArrow.classList.toggle('hidden', scrollLeft <= 0);
-                    if(rightArrow) rightArrow.classList.toggle('hidden', scrollLeft + clientWidth >= scrollWidth - tolerance);
-                }
-                if(leftArrow) leftArrow.addEventListener('click', () => { scrollContainer.scrollBy({ left: -200, behavior: 'smooth' }); });
-                if(rightArrow) rightArrow.addEventListener('click', () => { scrollContainer.scrollBy({ left: 200, behavior: 'smooth' }); });
-                scrollContainer.addEventListener('scroll', updateArrows);
-                window.addEventListener('resize', updateArrows);
-                setTimeout(updateArrows, 100);
-            }
-            setupTabScroll('scroll-container-mobile', 'scroll-left-arrow-mobile', 'scroll-right-arrow-mobile');
-            setupTabScroll('scroll-container-desktop', 'scroll-left-arrow-desktop', 'scroll-right-arrow-desktop');
-
-            const captureButton = document.getElementById('capture-schedule-btn');
-            const targetElement = document.getElementById('schedule-capture-area');
-            const confirmDialog = document.getElementById('confirm-dialog');
-            const confirmYesBtn = document.getElementById('confirm-yes-btn');
-            const confirmNoBtn = document.getElementById('confirm-no-btn');
-
-            if (captureButton && targetElement && confirmDialog) {
-                captureButton.addEventListener('click', () => {
-                    confirmDialog.classList.remove('hidden');
-                });
-                const closeDialog = () => confirmDialog.classList.add('hidden');
-                confirmNoBtn.addEventListener('click', closeDialog);
-                confirmDialog.addEventListener('click', (event) => {
-                    if (event.target === confirmDialog) {
-                        closeDialog();
-                    }
-                });
-                confirmYesBtn.addEventListener('click', () => {
-                    closeDialog();
-                    const originalButtonContent = captureButton.innerHTML;
-                    captureButton.innerHTML = '...';
-                    captureButton.disabled = true;
-                    targetElement.classList.add('screenshot-mode');
-                    setTimeout(async () => {
-                        try {
-                            await document.fonts.ready;
-                        } catch (error) {
-                            console.error('Font loading error:', error);
-                        }
-                        const originalScrollY = window.scrollY;
-                        window.scrollTo(0, 0);
-                        html2canvas(targetElement, {
-                            useCORS: true,
-                            backgroundColor: null,
-                            scale: 2,
-                            allowTaint: true,
-                            ignoreElements: (element) => element.id === 'capture-schedule-btn'
-                        }).then(canvas => {
-                            const link = document.createElement('a');
-                            link.href = canvas.toDataURL('image/png');
-                            link.download = 'schedule.png';
-                            link.click();
-                        }).finally(() => {
-                            window.scrollTo(0, originalScrollY);
-                            captureButton.innerHTML = originalButtonContent;
-                            captureButton.disabled = false;
-                            targetElement.classList.remove('screenshot-mode');
-                        });
-                    }, 100);
-                });
-            }
-
-            const navContainer = document.getElementById('page-nav-container');
-            const navToggle = document.getElementById('page-nav-toggle');
-            const navMenu = document.getElementById('page-nav-menu');
-
-            if (navContainer && navToggle && navMenu) {
-                navToggle.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    navContainer.classList.toggle('menu-open');
-                });
-
-                navMenu.addEventListener('click', (e) => {
-                    const link = e.target.closest('a');
-                    if (!link) return;
-
-                    e.preventDefault();
-                    const targetId = link.getAttribute('href');
-                    
-                    if (targetId === '#top') {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    } else {
-                        const targetElement = document.querySelector(targetId);
-                        if (targetElement) {
-                            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    }
-                    navContainer.classList.remove('menu-open');
-                });
-
-                document.addEventListener('click', (e) => {
-                    if (!navContainer.contains(e.target)) {
-                        navContainer.classList.remove('menu-open');
-                    }
-                });
-            }
-        });
-    </script>
+    <!-- インラインの<script>ブロックは削除されました -->
+    <!-- ▲▲▲ 変更箇所はここまで ▲▲▲ -->
 </body>
 </html>
 
