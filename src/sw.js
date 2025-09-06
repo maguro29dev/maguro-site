@@ -1,9 +1,11 @@
-const CACHE_NAME = 'maguro29-site-cache-v2'; // キャッシュ名を更新
+// ▼▼▼ 変更点①：キャッシュのバージョンを更新 ▼▼▼
+const CACHE_NAME = 'maguro29-site-cache-v3'; 
 const urlsToCache = [
   '/',
   '/manifest.json',
   '/images/icon-192x192.png',
   '/images/icon-512x512.png'
+  // ここにはサイトの骨格となる最小限のファイルのみを記載
 ];
 
 // 1. インストール処理
@@ -25,6 +27,7 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('[Service Worker] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -33,31 +36,55 @@ self.addEventListener('activate', event => {
   );
 });
 
-// 3. リクエストへの応答（キャッシュ優先）
+// ▼▼▼ 変更点②：キャッシュ戦略を「Stale-While-Revalidate」に変更 ▼▼▼
 self.addEventListener('fetch', event => {
+  // HTMLページ（ナビゲーションリクエスト）の場合
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      // まずネットワークに接続試行（Network First）
+      fetch(event.request)
+        .then(response => {
+          // 接続できたら、キャッシュを更新しつつ、レスポンスを返す
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME)
+            .then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          return response;
+        })
+        .catch(() => {
+          // オフラインの場合はキャッシュから返す
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // HTML以外のリソース（CSS, JS, 画像など）の場合
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // キャッシュにヒットすれば、それを返す
-        if (response) {
-          return response;
-        }
-        // ヒットしなければ、ネットワークから取得
-        return fetch(event.request);
+        // キャッシュがあればそれを返し、裏側でネットワークから新しいものを取得してキャッシュを更新
+        const fetchPromise = fetch(event.request).then(networkResponse => {
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, networkResponse.clone());
+          });
+          return networkResponse;
+        });
+        return response || fetchPromise;
       })
   );
 });
 
-// --- ▼▼▼ ここからが今回の核心部分 ▼▼▼ ---
 
-// 4. プッシュ通知を受け取った時の処理
+// 4. プッシュ通知を受け取った時の処理 (変更なし)
 self.addEventListener('push', event => {
   let notificationData = {
     title: '新しいお知らせ',
     body: 'サイトをチェックしてください。',
     icon: '/images/icon-192x192.png',
     data: {
-      url: self.location.origin, // デフォルトのURLはサイトのトップページ
+      url: self.location.origin,
     }
   };
 
@@ -78,7 +105,7 @@ self.addEventListener('push', event => {
   const options = {
     body: notificationData.body,
     icon: notificationData.icon,
-    badge: '/images/icon-96x96.png', // Androidで表示される小さなアイコン
+    badge: '/images/icon-96x96.png',
     data: notificationData.data
   };
 
@@ -87,9 +114,9 @@ self.addEventListener('push', event => {
   );
 });
 
-// 5. 通知がクリックされた時の処理
+// 5. 通知がクリックされた時の処理 (変更なし)
 self.addEventListener('notificationclick', event => {
-  event.notification.close(); // 通知を閉じる
+  event.notification.close();
 
   const urlToOpen = event.notification.data.url || self.location.origin;
 
@@ -98,16 +125,15 @@ self.addEventListener('notificationclick', event => {
       type: 'window',
       includeUncontrolled: true
     }).then(clientList => {
-      // すでにサイトが開かれているかチェック
       for (const client of clientList) {
         if (client.url === urlToOpen && 'focus' in client) {
           return client.focus();
         }
       }
-      // 開かれていなければ、新しいウィンドウで開く
       if (clients.openWindow) {
         return clients.openWindow(urlToOpen);
       }
     })
   );
 });
+
