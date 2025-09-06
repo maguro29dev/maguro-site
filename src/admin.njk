@@ -61,7 +61,16 @@ permalink: /admin/
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+    import { 
+        getAuth, 
+        onAuthStateChanged, 
+        signOut, 
+        GoogleAuthProvider, 
+        signInWithRedirect, 
+        getRedirectResult,
+        initializeAuth, // ★ 永続化設定のために追加
+        browserLocalPersistence // ★ 永続化設定のために追加
+    } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDwjh5FCorVXZDdMse_uTcLbvjXwmw2jhk",
@@ -73,7 +82,11 @@ permalink: /admin/
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+
+    // ★★★ 最終修正点①：ログイン情報の保存方法を「永続」に指定 ★★★
+    const auth = initializeAuth(app, {
+        persistence: browserLocalPersistence
+    });
 
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
@@ -82,7 +95,6 @@ permalink: /admin/
     const notificationForm = document.getElementById('notification-form');
     const loginArea = document.getElementById('login-area');
 
-    // UIの表示状態を更新する唯一の関数
     function updateUI(user) {
         loadingSpinner.style.display = 'none';
         if (user) {
@@ -94,21 +106,20 @@ permalink: /admin/
         }
     }
 
-    // ★★★ ここが最終修正点 ★★★
-    // ページ読み込み時に、まずリダイレクト結果の処理が完了するのを待つ
+    // ★★★ 最終修正点②：ロジックを単純化し、タイミング問題を防ぐ ★★★
+
+    // 最初に「認証状態の監視」をセットする。これがUIを更新する唯一の仕組み。
+    onAuthStateChanged(auth, user => {
+      console.log("認証状態の監視:", user ? user.displayName : '未ログイン');
+      updateUI(user);
+    });
+
+    // 次に「リダイレクト結果の処理」を行う。
+    // これが成功すると、上記の onAuthStateChanged が自動的に検知してUIを更新してくれる。
     getRedirectResult(auth)
       .catch((error) => {
-        // リダイレクトからのログインに失敗した場合のエラー処理
         console.error("ログインリダイレクトエラー:", error);
-        alert(`ログインに失敗しました: ${error.message}`);
-      })
-      .finally(() => {
-        // getRedirectResult の処理が完了した後で、認証状態の監視を開始する
-        // これで、リダイレクト直後の状態が正しく反映される
-        onAuthStateChanged(auth, user => {
-          console.log("認証状態が確定しました:", user ? user.displayName : '未ログイン');
-          updateUI(user);
-        });
+        alert(`ログイン処理でエラーが発生しました: ${error.message}`);
       });
     
     // ログイン処理
@@ -122,7 +133,7 @@ permalink: /admin/
         signOut(auth).catch(error => console.error("ログアウト失敗:", error));
     });
 
-    // 通知送信フォームの処理
+    // 通知送信フォームの処理 (変更なし)
     notificationForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const user = auth.currentUser;
