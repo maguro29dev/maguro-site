@@ -33,9 +33,7 @@ permalink: /notifications/
 <script>
 (async () => {
     // === 設定項目 ===
-    // ▼▼▼【要設定】Netlifyの環境変数からVAPID_PUBLIC_KEYの値を貼り付けてください▼▼▼
     const VAPID_PUBLIC_KEY = "BE6Sq3yc-0Viy_acHHlc0QQ_z2Wb3nav_owd1cHNdyircgu82IKSa9VCmblcFvvIkwK-rDWd452mFlpePlJKJuc";
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     // --- UI要素 ---
     const uiContainer = document.getElementById('notification-ui-container');
@@ -45,7 +43,6 @@ permalink: /notifications/
     const errorMessage = document.getElementById('error-message');
 
     let swRegistration = null;
-    let isSubscribed = false;
 
     // 1. ブラウザが対応しているかチェック
     if (!('serviceWorker' in navigator && 'PushManager' in window)) {
@@ -59,25 +56,19 @@ permalink: /notifications/
     try {
         swRegistration = await navigator.serviceWorker.ready;
         console.log('Service Worker is ready.');
-        await initializeUI();
+        await updateUI();
     } catch (error) {
         console.error('Service Worker registration failed:', error);
         errorMessage.textContent = 'Service Workerの準備に失敗しました。ページを再読み込みしてください。';
     }
 
-    // 2. UIの初期化
-    async function initializeUI() {
+    // 2. UIの表示を更新する関数
+    async function updateUI() {
         pushButton.disabled = true;
+        errorMessage.textContent = '';
         const subscription = await swRegistration.pushManager.getSubscription();
-        isSubscribed = !(subscription === null);
-
-        updateUI();
-        pushButton.disabled = false;
-    }
-
-    // 3. UIの表示を更新する
-    function updateUI() {
-        if (isSubscribed) {
+        
+        if (subscription) {
             statusMessage.textContent = '通知は有効です';
             pushButton.textContent = '通知を無効にする';
             pushButton.classList.remove('bg-blue-500', 'hover:bg-blue-700');
@@ -88,56 +79,44 @@ permalink: /notifications/
             pushButton.classList.remove('bg-red-500', 'hover:bg-red-700');
             pushButton.classList.add('bg-blue-500', 'hover:bg-blue-700');
         }
+        pushButton.disabled = false;
     }
     
-    // 4. ボタンがクリックされたときの処理
+    // 3. ボタンがクリックされたときの処理 (ロジックをここに集約)
     pushButton.addEventListener('click', async () => {
         pushButton.disabled = true;
-        if (isSubscribed) {
-            await unsubscribeUser();
-        } else {
-            await subscribeUser();
-        }
-        pushButton.disabled = false;
-    });
+        
+        const subscription = await swRegistration.pushManager.getSubscription();
 
-    // 5. 通知を有効にする (購読する)
-    async function subscribeUser() {
-        try {
-            const subscription = await swRegistration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlB64ToUint8Array(VAPID_PUBLIC_KEY)
-            });
-
-            console.log('User is subscribed:', subscription);
-            await sendSubscriptionToServer(subscription);
-            
-            isSubscribed = true;
-            updateUI();
-        } catch (err) {
-            console.error('Failed to subscribe the user: ', err);
-            errorMessage.textContent = '通知の有効化に失敗しました。ブラウザの通知設定を確認してください。';
-        }
-    }
-
-    // 6. 通知を無効にする (購読を解除する)
-    async function unsubscribeUser() {
-        try {
-            const subscription = await swRegistration.pushManager.getSubscription();
-            if (subscription) {
+        if (subscription) {
+            // --- 解除処理 ---
+            try {
                 await subscription.unsubscribe();
                 console.log('User is unsubscribed.');
                 // TODO: サーバー側にも購読解除を通知する処理を後で追加
-                isSubscribed = false;
-                updateUI();
+            } catch (err) {
+                console.error('Error unsubscribing', err);
+                errorMessage.textContent = '通知の無効化に失敗しました。';
             }
-        } catch (err) {
-            console.error('Error unsubscribing', err);
-            errorMessage.textContent = '通知の無効化に失敗しました。';
+        } else {
+            // --- 購読処理 ---
+            try {
+                const newSubscription = await swRegistration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlB64ToUint8Array(VAPID_PUBLIC_KEY)
+                });
+                console.log('User is subscribed:', newSubscription);
+                await sendSubscriptionToServer(newSubscription);
+            } catch (err) {
+                console.error('Failed to subscribe the user: ', err);
+                errorMessage.textContent = '通知の有効化に失敗しました。ブラウザの通知設定を確認してください。';
+            }
         }
-    }
+        // 処理が終わったら必ずUIを最新の状態に更新する
+        await updateUI();
+    });
     
-    // 7. 購読情報をサーバーに送信する
+    // 4. 購読情報をサーバーに送信する
     async function sendSubscriptionToServer(subscription) {
         try {
             const response = await fetch('/.netlify/functions/subscribe-push', {
@@ -153,7 +132,6 @@ permalink: /notifications/
             console.log('Subscription sent to server successfully.');
         } catch(error) {
             console.error(error);
-            // エラーが発生しても購読は成功しているので、ここではUIにエラーを出さない
         }
     }
 
@@ -170,3 +148,4 @@ permalink: /notifications/
     }
 })();
 </script>
+
