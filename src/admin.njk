@@ -82,7 +82,7 @@ permalink: /admin/
     const notificationForm = document.getElementById('notification-form');
     const loginArea = document.getElementById('login-area');
 
-    // UIの表示状態を更新する関数
+    // UIの表示状態を更新する唯一の関数
     function updateUI(user) {
         loadingSpinner.style.display = 'none';
         if (user) {
@@ -94,25 +94,22 @@ permalink: /admin/
         }
     }
 
-    // ★★★ 修正点 ★★★
-    // ページ読み込み時に、まずリダイレクト結果を確認する
+    // ★★★ ここが最終修正点 ★★★
+    // ページ読み込み時に、まずリダイレクト結果の処理が完了するのを待つ
     getRedirectResult(auth)
-        .then((result) => {
-            if (result && result.user) {
-                // リダイレクト直後で、ログインに成功した場合
-                console.log("リダイレクトログイン成功:", result.user);
-                updateUI(result.user); // すぐにUIを更新
-            }
-        })
-        .catch((error) => {
-            console.error("リダイレクト結果の取得エラー:", error);
+      .catch((error) => {
+        // リダイレクトからのログインに失敗した場合のエラー処理
+        console.error("ログインリダイレクトエラー:", error);
+        alert(`ログインに失敗しました: ${error.message}`);
+      })
+      .finally(() => {
+        // getRedirectResult の処理が完了した後で、認証状態の監視を開始する
+        // これで、リダイレクト直後の状態が正しく反映される
+        onAuthStateChanged(auth, user => {
+          console.log("認証状態が確定しました:", user ? user.displayName : '未ログイン');
+          updateUI(user);
         });
-
-    // その後、通常の認証状態の監視を開始する
-    onAuthStateChanged(auth, user => {
-        // この監視は、ページを開いた時や、ログアウトした時に主に機能する
-        updateUI(user);
-    });
+      });
     
     // ログイン処理
     loginBtn.addEventListener('click', () => {
