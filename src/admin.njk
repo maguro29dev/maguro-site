@@ -6,160 +6,163 @@ permalink: /admin/
 <div class="container mx-auto p-4">
 
     <!-- ローディング表示 -->
-    <div id="loading" class="text-center py-10">
+    <div id="loading-spinner" class="text-center py-10">
         <p class="text-gray-600">認証情報を確認中...</p>
     </div>
 
-    <!-- ログインボタン (初期状態では非表示) -->
+    <!-- ログインボタン -->
     <div id="login-area" class="max-w-md mx-auto my-10 text-center" style="display: none;">
         <h1 class="text-2xl font-bold mb-6">管理者ログイン</h1>
-        <button id="google-login-button" class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow inline-flex items-center">
+        <button id="login-btn" class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow inline-flex items-center">
             <img src="https://www.google.com/favicon.ico" alt="Google icon" class="w-5 h-5 mr-2">
             <span>Googleでログイン</span>
         </button>
-        <p id="login-error" class="text-red-500 text-xs italic mt-4"></p>
-        <p id="auth-status" class="text-gray-600 mt-4"></p>
     </div>
 
-    <!-- 管理者コンテンツ (初期状態では非表示) -->
+    <!-- 管理者コンテンツ -->
     <div id="admin-content" style="display: none;">
         <h1 class="text-2xl font-bold mb-4">管理ページ</h1>
         <p class="mb-4">ようこそ、管理者さん。</p>
-        <button id="logout-button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-8">
+        <button id="logout-btn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-8">
             ログアウト
         </button>
 
         <!-- Push Notification Form -->
         <div class="mt-8">
             <h2 class="text-xl font-semibold mb-2">プッシュ通知を送信</h2>
-            <form id="push-form" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <form id="notification-form" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="push-title">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
                         タイトル
                     </label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="push-title" type="text" placeholder="通知タイトル">
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="title" name="title" type="text" placeholder="通知タイトル" required>
                 </div>
-                <div class="mb-6">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="push-body">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="body">
                         本文
                     </label>
-                    <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="push-body" placeholder="通知メッセージ"></textarea>
+                    <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="body" name="body" placeholder="通知メッセージ" required></textarea>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="url">
+                        URL（通知クリック時の遷移先）
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="url" name="url" type="url" placeholder="https://example.com">
                 </div>
                 <div class="flex items-center justify-between">
                     <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                        送信
+                        通知を送信
                     </button>
                 </div>
             </form>
-            <p id="push-result"></p>
         </div>
     </div>
 </div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script type="module">
+    // Firebase SDK v9 (モジュール版) をインポート
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 
-<script>
     // ▼▼▼【要設定】ご自身のFirebaseプロジェクトの設定情報を貼り付けてください▼▼▼
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyDwjh5FCorVXZDdMse_uTcLbvjXwmw2jhk",
+    authDomain: "maguro29-planning.firebaseapp.com",
+    projectId: "maguro29-planning",
+    storageBucket: "maguro29-planning.firebasestorage.app",
+    messagingSenderId: "525505583082",
+    appId: "1:525505583082:web:2cb02294dfd3d9ca91c493"
     };
-    // ▲▲▲【要設定】ご自身のFirebaseプロジェクトの設定情報を貼り付けてください▲▲▲
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-    // ▼▼▼【重要】管理者として許可するユーザーのUIDを設定してください▼▼▼
-    const ADMIN_UIDS = ["ここに管理者ユーザーのUIDを貼り付け"]; 
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
-
-    // Firebaseを初期化
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const auth = firebase.auth();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
     // UI要素を取得
-    const loading = document.getElementById('loading');
-    const loginArea = document.getElementById('login-area');
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
     const adminContent = document.getElementById('admin-content');
-    const googleLoginButton = document.getElementById('google-login-button');
-    const logoutButton = document.getElementById('logout-button');
-    const loginError = document.getElementById('login-error');
-    const authStatus = document.getElementById('auth-status');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const notificationForm = document.getElementById('notification-form');
+    const loginArea = document.getElementById('login-area');
 
     // 認証状態の監視
-    auth.onAuthStateChanged(user => {
-        loading.style.display = 'none'; // まずローディングを非表示
+    onAuthStateChanged(auth, user => {
+        loadingSpinner.style.display = 'none'; // 認証状態が確定したらローディングを非表示
 
         if (user) {
-            // ログイン済みの場合、管理者UIDかどうかをチェック
-            if (ADMIN_UIDS.includes(user.uid)) {
-                // 管理者の場合
-                adminContent.style.display = 'block';
-                authStatus.textContent = '';
-            } else {
-                // 管理者ではない一般ユーザーの場合
-                loginArea.style.display = 'block';
-                loginError.textContent = '管理者権限がありません。';
-                authStatus.textContent = `${user.displayName}としてログインしていますが、アクセス権がありません。`;
-                // 必要であれば、ここで自動的にログアウトさせることも可能です
-                // auth.signOut(); 
-            }
+            // ユーザーがログインしている
+            adminContent.style.display = 'block';
+            loginArea.style.display = 'none';
         } else {
-            // 未ログインの場合
+            // ユーザーがログインしていない
+            adminContent.style.display = 'none';
             loginArea.style.display = 'block';
-            loginError.textContent = '';
-            authStatus.textContent = '';
         }
     });
-
-    // Googleログイン処理
-    googleLoginButton.addEventListener('click', () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider)
+    
+    // ログイン処理 (signInWithPopup を使用)
+    loginBtn.addEventListener('click', () => {
+        const provider = new GoogleAuthProvider();
+        signInWithPopup(auth, provider)
             .catch(error => {
-                console.error("Googleログインエラー:", error);
-                loginError.textContent = 'ログインに失敗しました。';
+                console.error("ログインエラー:", error);
+                alert("ログインに失敗しました。");
             });
     });
 
     // ログアウト処理
-    logoutButton.addEventListener('click', () => {
-        auth.signOut();
+    logoutBtn.addEventListener('click', () => {
+        signOut(auth).catch(error => console.error("ログアウト失敗:", error));
     });
 
-
-    // プッシュ通知フォームの処理 (既存のコード)
-    document.getElementById('push-form').addEventListener('submit', async (event) => {
+    // 通知送信フォームの処理
+    notificationForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const title = document.getElementById('push-title').value;
-        const body = document.getElementById('push-body').value;
-        const resultElement = document.getElementById('push-result');
 
-        resultElement.textContent = '送信中...';
+        const user = auth.currentUser;
+        if (!user) {
+            alert('ログインしていません。再度ログインしてください。');
+            return;
+        }
+
+        const title = event.target.title.value;
+        const body = event.target.body.value;
+        const url = event.target.url.value;
+        const sendButton = event.target.querySelector('button');
+        
+        sendButton.disabled = true;
+        sendButton.textContent = '送信中...';
 
         try {
+            // 1. Firebaseから現在のユーザーのIDトークンを取得
+            const idToken = await user.getIdToken(true);
+
+            // 2. fetchリクエストのヘッダーにIDトークンを追加してサーバーに送信
             const response = await fetch('/.netlify/functions/send-push', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}` // ★ここにIDトークンを添付
                 },
-                body: JSON.stringify({ title, body }),
+                body: JSON.stringify({ title, body, url })
             });
 
-            if (response.ok) {
-                resultElement.textContent = 'プッシュ通知の送信リクエストが完了しました。';
-            } else {
-                const error = await response.json();
-                resultElement.textContent = `エラー: ${error.message}`;
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ details: response.statusText }));
+                throw new Error(`通知の送信に失敗しました (Status: ${response.status}). ${errorData.details}`);
             }
+
+            const result = await response.json();
+            alert(`通知が送信されました！\nサーバーからのメッセージ: ${result.message}`);
+            
         } catch (error) {
-            console.error('プッシュ通知の送信に失敗しました:', error);
-            resultElement.textContent = `エラー: ${error.message}`;
+            console.error('送信エラー:', error);
+            alert(`エラーが発生しました: ${error.message}`);
+        } finally {
+            sendButton.disabled = false;
+            sendButton.textContent = '通知を送信';
+            notificationForm.reset(); // フォームをリセット
         }
     });
 </script>
