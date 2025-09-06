@@ -60,12 +60,9 @@ permalink: /admin/
 </div>
 
 <script type="module">
-    // Firebase SDK v9 (モジュール版) をインポート
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-    // getRedirectResult と signInWithRedirect をインポート
     import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 
-    // ▼▼▼ ご自身のFirebaseプロジェクトの設定情報を貼り付けてください ▼▼▼
     const firebaseConfig = {
       apiKey: "AIzaSyDwjh5FCorVXZDdMse_uTcLbvjXwmw2jhk",
       authDomain: "maguro29-planning.firebaseapp.com",
@@ -74,12 +71,10 @@ permalink: /admin/
       messagingSenderId: "525505583082",
       appId: "1:525505583082:web:2cb02294dfd3d9ca91c493"
     };
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // UI要素を取得
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const adminContent = document.getElementById('admin-content');
@@ -87,43 +82,50 @@ permalink: /admin/
     const notificationForm = document.getElementById('notification-form');
     const loginArea = document.getElementById('login-area');
 
-    // ★★★ 変更点①：リダイレクト後のログイン結果を処理 ★★★
-    getRedirectResult(auth)
-      .then((result) => {
-        // もしGoogleログインから戻ってきた直後なら、ここでresultにユーザー情報が入る
-        if (result) {
-          console.log("リダイレクトログイン成功:", result.user);
+    // UIの表示状態を更新する関数
+    function updateUI(user) {
+        loadingSpinner.style.display = 'none';
+        if (user) {
+            adminContent.style.display = 'block';
+            loginArea.style.display = 'none';
+        } else {
+            adminContent.style.display = 'none';
+            loginArea.style.display = 'block';
         }
-      })
-      .catch((error) => {
-        console.error("リダイレクト結果の取得エラー:", error);
-      })
-      .finally(() => {
-        // 認証状態の監視を開始
-        onAuthStateChanged(auth, user => {
-            loadingSpinner.style.display = 'none'; // 認証状態が確定したらローディングを非表示
-            if (user) {
-                adminContent.style.display = 'block';
-                loginArea.style.display = 'none';
-            } else {
-                adminContent.style.display = 'none';
-                loginArea.style.display = 'block';
+    }
+
+    // ★★★ 修正点 ★★★
+    // ページ読み込み時に、まずリダイレクト結果を確認する
+    getRedirectResult(auth)
+        .then((result) => {
+            if (result && result.user) {
+                // リダイレクト直後で、ログインに成功した場合
+                console.log("リダイレクトログイン成功:", result.user);
+                updateUI(result.user); // すぐにUIを更新
             }
+        })
+        .catch((error) => {
+            console.error("リダイレクト結果の取得エラー:", error);
         });
-      });
+
+    // その後、通常の認証状態の監視を開始する
+    onAuthStateChanged(auth, user => {
+        // この監視は、ページを開いた時や、ログアウトした時に主に機能する
+        updateUI(user);
+    });
     
-    // ★★★ 変更点②：ログイン処理をリダイレクト方式に変更 ★★★
+    // ログイン処理
     loginBtn.addEventListener('click', () => {
         const provider = new GoogleAuthProvider();
-        signInWithRedirect(auth, provider); // ポップアップではなくリダイレクト
+        signInWithRedirect(auth, provider);
     });
 
-    // ログアウト処理 (変更なし)
+    // ログアウト処理
     logoutBtn.addEventListener('click', () => {
         signOut(auth).catch(error => console.error("ログアウト失敗:", error));
     });
 
-    // 通知送信フォームの処理 (変更なし)
+    // 通知送信フォームの処理
     notificationForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const user = auth.currentUser;
