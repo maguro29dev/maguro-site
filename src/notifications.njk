@@ -1,0 +1,172 @@
+---
+layout: base
+title: 通知設定
+permalink: /notifications/
+---
+
+<div class="container mx-auto p-6 max-w-2xl">
+    <h1 class="text-3xl font-bold mb-4">通知設定</h1>
+    <p class="text-gray-600 mb-8">サイトの更新情報や、まぐにぃからのお知らせをプッシュ通知で受け取ることができます。</p>
+
+    <!-- UIのコンテナ -->
+    <div id="notification-ui-container" class="bg-white shadow-md rounded-lg p-8 text-center" style="display: none;">
+        
+        <!-- ステータス表示 -->
+        <p class="text-lg font-semibold mb-2">現在の設定</p>
+        <p id="status-message" class="text-gray-700 mb-6">確認中...</p>
+
+        <!-- 通知設定ボタン -->
+        <button id="push-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out disabled:bg-gray-400">
+            設定を確認中...
+        </button>
+
+        <p id="error-message" class="text-red-500 text-sm mt-4"></p>
+    </div>
+
+    <!-- ブラウザが非対応の場合のメッセージ -->
+    <div id="unsupported-message" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert" style="display: none;">
+        <p class="font-bold">お使いのブラウザはプッシュ通知に対応していません。</p>
+        <p>最新版のChrome, Firefox, Edgeなどでお試しください。</p>
+    </div>
+</div>
+
+<script>
+(async () => {
+    // === 設定項目 ===
+    // ▼▼▼【要設定】Netlifyの環境変数からVAPID_PUBLIC_KEYの値を貼り付けてください▼▼▼
+    const VAPID_PUBLIC_KEY = "BE6Sq3yc-0Viy_acHHlc0QQ_z2Wb3nav_owd1cHNdyircgu82IKSa9VCmblcFvvIkwK-rDWd452mFlpePlJKJuc";
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+    // --- UI要素 ---
+    const uiContainer = document.getElementById('notification-ui-container');
+    const unsupportedMessage = document.getElementById('unsupported-message');
+    const pushButton = document.getElementById('push-btn');
+    const statusMessage = document.getElementById('status-message');
+    const errorMessage = document.getElementById('error-message');
+
+    let swRegistration = null;
+    let isSubscribed = false;
+
+    // 1. ブラウザが対応しているかチェック
+    if (!('serviceWorker' in navigator && 'PushManager' in window)) {
+        console.warn('Push messaging is not supported');
+        unsupportedMessage.style.display = 'block';
+        return;
+    }
+    
+    uiContainer.style.display = 'block';
+
+    try {
+        swRegistration = await navigator.serviceWorker.ready;
+        console.log('Service Worker is ready.');
+        await initializeUI();
+    } catch (error) {
+        console.error('Service Worker registration failed:', error);
+        errorMessage.textContent = 'Service Workerの準備に失敗しました。ページを再読み込みしてください。';
+    }
+
+    // 2. UIの初期化
+    async function initializeUI() {
+        pushButton.disabled = true;
+        const subscription = await swRegistration.pushManager.getSubscription();
+        isSubscribed = !(subscription === null);
+
+        updateUI();
+        pushButton.disabled = false;
+    }
+
+    // 3. UIの表示を更新する
+    function updateUI() {
+        if (isSubscribed) {
+            statusMessage.textContent = '通知は有効です';
+            pushButton.textContent = '通知を無効にする';
+            pushButton.classList.remove('bg-blue-500', 'hover:bg-blue-700');
+            pushButton.classList.add('bg-red-500', 'hover:bg-red-700');
+        } else {
+            statusMessage.textContent = '通知は無効です';
+            pushButton.textContent = '通知を有効にする';
+            pushButton.classList.remove('bg-red-500', 'hover:bg-red-700');
+            pushButton.classList.add('bg-blue-500', 'hover:bg-blue-700');
+        }
+    }
+    
+    // 4. ボタンがクリックされたときの処理
+    pushButton.addEventListener('click', async () => {
+        pushButton.disabled = true;
+        if (isSubscribed) {
+            await unsubscribeUser();
+        } else {
+            await subscribeUser();
+        }
+        pushButton.disabled = false;
+    });
+
+    // 5. 通知を有効にする (購読する)
+    async function subscribeUser() {
+        try {
+            const subscription = await swRegistration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlB64ToUint8Array(VAPID_PUBLIC_KEY)
+            });
+
+            console.log('User is subscribed:', subscription);
+            await sendSubscriptionToServer(subscription);
+            
+            isSubscribed = true;
+            updateUI();
+        } catch (err) {
+            console.error('Failed to subscribe the user: ', err);
+            errorMessage.textContent = '通知の有効化に失敗しました。ブラウザの通知設定を確認してください。';
+        }
+    }
+
+    // 6. 通知を無効にする (購読を解除する)
+    async function unsubscribeUser() {
+        try {
+            const subscription = await swRegistration.pushManager.getSubscription();
+            if (subscription) {
+                await subscription.unsubscribe();
+                console.log('User is unsubscribed.');
+                // TODO: サーバー側にも購読解除を通知する処理を後で追加
+                isSubscribed = false;
+                updateUI();
+            }
+        } catch (err) {
+            console.error('Error unsubscribing', err);
+            errorMessage.textContent = '通知の無効化に失敗しました。';
+        }
+    }
+    
+    // 7. 購読情報をサーバーに送信する
+    async function sendSubscriptionToServer(subscription) {
+        try {
+            const response = await fetch('/.netlify/functions/subscribe-push', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(subscription),
+            });
+            if (!response.ok) {
+                throw new Error('サーバーへの購読情報の送信に失敗しました。');
+            }
+            console.log('Subscription sent to server successfully.');
+        } catch(error) {
+            console.error(error);
+            // エラーが発生しても購読は成功しているので、ここではUIにエラーを出さない
+        }
+    }
+
+    // VAPIDキーを変換するためのヘルパー関数
+    function urlB64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+})();
+</script>
