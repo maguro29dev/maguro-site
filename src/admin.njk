@@ -62,16 +62,17 @@ permalink: /admin/
 <script type="module">
     // Firebase SDK v9 (モジュール版) をインポート
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+    // getRedirectResult と signInWithRedirect をインポート
+    import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 
-    // ▼▼▼【要設定】ご自身のFirebaseプロジェクトの設定情報を貼り付けてください▼▼▼
+    // ▼▼▼ ご自身のFirebaseプロジェクトの設定情報を貼り付けてください ▼▼▼
     const firebaseConfig = {
-    apiKey: "AIzaSyDwjh5FCorVXZDdMse_uTcLbvjXwmw2jhk",
-    authDomain: "maguro29-planning.firebaseapp.com",
-    projectId: "maguro29-planning",
-    storageBucket: "maguro29-planning.firebasestorage.app",
-    messagingSenderId: "525505583082",
-    appId: "1:525505583082:web:2cb02294dfd3d9ca91c493"
+      apiKey: "AIzaSyDwjh5FCorVXZDdMse_uTcLbvjXwmw2jhk",
+      authDomain: "maguro29-planning.firebaseapp.com",
+      projectId: "maguro29-planning",
+      storageBucket: "maguro29-planning.firebasestorage.app",
+      messagingSenderId: "525505583082",
+      appId: "1:525505583082:web:2cb02294dfd3d9ca91c493"
     };
     // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
@@ -86,83 +87,79 @@ permalink: /admin/
     const notificationForm = document.getElementById('notification-form');
     const loginArea = document.getElementById('login-area');
 
-    // 認証状態の監視
-    onAuthStateChanged(auth, user => {
-        loadingSpinner.style.display = 'none'; // 認証状態が確定したらローディングを非表示
-
-        if (user) {
-            // ユーザーがログインしている
-            adminContent.style.display = 'block';
-            loginArea.style.display = 'none';
-        } else {
-            // ユーザーがログインしていない
-            adminContent.style.display = 'none';
-            loginArea.style.display = 'block';
+    // ★★★ 変更点①：リダイレクト後のログイン結果を処理 ★★★
+    getRedirectResult(auth)
+      .then((result) => {
+        // もしGoogleログインから戻ってきた直後なら、ここでresultにユーザー情報が入る
+        if (result) {
+          console.log("リダイレクトログイン成功:", result.user);
         }
-    });
+      })
+      .catch((error) => {
+        console.error("リダイレクト結果の取得エラー:", error);
+      })
+      .finally(() => {
+        // 認証状態の監視を開始
+        onAuthStateChanged(auth, user => {
+            loadingSpinner.style.display = 'none'; // 認証状態が確定したらローディングを非表示
+            if (user) {
+                adminContent.style.display = 'block';
+                loginArea.style.display = 'none';
+            } else {
+                adminContent.style.display = 'none';
+                loginArea.style.display = 'block';
+            }
+        });
+      });
     
-    // ログイン処理 (signInWithPopup を使用)
+    // ★★★ 変更点②：ログイン処理をリダイレクト方式に変更 ★★★
     loginBtn.addEventListener('click', () => {
         const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider)
-            .catch(error => {
-                console.error("ログインエラー:", error);
-                alert("ログインに失敗しました。");
-            });
+        signInWithRedirect(auth, provider); // ポップアップではなくリダイレクト
     });
 
-    // ログアウト処理
+    // ログアウト処理 (変更なし)
     logoutBtn.addEventListener('click', () => {
         signOut(auth).catch(error => console.error("ログアウト失敗:", error));
     });
 
-    // 通知送信フォームの処理
+    // 通知送信フォームの処理 (変更なし)
     notificationForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-
         const user = auth.currentUser;
         if (!user) {
             alert('ログインしていません。再度ログインしてください。');
             return;
         }
-
         const title = event.target.title.value;
         const body = event.target.body.value;
         const url = event.target.url.value;
         const sendButton = event.target.querySelector('button');
-        
         sendButton.disabled = true;
         sendButton.textContent = '送信中...';
-
         try {
-            // 1. Firebaseから現在のユーザーのIDトークンを取得
             const idToken = await user.getIdToken(true);
-
-            // 2. fetchリクエストのヘッダーにIDトークンを追加してサーバーに送信
             const response = await fetch('/.netlify/functions/send-push', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${idToken}` // ★ここにIDトークンを添付
+                    'Authorization': `Bearer ${idToken}`
                 },
                 body: JSON.stringify({ title, body, url })
             });
-
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ details: response.statusText }));
                 throw new Error(`通知の送信に失敗しました (Status: ${response.status}). ${errorData.details}`);
             }
-
             const result = await response.json();
             alert(`通知が送信されました！\nサーバーからのメッセージ: ${result.message}`);
-            
         } catch (error) {
             console.error('送信エラー:', error);
             alert(`エラーが発生しました: ${error.message}`);
         } finally {
             sendButton.disabled = false;
             sendButton.textContent = '通知を送信';
-            notificationForm.reset(); // フォームをリセット
+            notificationForm.reset();
         }
     });
 </script>
