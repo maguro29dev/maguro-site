@@ -147,7 +147,7 @@ pageStyles: |
                         <p class="text-sm text-gray-500 mt-1 mb-4">開催日：{{ event.fields.date | formatDate }}</p>
                     </div>
                     <div class="prose max-w-none">
-                        {{ event.fields.report | documentToHtml | safe }}
+                        {{ event.fields.report | markdown | safe }}
                     </div>
                 </div>
                 {%- endfor -%}
