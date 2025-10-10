@@ -194,7 +194,7 @@ pageStyles: |
 
     document.addEventListener('DOMContentLoaded', () => {
         // Firebaseの初期化
-        const firebaseConfig = { apiKey: "AIzaSyDwjh5FCorVXZDdMse_uTcLbvjXwmw2jhk", authDomain: "maguro29-planning.firebaseapp.com", projectId: "maguro29-planning", storageBucket: "maguro29-planning.appspot.com", messagingSenderId: "525505583082", appId: "1:525505583082:web:2cb02294dfd3d9ca91c493" };
+        const firebaseConfig = {{ env.firebaseConfig | dump | safe }};
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
