@@ -8,6 +8,9 @@ const YOUTUBE_CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
 const YOUTUBE_PLANNING_PLAYLIST_ID = process.env.YOUTUBE_PLANNING_PLAYLIST_ID;
 
 // チャンネルの動画情報を取得する共通関数
+// 注意: YouTube Data API v3のsearchエンドポイントは2024年11月18日以降、
+// eventType=upcomingパラメータで12時間以内の配信予定のみ返すようになりました。
+// そのため、この関数はliveイベントの取得にのみ使用されます。
 async function fetchChannelVideos(eventType) {
   if (!YOUTUBE_API_KEY || !YOUTUBE_CHANNEL_ID) {
     console.error("API Key or Channel ID is missing. Aborting API call to search endpoint.");
@@ -15,6 +18,59 @@ async function fetchChannelVideos(eventType) {
   }
   const url = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${YOUTUBE_CHANNEL_ID}&part=snippet,id&order=date&maxResults=10&eventType=${eventType}&type=video`;
   return EleventyFetch(url, { duration: "1m", type: "json" });
+}
+
+// チャンネルのアップロードプレイリストから配信予定を取得する関数
+async function fetchUpcomingVideos() {
+  if (!YOUTUBE_API_KEY || !YOUTUBE_CHANNEL_ID) {
+    console.error("API Key or Channel ID is missing.");
+    return [];
+  }
+
+  try {
+    // チャンネル情報を取得してアップロードプレイリストIDを取得
+    const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${YOUTUBE_CHANNEL_ID}&key=${YOUTUBE_API_KEY}`;
+    const channelData = await EleventyFetch(channelUrl, { duration: "1h", type: "json" });
+    
+    if (!channelData.items || channelData.items.length === 0) {
+      console.error("Channel not found.");
+      return [];
+    }
+
+    const uploadsPlaylistId = channelData.items[0].contentDetails.relatedPlaylists.uploads;
+    
+    // アップロードプレイリストから最新50件の動画IDを取得
+    const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=50&key=${YOUTUBE_API_KEY}`;
+    const playlistData = await EleventyFetch(playlistUrl, { duration: "1m", type: "json" });
+    
+    if (!playlistData.items || playlistData.items.length === 0) {
+      return [];
+    }
+
+    const videoIds = playlistData.items.map(item => item.snippet.resourceId.videoId).filter(id => id);
+    
+    if (videoIds.length === 0) {
+      return [];
+    }
+
+    // 動画の詳細情報を取得
+    const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${videoIds.join(',')}&key=${YOUTUBE_API_KEY}`;
+    const videosData = await EleventyFetch(videosUrl, { duration: "1m", type: "json" });
+    
+    if (!videosData.items) {
+      return [];
+    }
+
+    // upcomingの動画のみをフィルタリング
+    const upcomingVideos = videosData.items.filter(video => 
+      video.snippet.liveBroadcastContent === 'upcoming'
+    );
+
+    return upcomingVideos;
+  } catch (error) {
+    console.error("Error fetching upcoming videos:", error.message);
+    return [];
+  }
 }
 
 // 再生リストの動画をランキング形式で取得する関数
@@ -62,10 +118,10 @@ module.exports = async function() {
   console.log("Fetching YouTube data...");
   try {
     const livePromise = fetchChannelVideos("live");
-    const upcomingPromise = fetchChannelVideos("upcoming");
+    const upcomingPromise = fetchUpcomingVideos(); // 新しい関数を使用
     const rankedPlaylistPromise = fetchRankedPlaylistVideos(YOUTUBE_PLANNING_PLAYLIST_ID);
 
-    const [liveData, upcomingData, rankedPlaylistData] = await Promise.all([
+    const [liveData, upcomingVideos_new, rankedPlaylistData] = await Promise.all([
       livePromise,
       upcomingPromise,
       rankedPlaylistPromise
@@ -98,7 +154,6 @@ module.exports = async function() {
     const playlistData = await EleventyFetch(playlistUrl, { duration: "1h", type: "json" });
     const videoIds = (playlistData.items || []).map(item => item.snippet.resourceId.videoId).filter(id => id);
 
-    let upcomingVideos_detailed = [];
     let allVideos_detailed = [];
 
     if (videoIds.length > 0) {
@@ -106,16 +161,16 @@ module.exports = async function() {
         const videosData = await EleventyFetch(videosUrl, { duration: "1h", type: "json" });
 
         allVideos_detailed = videosData.items || [];
-
-        upcomingVideos_detailed = allVideos_detailed
-            .filter(item => {
-                const isUpcoming = item.snippet.liveBroadcastContent === 'upcoming';
-                const scheduledTime = new Date(item.liveStreamingDetails?.scheduledStartTime).getTime();
-                const now = new Date().getTime();
-                return isUpcoming && scheduledTime > (now - 3600 * 1000);
-            })
-            .sort((a, b) => new Date(a.liveStreamingDetails.scheduledStartTime) - new Date(b.liveStreamingDetails.scheduledStartTime));
     }
+
+    // 新しい方法で取得した配信予定を、スケジュール日時順にソート
+    const upcomingVideos_detailed = upcomingVideos_new
+        .filter(item => {
+            const scheduledTime = new Date(item.liveStreamingDetails?.scheduledStartTime).getTime();
+            const now = new Date().getTime();
+            return scheduledTime > (now - 3600 * 1000); // 1時間前から表示
+        })
+        .sort((a, b) => new Date(a.liveStreamingDetails.scheduledStartTime) - new Date(b.liveStreamingDetails.scheduledStartTime));
 
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -159,7 +214,7 @@ module.exports = async function() {
     console.log("Data fetched successfully!");
     return {
       live: liveData,
-      upcoming: upcomingData,
+      upcoming: { items: upcomingVideos_new.map(v => ({ id: { videoId: v.id }, snippet: v.snippet })) }, // 互換性のために変換
       planningPlaylist: rankedPlaylistData,
       liveVideo: liveVideo,
       latestVideo: latestVideo,
