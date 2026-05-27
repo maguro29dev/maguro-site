@@ -1,6 +1,13 @@
 import type { ScheduleItem, RealEvent } from "@/lib/data";
 
 /**
+ * 週間スケジュールの最終更新日（YYYY-MM-DD）
+ * スケジュールを直したら必ず今日の日付に更新してください。
+ * 今週の月曜より古いと「更新忘れかも」メッセージが出ます。
+ */
+export const weeklyScheduleUpdatedAt = "2026-05-27";
+
+/**
  * 週間スケジュール
  * Cursorに「スケジュール更新して」と依頼すればここを書き換えます。
  */

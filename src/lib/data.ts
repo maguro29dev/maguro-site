@@ -51,7 +51,7 @@ export interface EventReport {
 
 // ---- Data imports from src/data/ ----
 
-import { weeklySchedule, realEvents } from "@/data/schedule";
+import { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } from "@/data/schedule";
 import { membershipBenefits } from "@/data/benefits";
 import { members } from "@/data/members";
 import { currentEvents, eventReports } from "@/data/events";
@@ -61,6 +61,10 @@ import { siteSettings } from "@/data/site-settings";
 
 export async function getWeeklySchedule(): Promise<ScheduleItem[]> {
   return weeklySchedule;
+}
+
+export async function getWeeklyScheduleUpdatedAt(): Promise<string> {
+  return weeklyScheduleUpdatedAt;
 }
 
 export async function getRealEvents(): Promise<RealEvent[]> {

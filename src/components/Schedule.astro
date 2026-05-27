@@ -4,9 +4,10 @@ import type { ScheduleItem, RealEvent } from "@/lib/data";
 interface Props {
   weeklySchedule: ScheduleItem[];
   realEvents: RealEvent[];
+  weeklyScheduleUpdatedAt: string;
 }
 
-const { weeklySchedule, realEvents } = Astro.props;
+const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
 ---
 
 <div class="col-span-full block bg-white rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md relative overflow-hidden"
@@ -15,6 +16,20 @@ const { weeklySchedule, realEvents } = Astro.props;
     <div class="flex items-center gap-2 mb-5">
       <span class="text-2xl">🗓️</span>
       <h2 class="text-lg font-bold text-gray-800">スケジュール</h2>
+    </div>
+
+    <div
+      id="schedule-stale-banner"
+      class="hidden mb-4 rounded-xl bg-amber-50 border border-amber-200/80 px-4 py-3 text-sm text-amber-950 leading-relaxed"
+      role="status"
+    >
+      <p class="font-bold">週間スケジュール、更新し忘れてるかも…！</p>
+      <p class="mt-1 text-amber-900/90">
+        まぐにぃを
+        <a href="https://x.com/maguro29" target="_blank" rel="noopener noreferrer" class="font-bold underline hover:text-amber-700">X</a>・
+        <a href="https://discord.gg/YabfK2buHm" target="_blank" rel="noopener noreferrer" class="font-bold underline hover:text-amber-700">Discord DM</a>・
+        YouTubeコメント欄など、お好きな手段で<strong class="font-bold">優しく煽って</strong>ください。
+      </p>
     </div>
 
     <div id="schedule-capture-area" class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -90,7 +105,7 @@ const { weeklySchedule, realEvents } = Astro.props;
   </button>
 </div>
 
-<script>
+<script define:vars={{ weeklyScheduleUpdatedAt }}>
   async function loadUpcoming() {
     const slot = document.getElementById("upcoming-schedule")!;
     try {
@@ -121,6 +136,21 @@ const { weeklySchedule, realEvents } = Astro.props;
   }
 
   loadUpcoming();
+
+  // Show banner when weekly schedule was not updated this calendar week (Monday start)
+  function mondayStart(d = new Date()) {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = day === 0 ? 6 : day - 1;
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() - diff);
+    return date;
+  }
+
+  const updated = new Date(`${weeklyScheduleUpdatedAt}T12:00:00`);
+  if (updated < mondayStart()) {
+    document.getElementById("schedule-stale-banner")?.classList.remove("hidden");
+  }
 
   // Highlight today's row in the weekly schedule
   const dayNames = ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"];

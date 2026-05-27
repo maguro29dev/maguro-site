@@ -2,7 +2,7 @@
 import BentoCard from "./BentoCard.astro";
 ---
 
-<BentoCard title="今月の人気動画（長尺）" icon="🏆" class="h-full">
+<BentoCard title="今月の人気動画（3分以上）" icon="🏆" class="h-full">
   <div id="popular-videos-slot" class="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
     {Array.from({ length: 3 }).map(() => (
       <div class="flex-shrink-0 w-52">

@@ -3,17 +3,20 @@ import Base from "@/layouts/Base.astro";
 import LiveStatus from "@/components/LiveStatus.astro";
 import LatestVideo from "@/components/LatestVideo.astro";
 import PopularVideos from "@/components/PopularVideos.astro";
+import ShortVideos from "@/components/ShortVideos.astro";
+import JisshaPeek from "@/components/JisshaPeek.astro";
 import Schedule from "@/components/Schedule.astro";
 import MembershipBenefits from "@/components/MembershipBenefits.astro";
 import GoodsCard from "@/components/GoodsCard.astro";
 import CommunityCard from "@/components/CommunityCard.astro";
 import FeedbackCard from "@/components/FeedbackCard.astro";
 
-import { getWeeklySchedule, getRealEvents, getMembershipBenefits } from "@/lib/data";
+import { getWeeklySchedule, getRealEvents, getMembershipBenefits, getWeeklyScheduleUpdatedAt } from "@/lib/data";
 
 const weeklySchedule = await getWeeklySchedule();
 const realEvents = await getRealEvents();
 const benefits = await getMembershipBenefits();
+const weeklyScheduleUpdatedAt = await getWeeklyScheduleUpdatedAt();
 ---
 
 <Base title="まぐにぃゲーム実況本館 | 情報ハブ">
@@ -27,7 +30,11 @@ const benefits = await getMembershipBenefits();
 
       <!-- Schedule (full width) -->
       <div class="md:col-span-3 fade-up">
-        <Schedule weeklySchedule={weeklySchedule} realEvents={realEvents} />
+        <Schedule
+          weeklySchedule={weeklySchedule}
+          realEvents={realEvents}
+          weeklyScheduleUpdatedAt={weeklyScheduleUpdatedAt}
+        />
       </div>
 
       <!-- Latest Video -->
@@ -38,6 +45,16 @@ const benefits = await getMembershipBenefits();
       <!-- Popular Videos -->
       <div class="md:col-span-2 fade-up">
         <PopularVideos />
+      </div>
+
+      <!-- Shorts (full width) -->
+      <div class="md:col-span-3 fade-up">
+        <ShortVideos />
+      </div>
+
+      <!-- Jissha channel peek -->
+      <div class="md:col-span-3 fade-up">
+        <JisshaPeek />
       </div>
 
       <!-- Community + Membership -->

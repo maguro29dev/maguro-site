@@ -3,11 +3,14 @@
  * Keeps the API key server-side while the browser fetches fresh data.
  *
  * Query params:
- *   type = "live" | "upcoming" | "latest" | "popular"
+ *   type = "live" | "upcoming" | "latest" | "popular" | "shorts" | "latest-jissha"
  */
 
 const API_KEY = process.env.YOUTUBE_API_KEY;
 const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
+/** まぐにぃチャンネル（実写） https://www.youtube.com/c/Maguro29Jp */
+const CHANNEL_ID_JISSHA =
+  process.env.YOUTUBE_CHANNEL_ID_JISSHA || "UCMJsF7fGuFUybKLjk7HqhfA";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -47,11 +50,19 @@ exports.handler = async (event) => {
       case "popular":
         data = await fetchPopularVideos();
         break;
+      case "shorts":
+        data = await fetchShortVideos();
+        break;
+      case "latest-jissha":
+        data = await fetchLatestJissha();
+        break;
       default:
         return {
           statusCode: 400,
           headers: CORS_HEADERS,
-          body: JSON.stringify({ error: "Invalid type. Use: live, upcoming, latest, popular" }),
+          body: JSON.stringify({
+            error: "Invalid type. Use: live, upcoming, latest, popular, shorts, latest-jissha",
+          }),
         };
     }
 
@@ -76,9 +87,9 @@ async function ytFetch(url) {
   return res.json();
 }
 
-async function getUploadsPlaylistId() {
+async function getUploadsPlaylistId(channelId = CHANNEL_ID) {
   const data = await ytFetch(
-    `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${CHANNEL_ID}&key=${API_KEY}`
+    `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelId}&key=${API_KEY}`
   );
   return data.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
 }
@@ -149,9 +160,17 @@ function parseDurationToSeconds(iso8601) {
          (parseInt(match[3] || "0"));
 }
 
-function isNotShort(video) {
+/** 長尺: 3分以上（60秒超のショートを除外） */
+const LONG_FORM_MIN_SECONDS = 180;
+
+function isLongForm(video) {
   const duration = parseDurationToSeconds(video.contentDetails?.duration);
-  return duration > 60;
+  return duration >= LONG_FORM_MIN_SECONDS;
+}
+
+function isShortForm(video) {
+  const duration = parseDurationToSeconds(video.contentDetails?.duration);
+  return duration > 0 && duration < LONG_FORM_MIN_SECONDS;
 }
 
 async function fetchLatestVideos() {
@@ -173,7 +192,7 @@ async function fetchLatestVideos() {
   const available = (videosData.items || [])
     .filter((v) => {
       const date = new Date(v.liveStreamingDetails?.scheduledStartTime || v.snippet.publishedAt);
-      return date <= now && isNotShort(v);
+      return date <= now && isLongForm(v);
     })
     .sort((a, b) => {
       const da = new Date(a.liveStreamingDetails?.scheduledStartTime || a.snippet.publishedAt);
@@ -214,7 +233,7 @@ async function fetchPopularVideos() {
       const pub = new Date(v.snippet.publishedAt);
       return v.snippet.liveBroadcastContent !== "upcoming" &&
              pub >= firstOfMonth && pub <= lastOfMonth &&
-             isNotShort(v);
+             isLongForm(v);
     })
     .sort((a, b) => {
       const va = parseInt(a.statistics?.viewCount || "0", 10);
@@ -230,4 +249,84 @@ async function fetchPopularVideos() {
     }));
 
   return { videos: popular };
+}
+
+async function fetchShortVideos() {
+  const uploadsId = await getUploadsPlaylistId();
+  if (!uploadsId) return { videos: [] };
+
+  const playlist = await ytFetch(
+    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=50&key=${API_KEY}`
+  );
+
+  const ids = (playlist.items || []).map((i) => i.snippet.resourceId.videoId).filter(Boolean);
+  if (!ids.length) return { videos: [] };
+
+  const videosData = await ytFetch(
+    `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${ids.join(",")}&key=${API_KEY}`
+  );
+
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  const shorts = (videosData.items || [])
+    .filter((v) => {
+      const pub = new Date(v.snippet.publishedAt);
+      return v.snippet.liveBroadcastContent !== "upcoming" &&
+             pub >= firstOfMonth && pub <= lastOfMonth &&
+             isShortForm(v);
+    })
+    .sort((a, b) => {
+      const va = parseInt(a.statistics?.viewCount || "0", 10);
+      const vb = parseInt(b.statistics?.viewCount || "0", 10);
+      return vb - va;
+    })
+    .slice(0, 6)
+    .map((v) => ({
+      id: v.id,
+      title: v.snippet.title,
+      thumbnail: v.snippet.thumbnails?.medium?.url,
+      viewCount: parseInt(v.statistics?.viewCount || "0", 10),
+    }));
+
+  return { videos: shorts };
+}
+
+/** 実写ch: 最新1本（尺の制限なし・メンバー限定ではない補助枠） */
+async function fetchLatestJissha() {
+  const uploadsId = await getUploadsPlaylistId(CHANNEL_ID_JISSHA);
+  if (!uploadsId) return { videos: [] };
+
+  const playlist = await ytFetch(
+    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=15&key=${API_KEY}`
+  );
+
+  const ids = (playlist.items || []).map((i) => i.snippet.resourceId.videoId).filter(Boolean);
+  if (!ids.length) return { videos: [] };
+
+  const videosData = await ytFetch(
+    `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${ids.join(",")}&key=${API_KEY}`
+  );
+
+  const now = new Date();
+  const latest = (videosData.items || [])
+    .filter((v) => {
+      if (v.snippet.liveBroadcastContent === "upcoming") return false;
+      const date = new Date(v.liveStreamingDetails?.scheduledStartTime || v.snippet.publishedAt);
+      return date <= now;
+    })
+    .sort((a, b) => {
+      const da = new Date(a.liveStreamingDetails?.scheduledStartTime || a.snippet.publishedAt);
+      const db = new Date(b.liveStreamingDetails?.scheduledStartTime || b.snippet.publishedAt);
+      return db - da;
+    })
+    .slice(0, 1)
+    .map((v) => ({
+      id: v.id,
+      title: v.snippet.title,
+      thumbnail: v.snippet.thumbnails?.medium?.url,
+    }));
+
+  return { videos: latest };
 }
