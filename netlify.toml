@@ -4,3 +4,9 @@
 
 [functions]
   directory = "netlify/functions"
+
+# 旧 PWA manifest パスからのリダイレクト
+[[redirects]]
+  from = "/manifest.json"
+  to = "/manifest.webmanifest"
+  status = 301
