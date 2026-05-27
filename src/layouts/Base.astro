@@ -1,12 +1,13 @@
 ---
 import "@/styles/global.css";
+import { siteMeta } from "@/data/site-meta";
 
 interface Props {
   title: string;
   description?: string;
 }
 
-const { title, description = "まぐにぃの最新情報・配信予定・動画・メンバーシップをまとめた公式ファンサイト" } = Astro.props;
+const { title, description = siteMeta.description } = Astro.props;
 
 const navLinks = [
   { href: "/", label: "ホーム" },

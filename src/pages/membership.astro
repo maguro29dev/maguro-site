@@ -2,6 +2,7 @@
 import Base from "@/layouts/Base.astro";
 import BentoCard from "@/components/BentoCard.astro";
 import { getMembers, getCurrentEvents, getEventReports, getSiteSettings } from "@/lib/data";
+import { siteMeta } from "@/data/site-meta";
 
 const members = await getMembers();
 const currentEvents = await getCurrentEvents();
@@ -43,7 +44,7 @@ const plans = [
 ];
 ---
 
-<Base title="メンバーシップ | まぐにぃ">
+<Base title={`メンバーシップ | ${siteMeta.siteName}`}>
   <div class="max-w-6xl mx-auto px-4 py-8 pb-28 sm:pb-8 space-y-12">
 
     <!-- Member Events -->

@@ -9,8 +9,8 @@
 const API_KEY = process.env.YOUTUBE_API_KEY;
 const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
 /** まぐにぃチャンネル（実写） https://www.youtube.com/c/Maguro29Jp */
-const CHANNEL_ID_JISSHA =
-  process.env.YOUTUBE_CHANNEL_ID_JISSHA || "UCMJsF7fGuFUybKLjk7HqhfA";
+const CHANNEL_ID_JISSHA_DEFAULT = "UCMJsF7fGuFUybKLjk7HqhfA";
+const CHANNEL_ID_JISSHA = (process.env.YOUTUBE_CHANNEL_ID_JISSHA || CHANNEL_ID_JISSHA_DEFAULT).trim();
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -295,15 +295,17 @@ async function fetchShortVideos() {
 
 /** 実写ch: 最新1本（尺の制限なし・メンバー限定ではない補助枠） */
 async function fetchLatestJissha() {
-  const uploadsId = await getUploadsPlaylistId(CHANNEL_ID_JISSHA);
-  if (!uploadsId) return { videos: [] };
-
-  const playlist = await ytFetch(
-    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=15&key=${API_KEY}`
+  const searchData = await ytFetch(
+    `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${CHANNEL_ID_JISSHA}&part=snippet,id&order=date&type=video&maxResults=10`
   );
 
-  const ids = (playlist.items || []).map((i) => i.snippet.resourceId.videoId).filter(Boolean);
-  if (!ids.length) return { videos: [] };
+  const ids = (searchData.items || [])
+    .map((i) => i.id?.videoId)
+    .filter(Boolean);
+
+  if (!ids.length) {
+    return { videos: [], channelId: CHANNEL_ID_JISSHA };
+  }
 
   const videosData = await ytFetch(
     `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${ids.join(",")}&key=${API_KEY}`
@@ -311,8 +313,8 @@ async function fetchLatestJissha() {
 
   const now = new Date();
   const latest = (videosData.items || [])
+    .filter((v) => v.snippet.liveBroadcastContent !== "upcoming")
     .filter((v) => {
-      if (v.snippet.liveBroadcastContent === "upcoming") return false;
       const date = new Date(v.liveStreamingDetails?.scheduledStartTime || v.snippet.publishedAt);
       return date <= now;
     })
@@ -328,5 +330,5 @@ async function fetchLatestJissha() {
       thumbnail: v.snippet.thumbnails?.medium?.url,
     }));
 
-  return { videos: latest };
+  return { videos: latest, channelId: CHANNEL_ID_JISSHA };
 }

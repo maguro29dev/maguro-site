@@ -43,12 +43,21 @@ import { jisshaChannel } from "@/data/channels";
     try {
       const res = await fetch("/.netlify/functions/youtube-proxy?type=latest-jissha");
       const data = await res.json();
+
+      if (!res.ok) {
+        slot.innerHTML = `
+          <p class="text-sm text-gray-400 py-2">
+            取得エラー（${res.status}）。しばらくしてから再度お試しください。
+          </p>`;
+        return;
+      }
+
       const video = data.videos?.[0];
 
       if (!video) {
         slot.innerHTML = `
           <p class="text-sm text-gray-400 py-2">
-            動画を読み込めませんでした。
+            公開中の動画が見つかりませんでした。
             <a href="${channelUrl}" target="_blank" rel="noopener noreferrer" class="text-brand font-bold hover:underline">実写ch</a>
             からどうぞ。
           </p>`;

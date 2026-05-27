@@ -12,6 +12,7 @@ import CommunityCard from "@/components/CommunityCard.astro";
 import FeedbackCard from "@/components/FeedbackCard.astro";
 
 import { getWeeklySchedule, getRealEvents, getMembershipBenefits, getWeeklyScheduleUpdatedAt } from "@/lib/data";
+import { siteMeta } from "@/data/site-meta";
 
 const weeklySchedule = await getWeeklySchedule();
 const realEvents = await getRealEvents();
@@ -19,7 +20,7 @@ const benefits = await getMembershipBenefits();
 const weeklyScheduleUpdatedAt = await getWeeklyScheduleUpdatedAt();
 ---
 
-<Base title="まぐにぃゲーム実況本館 | 情報ハブ">
+<Base title={siteMeta.homeTitle}>
   <div class="max-w-6xl mx-auto px-4 py-6 pb-28 sm:pb-6 space-y-4">
 
     <!-- Live Status -->
