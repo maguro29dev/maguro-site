@@ -299,36 +299,25 @@ async function fetchLatestJissha() {
     `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${CHANNEL_ID_JISSHA}&part=snippet,id&order=date&type=video&maxResults=10`
   );
 
-  const ids = (searchData.items || [])
-    .map((i) => i.id?.videoId)
-    .filter(Boolean);
+  for (const item of searchData.items || []) {
+    const videoId = item.id?.videoId;
+    if (!videoId) continue;
+    if (item.snippet?.liveBroadcastContent === "upcoming") continue;
 
-  if (!ids.length) {
-    return { videos: [], channelId: CHANNEL_ID_JISSHA };
+    return {
+      videos: [
+        {
+          id: videoId,
+          title: item.snippet.title,
+          thumbnail:
+            item.snippet.thumbnails?.medium?.url ||
+            item.snippet.thumbnails?.high?.url ||
+            item.snippet.thumbnails?.default?.url,
+        },
+      ],
+      channelId: CHANNEL_ID_JISSHA,
+    };
   }
 
-  const videosData = await ytFetch(
-    `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${ids.join(",")}&key=${API_KEY}`
-  );
-
-  const now = new Date();
-  const latest = (videosData.items || [])
-    .filter((v) => v.snippet.liveBroadcastContent !== "upcoming")
-    .filter((v) => {
-      const date = new Date(v.liveStreamingDetails?.scheduledStartTime || v.snippet.publishedAt);
-      return date <= now;
-    })
-    .sort((a, b) => {
-      const da = new Date(a.liveStreamingDetails?.scheduledStartTime || a.snippet.publishedAt);
-      const db = new Date(b.liveStreamingDetails?.scheduledStartTime || b.snippet.publishedAt);
-      return db - da;
-    })
-    .slice(0, 1)
-    .map((v) => ({
-      id: v.id,
-      title: v.snippet.title,
-      thumbnail: v.snippet.thumbnails?.medium?.url,
-    }));
-
-  return { videos: latest, channelId: CHANNEL_ID_JISSHA };
+  return { videos: [], channelId: CHANNEL_ID_JISSHA };
 }

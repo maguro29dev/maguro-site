@@ -107,7 +107,8 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
 
 <script define:vars={{ weeklyScheduleUpdatedAt }}>
   async function loadUpcoming() {
-    const slot = document.getElementById("upcoming-schedule")!;
+    const slot = document.getElementById("upcoming-schedule");
+    if (!slot) return;
     try {
       const res = await fetch("/.netlify/functions/youtube-proxy?type=upcoming");
       const data = await res.json();
