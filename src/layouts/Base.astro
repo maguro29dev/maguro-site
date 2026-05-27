@@ -1,0 +1,124 @@
+---
+import "@/styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "まぐにぃの最新情報、配信予定、メンバーシップ情報をまとめた公式ファンサイト" } = Astro.props;
+
+const navLinks = [
+  { href: "/", label: "ホーム" },
+  { href: "/membership/", label: "メンバーシップ" },
+  { href: "https://discord.gg/YabfK2buHm", label: "Discord", external: true },
+  { href: "https://www.youtube.com/@%E3%82%B2%E3%83%BC%E3%83%A0%E3%81%BE%E3%81%90%E3%81%AB%E3%81%83", label: "ゲームch", external: true },
+  { href: "https://www.youtube.com/c/Maguro29Jp", label: "実写ch", external: true },
+  { href: "https://x.com/maguro29", label: "X", external: true },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/icon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/icon-16x16.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet" />
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <!-- Banner -->
+    <div
+      class="w-full h-[15vh] sm:h-[25vh] max-h-[220px] bg-cover bg-center"
+      style="background-image: url('https://i.imgur.com/nvMSuwR.jpeg')"
+    ></div>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200/60">
+      <div class="max-w-6xl mx-auto px-4">
+        <div class="flex items-center gap-4 py-3">
+          <img
+            src="https://i.imgur.com/P1l89ZB.png"
+            alt="チャンネルアイコン"
+            class="w-10 h-10 rounded-full border-2 border-white shadow-sm shrink-0"
+          />
+          <nav class="flex items-center gap-1 overflow-x-auto scrollbar-hide flex-1 -mx-1 px-1">
+            {navLinks.map((link) => (
+              <a
+                href={link.href}
+                target={link.external ? "_blank" : undefined}
+                rel={link.external ? "noopener noreferrer" : undefined}
+                class:list={[
+                  "px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
+                  currentPath === link.href
+                    ? "bg-brand text-white"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                ]}
+              >
+                {link.label}
+                {link.external && <span class="text-[10px] ml-0.5 opacity-60">↗</span>}
+              </a>
+            ))}
+          </nav>
+          <a
+            href="https://www.youtube.com/channel/UCMP7QuS4suoONg47Nbi-wrg/join"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hidden sm:inline-flex items-center px-4 py-1.5 bg-gray-900 text-white text-sm font-bold rounded-full hover:bg-gray-700 transition-colors shrink-0"
+          >
+            メンバーになる
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="flex-1">
+      <slot />
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-200 bg-white mt-16">
+      <div class="max-w-6xl mx-auto py-8 px-4 text-center text-sm text-gray-500">
+        <p>&copy; {new Date().getFullYear()} まぐにぃ. All Rights Reserved.</p>
+      </div>
+    </footer>
+
+    <!-- Mobile CTA -->
+    <div class="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white/80 backdrop-blur-md border-t border-gray-200/60 p-3">
+      <a
+        href="https://www.youtube.com/channel/UCMP7QuS4suoONg47Nbi-wrg/join"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="block w-full bg-gray-900 text-white font-bold py-2.5 rounded-full text-center hover:bg-gray-700 transition-colors"
+      >
+        メンバーになる
+      </a>
+    </div>
+
+    <!-- Scroll animation observer -->
+    <script>
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.08, rootMargin: "0px 0px -40px 0px" }
+      );
+      document.querySelectorAll(".fade-up").forEach((el) => observer.observe(el));
+    </script>
+  </body>
+</html>

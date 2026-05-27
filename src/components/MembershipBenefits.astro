@@ -1,0 +1,63 @@
+---
+import BentoCard from "./BentoCard.astro";
+import type { MembershipBenefit } from "@/lib/data";
+
+interface Props {
+  benefits: MembershipBenefit[];
+}
+
+const { benefits } = Astro.props;
+
+const tiers = [
+  { key: "全プラン共通" as const, label: "全プラン共通", accent: "border-brand" },
+  { key: "中トロ以上" as const, label: "中トロ以上", accent: "border-blue-500" },
+  { key: "大トロ限定" as const, label: "大トロ限定", accent: "border-amber-500" },
+];
+---
+
+<BentoCard title="メンバーシップ特典" icon="✨">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    {tiers.map((tier) => {
+      const items = benefits.filter((b) => b.tier === tier.key);
+      return (
+        <div>
+          <h3 class:list={[
+            "text-xs font-bold px-3 py-1.5 rounded-full inline-block mb-3 border-2",
+            tier.accent,
+            "bg-white text-gray-700",
+          ]}>
+            {tier.label}
+          </h3>
+          <ul class="space-y-1.5">
+            {items.map((item) => (
+              <li>
+                <a
+                  href={item.url}
+                  target={item.url.startsWith("http") ? "_blank" : undefined}
+                  rel={item.url.startsWith("http") ? "noopener noreferrer" : undefined}
+                  class="flex items-center gap-2 text-sm text-gray-700 p-2 rounded-lg hover:bg-brand-50 transition-colors"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-brand shrink-0"></span>
+                  <span>{item.title}</span>
+                  {item.isNew && (
+                    <span class="text-[10px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded-full leading-none">NEW</span>
+                  )}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    })}
+  </div>
+
+  <div class="mt-4 pt-4 border-t border-gray-100 text-center">
+    <a
+      href="/membership/"
+      class="inline-flex items-center gap-1 text-sm font-bold text-brand hover:text-brand-dark transition-colors"
+    >
+      メンバーシップの詳細を見る
+      <span>→</span>
+    </a>
+  </div>
+</BentoCard>

@@ -1,0 +1,58 @@
+---
+import BentoCard from "./BentoCard.astro";
+---
+
+<BentoCard title="今月の人気動画（長尺）" icon="🏆" class="h-full">
+  <div id="popular-videos-slot" class="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+    {Array.from({ length: 3 }).map(() => (
+      <div class="flex-shrink-0 w-52">
+        <div class="aspect-video rounded-lg bg-gray-100 animate-pulse"></div>
+        <div class="h-4 w-3/4 rounded bg-gray-100 mt-2 animate-pulse"></div>
+      </div>
+    ))}
+  </div>
+</BentoCard>
+
+<script>
+  async function loadPopular() {
+    const slot = document.getElementById("popular-videos-slot")!;
+    try {
+      const res = await fetch("/.netlify/functions/youtube-proxy?type=popular");
+      const data = await res.json();
+      const videos = data.videos || [];
+
+      if (!videos.length) {
+        slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-4 w-full">今月の動画データがありません</p>`;
+        return;
+      }
+
+      const badgeColors = [
+        "bg-yellow-400 text-gray-900",
+        "bg-gray-300 text-gray-900",
+        "bg-amber-600 text-white",
+        "bg-gray-500 text-white",
+        "bg-gray-500 text-white",
+      ];
+
+      slot.innerHTML = videos
+        .map(
+          (v: any, i: number) => `
+        <a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener noreferrer"
+           class="group flex-shrink-0 w-52 relative">
+          <span class="absolute -top-1 -left-1 z-10 w-7 h-7 ${badgeColors[i]} rounded-full flex items-center justify-center text-xs font-bold shadow">${i + 1}</span>
+          <div class="overflow-hidden rounded-lg">
+            <img src="${v.thumbnail}" alt="${v.title}" loading="lazy"
+                 class="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-105" />
+          </div>
+          <p class="mt-2 text-xs font-bold text-gray-700 leading-snug line-clamp-2 group-hover:text-brand transition-colors">${v.title}</p>
+          <p class="text-[10px] text-gray-400 mt-0.5">${v.viewCount.toLocaleString()} 回視聴</p>
+        </a>`
+        )
+        .join("");
+    } catch {
+      slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-4 w-full">読み込みに失敗しました</p>`;
+    }
+  }
+
+  loadPopular();
+</script>

@@ -1,0 +1,62 @@
+---
+import Base from "@/layouts/Base.astro";
+import LiveStatus from "@/components/LiveStatus.astro";
+import LatestVideo from "@/components/LatestVideo.astro";
+import PopularVideos from "@/components/PopularVideos.astro";
+import Schedule from "@/components/Schedule.astro";
+import MembershipBenefits from "@/components/MembershipBenefits.astro";
+import GoodsCard from "@/components/GoodsCard.astro";
+import CommunityCard from "@/components/CommunityCard.astro";
+import FeedbackCard from "@/components/FeedbackCard.astro";
+
+import { getWeeklySchedule, getRealEvents, getMembershipBenefits } from "@/lib/data";
+
+const weeklySchedule = await getWeeklySchedule();
+const realEvents = await getRealEvents();
+const benefits = await getMembershipBenefits();
+---
+
+<Base title="まぐにぃゲーム実況本館 | 情報ハブ">
+  <div class="max-w-6xl mx-auto px-4 py-6 pb-28 sm:pb-6 space-y-4">
+
+    <!-- Live Status -->
+    <LiveStatus />
+
+    <!-- Bento Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+      <!-- Schedule (full width) -->
+      <div class="md:col-span-3 fade-up">
+        <Schedule weeklySchedule={weeklySchedule} realEvents={realEvents} />
+      </div>
+
+      <!-- Latest Video -->
+      <div class="md:col-span-1 fade-up">
+        <LatestVideo />
+      </div>
+
+      <!-- Popular Videos -->
+      <div class="md:col-span-2 fade-up">
+        <PopularVideos />
+      </div>
+
+      <!-- Community + Membership -->
+      <div class="md:col-span-1 fade-up">
+        <CommunityCard />
+      </div>
+
+      <div class="md:col-span-2 fade-up">
+        <MembershipBenefits benefits={benefits} />
+      </div>
+
+      <!-- Goods + Feedback -->
+      <div class="md:col-span-1 fade-up">
+        <GoodsCard />
+      </div>
+
+      <div class="md:col-span-2 fade-up">
+        <FeedbackCard />
+      </div>
+    </div>
+  </div>
+</Base>

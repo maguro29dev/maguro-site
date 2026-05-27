@@ -1,0 +1,22 @@
+{
+  "name": "まぐにぃの公式情報ハブ",
+  "short_name": "まぐ情報",
+  "description": "まぐにぃの最新情報、配信予定、メンバーシップ情報をまとめた公式ファンサイト",
+  "icons": [
+    { "src": "/images/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/images/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "start_url": "/?utm_source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f7f5",
+  "theme_color": "#6a994e",
+  "shortcuts": [
+    {
+      "name": "メンバーシップ",
+      "short_name": "メンバー",
+      "url": "/membership/?utm_source=pwa_shortcut",
+      "icons": [{ "src": "/images/icon-96x96.png", "sizes": "96x96" }]
+    }
+  ]
+}

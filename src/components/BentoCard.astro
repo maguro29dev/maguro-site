@@ -1,0 +1,32 @@
+---
+interface Props {
+  class?: string;
+  title?: string;
+  icon?: string;
+  href?: string;
+}
+
+const { class: className = "", title, icon, href } = Astro.props;
+const Tag = href ? "a" : "div";
+---
+
+<Tag
+  href={href}
+  target={href?.startsWith("http") ? "_blank" : undefined}
+  rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
+  class:list={[
+    "block bg-white rounded-2xl p-5 shadow-sm border border-gray-100",
+    "transition-all duration-300 ease-out",
+    href && "hover:shadow-lg hover:-translate-y-1 cursor-pointer",
+    !href && "hover:shadow-md",
+    className,
+  ]}
+>
+  {title && (
+    <h2 class="flex items-center gap-2 text-lg font-bold text-gray-800 mb-4">
+      {icon && <span class="text-xl">{icon}</span>}
+      <span>{title}</span>
+    </h2>
+  )}
+  <slot />
+</Tag>

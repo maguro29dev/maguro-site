@@ -1,0 +1,34 @@
+---
+description: プロジェクト全体の構造と技術スタックの概要
+alwaysApply: true
+---
+
+# まぐにぃ情報ハブサイト
+
+YouTubeチャンネル「ゲームまぐにぃ」のファンコミュニティ向け情報ハブ。
+
+## 技術スタック
+
+- **Astro** (SSG) + **Tailwind CSS v4**
+- ホスティング: Netlify
+- サーバーレス: Netlify Functions (YouTube プロキシ)
+- CMS なし。コンテンツは `src/data/` の TS ファイルで直接管理
+
+## ページ構成 (2ページ)
+
+| URL | ファイル | 内容 |
+|---|---|---|
+| `/` | `src/pages/index.astro` | トップ (配信状況, 動画, スケジュール, 特典, グッズ) |
+| `/membership/` | `src/pages/membership.astro` | メンバーシップ (イベント, プラン, 殿堂, 想い) |
+
+## YouTube データ
+
+YouTube はクライアントサイドで取得。`netlify/functions/youtube-proxy.js` を経由。
+ローカル開発では YouTube セクションは空欄になる (正常動作)。
+
+## デザイン方針
+
+- Bento Grid レイアウト (大小カードの格子)
+- ブランドカラー: `#6a994e` (緑)
+- アニメーション: スクロール時フェードアップ、ホバーリフト
+- ガラス風ヘッダー (backdrop-blur)

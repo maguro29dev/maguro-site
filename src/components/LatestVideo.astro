@@ -1,0 +1,42 @@
+---
+import BentoCard from "./BentoCard.astro";
+---
+
+<BentoCard title="最新の動画（長尺）" icon="🆕" class="h-full">
+  <div id="latest-video-slot">
+    <div class="aspect-video rounded-xl bg-gray-100 animate-pulse"></div>
+    <p class="mt-3 text-sm text-gray-400">読み込み中...</p>
+  </div>
+</BentoCard>
+
+<script>
+  async function loadLatest() {
+    const slot = document.getElementById("latest-video-slot")!;
+    try {
+      const res = await fetch("/.netlify/functions/youtube-proxy?type=latest");
+      const data = await res.json();
+      const video = data.videos?.[0];
+
+      if (!video) {
+        slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-8">動画の読み込みに失敗しました</p>`;
+        return;
+      }
+
+      slot.innerHTML = `
+        <a href="https://www.youtube.com/watch?v=${video.id}" target="_blank" rel="noopener noreferrer"
+           class="group block">
+          <div class="overflow-hidden rounded-xl">
+            <img src="${video.thumbnail}" alt="${video.title}" loading="lazy"
+                 class="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-105" />
+          </div>
+          <p class="mt-3 text-sm font-bold text-gray-800 leading-snug group-hover:text-brand transition-colors">
+            ${video.title}
+          </p>
+        </a>`;
+    } catch {
+      slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-8">読み込みに失敗しました</p>`;
+    }
+  }
+
+  loadLatest();
+</script>

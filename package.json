@@ -1,27 +1,19 @@
 {
   "name": "maguro-site",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "2.0.0",
+  "description": "まぐにぃゲーム実況本館の情報ハブサイト",
   "scripts": {
-    "start": "eleventy --serve",
-    "build": "eleventy"
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "@11ty/eleventy": "^2.0.1",
-    "@11ty/eleventy-fetch": "^5.1.0",
-    "dotenv": "^17.2.1"
-  },
   "dependencies": {
-    "@contentful/rich-text-html-renderer": "^17.1.0",
-    "contentful": "^11.7.15",
-    "firebase-admin": "^13.5.0",
-    "luxon": "^3.7.1",
-    "markdown-it": "^14.1.0",
-    "node-fetch": "^2.7.0",
-    "web-push": "^3.6.7"
+    "astro": "^5.9.3",
+    "tailwindcss": "^4.1.8",
+    "@tailwindcss/vite": "^4.1.8"
   }
 }

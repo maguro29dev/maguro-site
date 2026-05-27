@@ -1,0 +1,42 @@
+---
+import BentoCard from "./BentoCard.astro";
+---
+
+<BentoCard title="グッズ" icon="🛍️" class="h-full">
+  <div class="space-y-3">
+    <a
+      href="https://creator-store.jp/blogs/features/tagged/magunii"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="group flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
+    >
+      <img
+        src="https://i.imgur.com/3SOslq3.jpeg"
+        alt="UUUMグッズ"
+        class="w-14 h-14 rounded-lg object-cover shrink-0"
+        loading="lazy"
+      />
+      <div>
+        <p class="text-sm font-bold text-gray-800 group-hover:text-brand transition-colors">UUUMグッズ</p>
+        <p class="text-xs text-gray-400">公式ショップ ↗</p>
+      </div>
+    </a>
+    <a
+      href="https://store.line.me/stickershop/product/26475933/ja?from=sticker"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="group flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
+    >
+      <img
+        src="https://i.imgur.com/6JYfCBV.jpeg"
+        alt="LINEスタンプ"
+        class="w-14 h-14 rounded-lg object-cover shrink-0"
+        loading="lazy"
+      />
+      <div>
+        <p class="text-sm font-bold text-gray-800 group-hover:text-brand transition-colors">LINEスタンプ</p>
+        <p class="text-xs text-gray-400">LINE STORE ↗</p>
+      </div>
+    </a>
+  </div>
+</BentoCard>

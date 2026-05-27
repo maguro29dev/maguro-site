@@ -1,0 +1,251 @@
+---
+import Base from "@/layouts/Base.astro";
+import BentoCard from "@/components/BentoCard.astro";
+import { getMembers, getCurrentEvents, getEventReports, getSiteSettings } from "@/lib/data";
+
+const members = await getMembers();
+const currentEvents = await getCurrentEvents();
+const eventReports = await getEventReports();
+const settings = await getSiteSettings();
+
+const plans = [
+  {
+    name: "赤身",
+    price: "490",
+    description: "「まずは活動を応援したい！」という方に最適な基本プラン",
+    features: ["メンバー限定バッジ", "カスタム絵文字", "生配信のアーカイブ", "Discordコミュニティ"],
+    accent: "border-gray-200",
+  },
+  {
+    name: "中トロ",
+    price: "990",
+    description: "「もっと深く交流したい！」限定コンテンツ充実",
+    features: ["オフ会参加権 (年2回)", "週2回の限定動画", "「まぐ家」日常投稿のちょい見せ", "赤身プランの全サービス"],
+    highlight: true,
+    accent: "border-brand",
+  },
+  {
+    name: "大トロ",
+    price: "4,790",
+    description: "「全力で後押ししたい！」最上級プラン",
+    features: [
+      "オンラインオフ会 (年4回)",
+      "リアルキャンプ企画",
+      "年1回のオリジナルギフト",
+      "イベントチケット先行販売",
+      "プライベート配信",
+      "動画のほぼ無編集版",
+      "「まぐ家」毎日日常投稿",
+      "赤身・中トロの全サービス",
+    ],
+    accent: "border-amber-400",
+  },
+];
+---
+
+<Base title="メンバーシップ | まぐにぃ">
+  <div class="max-w-6xl mx-auto px-4 py-8 pb-28 sm:pb-8 space-y-12">
+
+    <!-- Member Events -->
+    <section id="member-events" class="fade-up">
+      <BentoCard>
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">🎉</span>
+            <h2 class="text-lg font-bold text-gray-800">メンバーイベント</h2>
+          </div>
+          <a
+            href="https://docs.google.com/document/d/1aVax0d8e4TWdn173e9HilPREfg9BatMigU34dTgbRHs/edit?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-xs font-bold text-brand hover:text-brand-dark transition-colors"
+          >
+            📜 イベント憲章
+          </a>
+        </div>
+
+        {currentEvents.length > 0 ? (
+          <div class="space-y-6">
+            {currentEvents.map((ev) => (
+              <div class="bg-brand-50 rounded-xl p-5 border border-brand/20">
+                <h3 class="text-xl font-bold text-gray-800 mb-3">{ev.title}</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
+                  <p><strong>開催日時:</strong> {ev.eventDate}</p>
+                  <p><strong>開催場所:</strong> {ev.location}</p>
+                  <p><strong>内容:</strong> {ev.contentSummary}</p>
+                  <p><strong>参加資格:</strong> {ev.eligibility}</p>
+                  <p><strong>申込締切:</strong> {ev.applicationDeadline}</p>
+                </div>
+                {ev.status === "募集中" && ev.applicationLink && (
+                  <a
+                    href={ev.applicationLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-block mt-4 bg-gray-900 text-white font-bold py-2.5 px-6 rounded-full hover:bg-gray-700 transition-colors text-sm"
+                  >
+                    お申し込みはこちら ↗
+                  </a>
+                )}
+                {ev.status === "募集終了" && (
+                  <p class="mt-4 text-sm text-gray-500 font-medium">
+                    このイベントの募集は終了しました。
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p class="text-gray-400 text-sm text-center py-6">
+            現在開催予定のイベントはありません。次回の開催をお楽しみに！
+          </p>
+        )}
+
+        {eventReports.length > 0 && (
+          <div class="mt-8 pt-6 border-t border-gray-100">
+            <h3 class="text-sm font-bold text-gray-600 mb-4">過去のイベントレポート</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {eventReports.map((report) => (
+                <div class="bg-gray-50 rounded-xl p-4">
+                  <h4 class="font-bold text-gray-800">{report.title}</h4>
+                  <p class="text-xs text-gray-400 mt-1 mb-2">
+                    開催日：{new Date(report.date).toLocaleDateString("ja-JP", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                  <div class="text-sm text-gray-600 leading-relaxed" set:html={report.report} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </BentoCard>
+    </section>
+
+    <!-- Plans -->
+    <section class="fade-up">
+      <h2 class="text-xl font-black text-gray-900 text-center mb-6">各プランのサービス内容</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {plans.map((plan) => (
+          <div
+            class:list={[
+              "bg-white rounded-2xl p-6 border-2 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1",
+              plan.highlight ? "border-brand ring-1 ring-brand/20" : plan.accent,
+            ]}
+          >
+            <h3 class="text-2xl font-black text-gray-900">☆{plan.name}</h3>
+            <p class="text-lg font-bold text-gray-400 mt-1">
+              月額<span class="text-gray-900">{plan.price}</span>円
+            </p>
+            <p class="text-sm text-gray-500 mt-2 mb-5">{plan.description}</p>
+            <ul class="space-y-2.5">
+              {plan.features.map((f) => (
+                <li class="flex items-start gap-2 text-sm text-gray-700">
+                  <svg class="w-5 h-5 text-brand shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Supporters Hall of Fame -->
+    <section class="fade-up">
+      <BentoCard>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-xl">👑</span>
+          <h2 class="text-lg font-bold text-gray-800">SPECIAL SUPPORTERS</h2>
+        </div>
+        <p class="text-sm text-gray-500 mb-6">
+          このチャンネルを力強く支えてくださっている、最高のメンバー（大トロ）の皆様です。
+        </p>
+
+        {members.length > 0 ? (
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {members.map((member) => {
+              const Tag = member.url ? "a" : "div";
+              return (
+                <Tag
+                  href={member.url || undefined}
+                  target={member.url ? "_blank" : undefined}
+                  rel={member.url ? "noopener noreferrer" : undefined}
+                  class="group text-center"
+                >
+                  <div class="aspect-video rounded-xl overflow-hidden bg-gray-100 mb-2">
+                    <img
+                      src={member.thumbnailUrl || "https://i.imgur.com/MB8DzWq.png"}
+                      alt={member.name}
+                      class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  </div>
+                  <p class="text-sm font-bold text-gray-800">{member.name}</p>
+                  <p class="text-[10px] text-brand font-bold">OTORO MEMBER</p>
+                </Tag>
+              );
+            })}
+          </div>
+        ) : (
+          <p class="text-gray-400 text-sm text-center py-8">
+            掲載中の殿堂メンバーはいません。
+          </p>
+        )}
+
+        {settings.totalOtoroMembers > members.length && (
+          <p class="text-center text-gray-400 text-sm mt-6">
+            ほか {settings.totalOtoroMembers - members.length} 名のスペシャルサポーターがいます。
+          </p>
+        )}
+
+        <div class="text-center mt-8 pt-6 border-t border-gray-100">
+          <h3 class="text-lg font-bold text-gray-800 mb-2">あなたも、この殿堂へ。</h3>
+          <p class="text-sm text-gray-500 mb-4 max-w-lg mx-auto">
+            メンバーシップ「大トロ」にご参加の方は、掲載同意フォームよりご回答ください。
+          </p>
+          <a
+            href="https://www.youtube.com/post/UgkxuqjCpfvhz2hR_rnvmSmk8l-fF-rVc7A0"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 bg-brand text-white font-bold py-2.5 px-6 rounded-full hover:bg-brand-dark transition-colors text-sm shadow-md"
+          >
+            掲載同意フォームはこちら
+            <span>↗</span>
+          </a>
+        </div>
+      </BentoCard>
+    </section>
+
+    <!-- メンバーへの想い -->
+    <section class="fade-up">
+      <BentoCard>
+        <div class="max-w-3xl mx-auto text-center">
+          <h2 class="text-2xl md:text-3xl font-black text-gray-900 mb-6">
+            メンバーシップに込めた想い
+          </h2>
+          <div class="text-gray-600 leading-relaxed space-y-4 text-left text-[15px]">
+            <p>
+              正直にお話いたします。現在、YouTubeを取り巻く環境は大きく変化し、クリエイターが活動を続けていくには、以前とは異なる課題に直面しています。
+            </p>
+            <p>
+              クリエイター人口の増加に伴い、動画コンテンツのクオリティは飛躍的に向上しました。特に僕が活動する界隈では、複数人でのチーム制作が主流となり、主にソロで活動を続ける僕にとって、クオリティを維持し、さらに向上させていくことが、これまで以上に困難になってきています。
+            </p>
+            <p>
+              しかし、こんな状況だからといって、立ち止まるわけにはいきません。僕の活動の根底にあるのは、「皆さんの毎日の暇つぶしになりたい」「近所の、話していて楽しいおじさんのような存在でいたい」「いつもの行きつけの居酒屋の店主みたいに、ほっとする場所を提供したい」という、ただ純粋な想いです。
+            </p>
+            <p>
+              純粋に、僕の動画や生配信を通じて、皆さんに心から「楽しい！」と感じてもらえる時間を、もっともっと、妥協せずに作り続けたい。そのために、皆さんの温かいご支援を、僕の活動の力とさせていただきたいと考えました。
+            </p>
+            <p>
+              皆さんからの応援が、僕みたいな不器用な人間が、これからもワクワクするようなコンテンツを生み出し続けるための、何よりの原動力となります。各プランでしか味わえない、ちょっと特別な体験を、ぜひ一緒に楽しみませんか？
+            </p>
+          </div>
+        </div>
+      </BentoCard>
+    </section>
+  </div>
+</Base>
