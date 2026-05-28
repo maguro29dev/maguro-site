@@ -141,8 +141,20 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
 
   const SCHEDULE_FILENAME = "maguro-weekly-schedule.png";
 
-  function isMobileDevice() {
-    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  function isLikelyMobile() {
+    const ua = navigator.userAgent;
+    // iPadOS may report as Macintosh with touch points.
+    const isIPadOS = /Macintosh/i.test(ua) && (navigator.maxTouchPoints || 0) > 1;
+    return /iPhone|iPad|iPod|Android/i.test(ua) || isIPadOS;
+  }
+
+  function showToast(message: string) {
+    const el = document.createElement("div");
+    el.className =
+      "fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-full bg-gray-900 text-white text-xs font-bold px-4 py-2 shadow-lg";
+    el.textContent = message;
+    document.body.appendChild(el);
+    window.setTimeout(() => el.remove(), 2800);
   }
 
   function showMobileSaveHint(dataUrl: string) {
@@ -170,10 +182,11 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
     document.body.appendChild(link);
     link.click();
     link.remove();
+    showToast("画像を保存しました（ダウンロード一覧を確認してね）");
   }
 
   async function saveScheduleImage(dataUrl: string) {
-    if (!isMobileDevice()) {
+    if (!isLikelyMobile()) {
       downloadOnDesktop(dataUrl);
       return;
     }
@@ -277,6 +290,11 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
           cacheBust: true,
           pixelRatio: Math.min(window.devicePixelRatio || 2, 2),
           backgroundColor: "#f3f8ef",
+          style: {
+            borderRadius: "16px",
+            overflow: "hidden",
+            boxShadow: "none",
+          },
         });
         await saveScheduleImage(dataUrl);
       } catch (e) {
