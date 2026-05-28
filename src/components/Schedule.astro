@@ -47,18 +47,24 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
         </div>
       </div>
 
-      <!-- Weekly schedule (static) -->
-      <div>
+      <!-- Weekly schedule (static) — 📷 captures this block only -->
+      <div
+        id="weekly-schedule-capture"
+        class="rounded-3xl border-2 border-brand/15 bg-gradient-to-br from-brand-50/90 via-white to-white p-4 shadow-sm"
+      >
         <h3 class="text-sm font-bold text-brand mb-3 flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-brand"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-brand shadow-sm"></span>
           週間スケジュール
         </h3>
-        <div id="weekly-schedule-list" class="space-y-2">
+        <div id="weekly-schedule-list" class="space-y-2.5">
           {weeklySchedule.length > 0 ? (
             weeklySchedule.map((day) => (
-              <div class="schedule-day flex items-center gap-3 p-2.5 rounded-lg bg-gray-50 hover:bg-brand-50 transition-colors" data-day={day.day}>
+              <div
+                class="schedule-day flex items-center gap-3 p-3 rounded-2xl bg-white/80 border border-gray-100/80 shadow-sm hover:bg-brand-50/80 hover:border-brand/20 transition-colors"
+                data-day={day.day}
+              >
                 <span class="schedule-day-label text-sm font-bold text-gray-600 w-[4.5rem] shrink-0">{day.day}</span>
-                <span class="text-sm text-gray-800">{day.time} {day.plan}</span>
+                <span class="text-sm text-gray-800 leading-snug">{day.time} {day.plan}</span>
               </div>
             ))
           ) : (
@@ -101,7 +107,7 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
   <!-- Screenshot button -->
   <button
     id="capture-schedule-btn"
-    title="スケジュールを画像として保存"
+    title="週間スケジュールを画像として保存"
     class="absolute bottom-4 right-4 w-11 h-11 bg-brand text-white rounded-full flex items-center justify-center shadow-md hover:scale-110 hover:bg-brand-dark transition-all text-lg z-10"
   >
     📷
@@ -111,23 +117,55 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
 <script>
   import { toPng } from "html-to-image";
 
-  // #region agent log
-  function dbg(location, message, data, hypothesisId) {
-    fetch("http://127.0.0.1:7454/ingest/6f256a33-7dae-46ab-90eb-f1af3c449825", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "1aca79" },
-      body: JSON.stringify({
-        sessionId: "1aca79",
-        location,
-        message,
-        data,
-        hypothesisId,
-        runId: "schedule-screenshot-v2",
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
+  const SCHEDULE_FILENAME = "maguro-weekly-schedule.png";
+
+  function isMobileDevice() {
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   }
-  // #endregion
+
+  function showMobileSaveHint(dataUrl: string) {
+    const overlay = document.createElement("div");
+    overlay.className =
+      "fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/60 p-4 backdrop-blur-sm";
+    overlay.innerHTML = `
+      <div class="w-full max-w-md rounded-3xl bg-white p-4 shadow-xl">
+        <p class="text-sm font-bold text-gray-800 text-center mb-1">週間スケジュール</p>
+        <p class="text-xs text-gray-500 text-center mb-3">画像を長押しして「写真に追加」などで保存できます</p>
+        <img src="${dataUrl}" alt="週間スケジュール" class="w-full rounded-2xl border border-gray-100" />
+        <button type="button" class="mt-4 w-full rounded-full bg-brand py-2.5 text-sm font-bold text-white">閉じる</button>
+      </div>`;
+    overlay.querySelector("button")?.addEventListener("click", () => overlay.remove());
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
+    document.body.appendChild(overlay);
+  }
+
+  async function saveScheduleImage(dataUrl: string) {
+    const blob = await fetch(dataUrl).then((r) => r.blob());
+    const file = new File([blob], SCHEDULE_FILENAME, { type: "image/png" });
+
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: "週間スケジュール" });
+        return;
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return;
+      }
+    }
+
+    if (isMobileDevice()) {
+      showMobileSaveHint(dataUrl);
+      return;
+    }
+
+    const link = document.createElement("a");
+    link.download = SCHEDULE_FILENAME;
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
 
   async function loadUpcoming() {
     const slot = document.getElementById("upcoming-schedule");
@@ -169,10 +207,6 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
   }
 
   function initSchedule() {
-    // #region agent log
-    dbg("Schedule.astro:init", "schedule script started", {}, "A");
-    // #endregion
-
     const card = document.getElementById("schedule-card");
     const weeklyScheduleUpdatedAt = card?.dataset.scheduleUpdatedAt ?? "";
 
@@ -188,8 +222,8 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
     document.querySelectorAll(".schedule-day").forEach((el) => {
       if (!(el instanceof HTMLElement) || el.dataset.day !== todayName) return;
 
-      el.classList.remove("bg-gray-50");
-      el.classList.add("bg-brand-50", "ring-1", "ring-brand/30");
+      el.classList.remove("bg-white/80", "border-gray-100/80");
+      el.classList.add("bg-brand-50", "border-brand/25", "ring-1", "ring-brand/20");
 
       const label = el.querySelector(".schedule-day-label");
       if (!label) return;
@@ -203,44 +237,23 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
     });
 
     const captureBtn = document.getElementById("capture-schedule-btn");
-    // #region agent log
-    dbg("Schedule.astro:captureBtn", "capture button lookup", { found: !!captureBtn }, "D");
-    // #endregion
-
     if (!captureBtn || !(captureBtn instanceof HTMLButtonElement)) return;
 
     captureBtn.addEventListener("click", async () => {
-      const target = document.getElementById("schedule-capture-area");
-      // #region agent log
-      dbg("Schedule.astro:click", "screenshot click", { hasTarget: !!target }, "E");
-      // #endregion
+      const target = document.getElementById("weekly-schedule-capture");
       if (!target) return;
 
       captureBtn.textContent = "...";
       captureBtn.disabled = true;
 
       try {
-        // #region agent log
-        dbg("Schedule.astro:capture", "starting toPng", {}, "B");
-        // #endregion
         const dataUrl = await toPng(target, {
           cacheBust: true,
           pixelRatio: 2,
           backgroundColor: "#ffffff",
         });
-        const link = document.createElement("a");
-        link.download = "schedule.png";
-        link.href = dataUrl;
-        link.click();
-        // #region agent log
-        dbg("Schedule.astro:success", "screenshot saved", { dataUrlLen: dataUrl.length }, "C");
-        // #endregion
+        await saveScheduleImage(dataUrl);
       } catch (e) {
-        const errMsg = e instanceof Error ? e.message : String(e);
-        const errName = e instanceof Error ? e.name : "unknown";
-        // #region agent log
-        dbg("Schedule.astro:error", "screenshot failed", { errMsg, errName }, "B");
-        // #endregion
         console.error("Screenshot failed:", e);
         alert("画像の保存に失敗しました。");
       } finally {
