@@ -19,13 +19,13 @@ import BentoCard from "./BentoCard.astro";
       if (!res.ok) {
         const limited = data?.reason === "quotaExceeded" || data?.reason === "rateLimitExceeded";
         if (limited) (window as any).__showYouTubeLimitBanner?.();
-        slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-8">動画の読み込みに失敗しました</p>`;
+        slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-8">いま動画を取りに行けません…！上の案内をチェックしてね。</p>`;
         return;
       }
       const video = data.videos?.[0];
 
       if (!video) {
-        slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-8">動画の読み込みに失敗しました</p>`;
+        slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-8">動画が見つからなかったよ（公開待ち/反映待ちかも）</p>`;
         return;
       }
 
@@ -41,7 +41,7 @@ import BentoCard from "./BentoCard.astro";
           </p>
         </a>`;
     } catch {
-      slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-8">読み込みに失敗しました</p>`;
+      slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-8">通信が不安定かも。時間を置いてもう一度どうぞ。</p>`;
     }
   }
 

@@ -218,11 +218,11 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
         if (limited) (window as any).__showYouTubeLimitBanner?.();
         slot.innerHTML = `
           <div class="rounded-xl border border-gray-100 bg-white p-3">
-            <p class="text-sm font-bold text-gray-600 mb-1">現在取得できません</p>
+            <p class="text-sm font-bold text-gray-600 mb-1">配信予定、いま取りに行けません…！</p>
             <p class="text-xs text-gray-400 mb-3">${
               limited
-                ? `YouTube側の制限中です。しばらく時間を置いてから更新してください。`
-                : `一時的なエラーです。時間を置いて更新してください。`
+                ? `YouTube側の制限っぽいです。上の案内を見つつ、時間を置いて再チャレンジしてね。`
+                : `一時的なエラーかも。時間を置いて再チャレンジしてね。`
             }</p>
             <button type="button" id="upcoming-refresh-btn"
               class="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-brand text-white text-xs font-bold hover:bg-brand-dark transition-colors">
