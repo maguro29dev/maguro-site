@@ -249,7 +249,8 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
     const card = document.getElementById("schedule-card");
     const weeklyScheduleUpdatedAt = card?.dataset.scheduleUpdatedAt ?? "";
 
-    loadUpcoming();
+    const refreshUpcoming = () => loadUpcoming();
+    refreshUpcoming();
 
     const updated = new Date(`${weeklyScheduleUpdatedAt}T12:00:00`);
     if (updated < mondayStart()) {
@@ -306,6 +307,15 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
         captureBtn.disabled = false;
       }
     });
+
+    // Re-fetch upcoming on bfcache restore / tab return and periodically.
+    window.addEventListener("pageshow", (e) => {
+      if (e.persisted) refreshUpcoming();
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) refreshUpcoming();
+    });
+    window.setInterval(() => refreshUpcoming(), 60 * 1000);
   }
 
   initSchedule();

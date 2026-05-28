@@ -57,7 +57,8 @@
   }
 
   async function init() {
-    const container = document.getElementById("live-status-content")!;
+    const container = document.getElementById("live-status-content");
+    if (!container) return;
 
     const liveData = await fetchYouTube("live");
 
@@ -99,5 +100,13 @@
       </a>`;
   }
 
+  // Re-fetch on bfcache restore / tab return and periodically.
   init();
+  window.addEventListener("pageshow", (e) => {
+    if (e.persisted) init();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) init();
+  });
+  window.setInterval(() => init(), 60 * 1000);
 </script>

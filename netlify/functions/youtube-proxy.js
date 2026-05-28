@@ -19,6 +19,13 @@ const CORS_HEADERS = {
   "Cache-Control": "public, max-age=60, s-maxage=60",
 };
 
+/**
+ * Best-effort in-memory cache (per warm function instance).
+ * Helps reduce YouTube API quota usage under burst traffic.
+ */
+const CACHE_TTL_MS = 55 * 1000;
+const cache = new Map(); // key -> { ts: number, data: any }
+
 exports.handler = async (event) => {
   if (event.httpMethod !== "GET") {
     return { statusCode: 405, body: "Method Not Allowed" };
@@ -35,6 +42,19 @@ exports.handler = async (event) => {
   const type = event.queryStringParameters?.type;
 
   try {
+    const cacheKey = `type:${type}`;
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
+      return {
+        statusCode: 200,
+        headers: {
+          ...CORS_HEADERS,
+          "X-Cache": "HIT",
+        },
+        body: JSON.stringify(cached.data),
+      };
+    }
+
     let data;
 
     switch (type) {
@@ -66,24 +86,44 @@ exports.handler = async (event) => {
         };
     }
 
+    cache.set(cacheKey, { ts: Date.now(), data });
     return {
       statusCode: 200,
       headers: CORS_HEADERS,
       body: JSON.stringify(data),
     };
   } catch (error) {
-    console.error("YouTube proxy error:", error.message);
+    const status = typeof error?.status === "number" ? error.status : undefined;
+    const reason = typeof error?.reason === "string" ? error.reason : undefined;
+    const message = typeof error?.message === "string" ? error.message : String(error);
+    console.error("YouTube proxy error:", message, status, reason);
     return {
-      statusCode: 500,
+      statusCode: status && status >= 400 && status < 600 ? 502 : 500,
       headers: CORS_HEADERS,
-      body: JSON.stringify({ error: "Failed to fetch YouTube data" }),
+      body: JSON.stringify({
+        error: "Failed to fetch YouTube data",
+        status,
+        reason,
+      }),
     };
   }
 };
 
 async function ytFetch(url) {
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`YouTube API ${res.status}: ${res.statusText}`);
+  if (!res.ok) {
+    let reason;
+    try {
+      const body = await res.json();
+      reason = body?.error?.errors?.[0]?.reason || body?.error?.message;
+    } catch {
+      // ignore
+    }
+    const err = new Error(`YouTube API ${res.status}: ${res.statusText}`);
+    err.status = res.status;
+    if (reason) err.reason = String(reason);
+    throw err;
+  }
   return res.json();
 }
 
