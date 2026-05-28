@@ -10,8 +10,11 @@ interface Props {
 const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
 ---
 
-<div class="col-span-full block bg-white rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md relative overflow-hidden"
-     id="schedule-card">
+<div
+  class="col-span-full block bg-white rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md relative overflow-hidden"
+  id="schedule-card"
+  data-schedule-updated-at={weeklyScheduleUpdatedAt}
+>
   <div class="p-5">
     <div class="flex items-center gap-2 mb-5">
       <span class="text-2xl">🗓️</span>
@@ -105,7 +108,25 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
   </button>
 </div>
 
-<script define:vars={{ weeklyScheduleUpdatedAt }}>
+<script>
+  // #region agent log
+  function dbg(location, message, data, hypothesisId) {
+    fetch("http://127.0.0.1:7454/ingest/6f256a33-7dae-46ab-90eb-f1af3c449825", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "1aca79" },
+      body: JSON.stringify({
+        sessionId: "1aca79",
+        location,
+        message,
+        data,
+        hypothesisId,
+        runId: "schedule-screenshot",
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+  }
+  // #endregion
+
   async function loadUpcoming() {
     const slot = document.getElementById("upcoming-schedule");
     if (!slot) return;
@@ -120,7 +141,7 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
       }
 
       slot.innerHTML = videos
-        .map((v: any) => {
+        .map((v) => {
           const d = new Date(v.scheduledStart);
           const dateStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
           return `
@@ -136,9 +157,6 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
     }
   }
 
-  loadUpcoming();
-
-  // Show banner when weekly schedule was not updated this calendar week (Monday start)
   function mondayStart(d = new Date()) {
     const date = new Date(d);
     const day = date.getDay();
@@ -148,59 +166,89 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
     return date;
   }
 
-  const updated = new Date(`${weeklyScheduleUpdatedAt}T12:00:00`);
-  if (updated < mondayStart()) {
-    document.getElementById("schedule-stale-banner")?.classList.remove("hidden");
+  function initSchedule() {
+    // #region agent log
+    dbg("Schedule.astro:init", "schedule script started", {}, "A");
+    // #endregion
+
+    const card = document.getElementById("schedule-card");
+    const weeklyScheduleUpdatedAt = card?.dataset.scheduleUpdatedAt ?? "";
+
+    loadUpcoming();
+
+    const updated = new Date(`${weeklyScheduleUpdatedAt}T12:00:00`);
+    if (updated < mondayStart()) {
+      document.getElementById("schedule-stale-banner")?.classList.remove("hidden");
+    }
+
+    const dayNames = ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"];
+    const todayName = dayNames[new Date().getDay()];
+    document.querySelectorAll(".schedule-day").forEach((el) => {
+      if (!(el instanceof HTMLElement) || el.dataset.day !== todayName) return;
+
+      el.classList.remove("bg-gray-50");
+      el.classList.add("bg-brand-50", "ring-1", "ring-brand/30");
+
+      const label = el.querySelector(".schedule-day-label");
+      if (!label) return;
+
+      label.classList.replace("text-gray-600", "text-brand");
+      const badge = document.createElement("span");
+      badge.className =
+        "mt-0.5 inline-block text-[10px] font-bold text-white bg-brand px-1.5 py-0.5 rounded-full leading-none";
+      badge.textContent = "今日";
+      label.appendChild(badge);
+    });
+
+    const captureBtn = document.getElementById("capture-schedule-btn");
+    // #region agent log
+    dbg("Schedule.astro:captureBtn", "capture button lookup", { found: !!captureBtn }, "D");
+    // #endregion
+
+    if (!captureBtn || !(captureBtn instanceof HTMLButtonElement)) return;
+
+    captureBtn.addEventListener("click", async () => {
+      const target = document.getElementById("schedule-capture-area");
+      // #region agent log
+      dbg("Schedule.astro:click", "screenshot click", { hasTarget: !!target }, "E");
+      // #endregion
+      if (!target) return;
+
+      captureBtn.textContent = "...";
+      captureBtn.disabled = true;
+
+      try {
+        // #region agent log
+        dbg("Schedule.astro:import", "loading html2canvas", {}, "B");
+        // #endregion
+        const { default: html2canvas } = await import(
+          "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.esm.js"
+        );
+        const canvas = await html2canvas(target, {
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          scale: 2,
+        });
+        const link = document.createElement("a");
+        link.download = "schedule.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        // #region agent log
+        dbg("Schedule.astro:success", "screenshot saved", { width: canvas.width, height: canvas.height }, "C");
+        // #endregion
+      } catch (e) {
+        const errMsg = e instanceof Error ? e.message : String(e);
+        // #region agent log
+        dbg("Schedule.astro:error", "screenshot failed", { errMsg }, "B");
+        // #endregion
+        console.error("Screenshot failed:", e);
+        alert("画像の保存に失敗しました。");
+      } finally {
+        captureBtn.textContent = "📷";
+        captureBtn.disabled = false;
+      }
+    });
   }
 
-  // Highlight today's row in the weekly schedule
-  const dayNames = ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"];
-  const todayName = dayNames[new Date().getDay()];
-  document.querySelectorAll<HTMLElement>(".schedule-day").forEach((el) => {
-    if (el.dataset.day !== todayName) return;
-
-    el.classList.remove("bg-gray-50");
-    el.classList.add("bg-brand-50", "ring-1", "ring-brand/30");
-
-    const label = el.querySelector<HTMLElement>(".schedule-day-label");
-    if (!label) return;
-
-    label.classList.replace("text-gray-600", "text-brand");
-    const badge = document.createElement("span");
-    badge.className =
-      "mt-0.5 inline-block text-[10px] font-bold text-white bg-brand px-1.5 py-0.5 rounded-full leading-none";
-    badge.textContent = "今日";
-    label.appendChild(badge);
-  });
-
-  // Screenshot feature: dynamically loads html2canvas only when button is clicked
-  const captureBtn = document.getElementById("capture-schedule-btn");
-  captureBtn?.addEventListener("click", async () => {
-    const target = document.getElementById("schedule-capture-area");
-    if (!target) return;
-
-    captureBtn.textContent = "...";
-    (captureBtn as HTMLButtonElement).disabled = true;
-
-    try {
-      const { default: html2canvas } = await import(
-        "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.esm.js"
-      );
-      const canvas = await html2canvas(target, {
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        scale: 2,
-      });
-      const link = document.createElement("a");
-      link.download = "schedule.png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    } catch (e) {
-      console.error("Screenshot failed:", e);
-      alert("画像の保存に失敗しました。");
-    } finally {
-      captureBtn.textContent = "📷";
-      (captureBtn as HTMLButtonElement).disabled = false;
-    }
-  });
+  initSchedule();
 </script>
