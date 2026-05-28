@@ -211,7 +211,29 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
     if (!slot) return;
     try {
       const res = await fetch("/.netlify/functions/youtube-proxy?type=upcoming");
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const reason = data?.reason;
+        const limited = reason === "quotaExceeded" || reason === "rateLimitExceeded";
+        const reasonLabel = reason ? `（${reason}）` : "";
+        slot.innerHTML = `
+          <div class="rounded-xl border border-gray-100 bg-white p-3">
+            <p class="text-sm font-bold text-gray-600 mb-1">現在取得できません</p>
+            <p class="text-xs text-gray-400 mb-3">${
+              limited
+                ? `YouTube側の制限中です。しばらく時間を置いてから更新してください${reasonLabel}`
+                : `一時的なエラーです。時間を置いて更新してください${reasonLabel}`
+            }</p>
+            <button type="button" id="upcoming-refresh-btn"
+              class="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-brand text-white text-xs font-bold hover:bg-brand-dark transition-colors">
+              再読み込み
+            </button>
+          </div>`;
+        slot.querySelector<HTMLButtonElement>("#upcoming-refresh-btn")?.addEventListener("click", () => {
+          loadUpcoming();
+        });
+        return;
+      }
       const videos = data.videos || [];
 
       if (!videos.length) {
@@ -315,7 +337,8 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) refreshUpcoming();
     });
-    window.setInterval(() => refreshUpcoming(), 60 * 1000);
+    // Be conservative with API usage: refresh every 5 minutes.
+    window.setInterval(() => refreshUpcoming(), 5 * 60 * 1000);
   }
 
   initSchedule();

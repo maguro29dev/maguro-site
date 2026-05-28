@@ -15,13 +15,26 @@
 </div>
 
 <script>
+  let refreshTimer: number | null = null;
+
+  function isLimitedReason(reason?: string) {
+    return reason === "quotaExceeded" || reason === "rateLimitExceeded";
+  }
+
   async function fetchYouTube(type: string) {
     try {
       const res = await fetch(`/.netlify/functions/youtube-proxy?type=${type}`);
-      if (!res.ok) return null;
-      return res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        return {
+          __error: true,
+          status: res.status,
+          reason: data?.reason,
+        };
+      }
+      return data;
     } catch {
-      return null;
+      return { __error: true, status: 0 };
     }
   }
 
@@ -78,6 +91,32 @@
 
     const upcomingData = await fetchYouTube("upcoming");
 
+    // If the API is quota/rate limited, show a friendly message + manual refresh.
+    if (liveData?.__error || upcomingData?.__error) {
+      const reason = liveData?.reason || upcomingData?.reason;
+      const limited = isLimitedReason(reason);
+
+      if (limited) {
+        if (refreshTimer) {
+          window.clearInterval(refreshTimer);
+          refreshTimer = null;
+        }
+        container.className =
+          "rounded-2xl p-5 bg-white shadow-sm border border-gray-100 text-center transition-all duration-500";
+        container.innerHTML = `
+          <p class="text-gray-600 font-bold mb-2">現在YouTube側の制限で表示できません</p>
+          <p class="text-xs text-gray-400 mb-4">しばらく時間を置いてから更新してください（${reason}）</p>
+          <button id="live-refresh-btn" type="button"
+            class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-brand text-white text-sm font-bold hover:bg-brand-dark transition-colors">
+            再読み込み
+          </button>`;
+        container.querySelector<HTMLButtonElement>("#live-refresh-btn")?.addEventListener("click", () => {
+          init();
+        });
+        return;
+      }
+    }
+
     if (upcomingData?.videos?.length > 0) {
       const next = upcomingData.videos[0];
       container.className = "rounded-2xl p-6 bg-white shadow-sm border border-gray-100 text-center transition-all duration-500";
@@ -108,5 +147,6 @@
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) init();
   });
-  window.setInterval(() => init(), 60 * 1000);
+  // Be conservative with API usage: refresh every 5 minutes.
+  refreshTimer = window.setInterval(() => init(), 5 * 60 * 1000);
 </script>
