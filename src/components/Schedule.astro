@@ -50,7 +50,7 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
       <!-- Weekly schedule (static) — 📷 captures this block only -->
       <div
         id="weekly-schedule-capture"
-        class="rounded-3xl border-2 border-brand/15 bg-gradient-to-br from-brand-50/90 via-white to-white p-4 shadow-sm"
+        class="rounded-2xl border-2 border-brand/15 bg-brand-50 p-4"
       >
         <h3 class="text-sm font-bold text-brand mb-3 flex items-center gap-1.5">
           <span class="w-2.5 h-2.5 rounded-full bg-brand shadow-sm"></span>
@@ -60,7 +60,7 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
           {weeklySchedule.length > 0 ? (
             weeklySchedule.map((day) => (
               <div
-                class="schedule-day flex items-center gap-3 p-3 rounded-2xl bg-white/80 border border-gray-100/80 shadow-sm hover:bg-brand-50/80 hover:border-brand/20 transition-colors"
+                class="schedule-day flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-200/80 hover:bg-brand-50 hover:border-brand/20 transition-colors"
                 data-day={day.day}
               >
                 <span class="schedule-day-label text-sm font-bold text-gray-600 w-[4.5rem] shrink-0">{day.day}</span>
@@ -107,12 +107,34 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
   <!-- Screenshot button -->
   <button
     id="capture-schedule-btn"
-    title="週間スケジュールを画像として保存"
+    title="週間スケジュールを画像で保存（PCはダウンロードフォルダへ）"
     class="absolute bottom-4 right-4 w-11 h-11 bg-brand text-white rounded-full flex items-center justify-center shadow-md hover:scale-110 hover:bg-brand-dark transition-all text-lg z-10"
   >
     📷
   </button>
 </div>
+
+<style>
+  /* 画像化時はグラデ・影をやめて角丸を素直に描画 */
+  #weekly-schedule-capture.is-exporting {
+    background: #f3f8ef !important;
+    background-image: none !important;
+    border-radius: 16px;
+    box-shadow: none !important;
+  }
+
+  #weekly-schedule-capture.is-exporting .schedule-day {
+    border-radius: 12px;
+    box-shadow: none !important;
+    background-color: #ffffff !important;
+    border-color: #e5e7eb !important;
+  }
+
+  #weekly-schedule-capture.is-exporting .schedule-day.is-today {
+    background-color: #e4f0db !important;
+    border-color: #6a994e40 !important;
+  }
+</style>
 
 <script>
   import { toPng } from "html-to-image";
@@ -141,7 +163,21 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
     document.body.appendChild(overlay);
   }
 
+  function downloadOnDesktop(dataUrl: string) {
+    const link = document.createElement("a");
+    link.download = SCHEDULE_FILENAME;
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
   async function saveScheduleImage(dataUrl: string) {
+    if (!isMobileDevice()) {
+      downloadOnDesktop(dataUrl);
+      return;
+    }
+
     const blob = await fetch(dataUrl).then((r) => r.blob());
     const file = new File([blob], SCHEDULE_FILENAME, { type: "image/png" });
 
@@ -154,17 +190,7 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
       }
     }
 
-    if (isMobileDevice()) {
-      showMobileSaveHint(dataUrl);
-      return;
-    }
-
-    const link = document.createElement("a");
-    link.download = SCHEDULE_FILENAME;
-    link.href = dataUrl;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    showMobileSaveHint(dataUrl);
   }
 
   async function loadUpcoming() {
@@ -222,8 +248,7 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
     document.querySelectorAll(".schedule-day").forEach((el) => {
       if (!(el instanceof HTMLElement) || el.dataset.day !== todayName) return;
 
-      el.classList.remove("bg-white/80", "border-gray-100/80");
-      el.classList.add("bg-brand-50", "border-brand/25", "ring-1", "ring-brand/20");
+      el.classList.add("is-today", "bg-brand-50", "border-brand/25");
 
       const label = el.querySelector(".schedule-day-label");
       if (!label) return;
@@ -247,16 +272,18 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
       captureBtn.disabled = true;
 
       try {
+        target.classList.add("is-exporting");
         const dataUrl = await toPng(target, {
           cacheBust: true,
-          pixelRatio: 2,
-          backgroundColor: "#ffffff",
+          pixelRatio: Math.min(window.devicePixelRatio || 2, 2),
+          backgroundColor: "#f3f8ef",
         });
         await saveScheduleImage(dataUrl);
       } catch (e) {
         console.error("Screenshot failed:", e);
         alert("画像の保存に失敗しました。");
       } finally {
+        target.classList.remove("is-exporting");
         captureBtn.textContent = "📷";
         captureBtn.disabled = false;
       }
