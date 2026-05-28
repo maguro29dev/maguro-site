@@ -109,6 +109,8 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
 </div>
 
 <script>
+  import { toPng } from "html-to-image";
+
   // #region agent log
   function dbg(location, message, data, hypothesisId) {
     fetch("http://127.0.0.1:7454/ingest/6f256a33-7dae-46ab-90eb-f1af3c449825", {
@@ -120,7 +122,7 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
         message,
         data,
         hypothesisId,
-        runId: "schedule-screenshot",
+        runId: "schedule-screenshot-v2",
         timestamp: Date.now(),
       }),
     }).catch(() => {});
@@ -219,27 +221,25 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
 
       try {
         // #region agent log
-        dbg("Schedule.astro:import", "loading html2canvas", {}, "B");
+        dbg("Schedule.astro:capture", "starting toPng", {}, "B");
         // #endregion
-        const { default: html2canvas } = await import(
-          "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.esm.js"
-        );
-        const canvas = await html2canvas(target, {
-          useCORS: true,
+        const dataUrl = await toPng(target, {
+          cacheBust: true,
+          pixelRatio: 2,
           backgroundColor: "#ffffff",
-          scale: 2,
         });
         const link = document.createElement("a");
         link.download = "schedule.png";
-        link.href = canvas.toDataURL("image/png");
+        link.href = dataUrl;
         link.click();
         // #region agent log
-        dbg("Schedule.astro:success", "screenshot saved", { width: canvas.width, height: canvas.height }, "C");
+        dbg("Schedule.astro:success", "screenshot saved", { dataUrlLen: dataUrl.length }, "C");
         // #endregion
       } catch (e) {
         const errMsg = e instanceof Error ? e.message : String(e);
+        const errName = e instanceof Error ? e.name : "unknown";
         // #region agent log
-        dbg("Schedule.astro:error", "screenshot failed", { errMsg }, "B");
+        dbg("Schedule.astro:error", "screenshot failed", { errMsg, errName }, "B");
         // #endregion
         console.error("Screenshot failed:", e);
         alert("画像の保存に失敗しました。");
