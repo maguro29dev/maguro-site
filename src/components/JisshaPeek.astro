@@ -53,26 +53,9 @@ import { jisshaChannel } from "@/data/channels";
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        const reason = data?.reason ? `（${data.reason}）` : "";
-        const status = res.status ? `（${res.status}）` : "";
-        const limited = data?.reason === "quotaExceeded" || data?.reason === "rateLimitExceeded";
-        slot.innerHTML = `
-          <div class="flex flex-col gap-2">
-            <p class="text-sm text-gray-500 py-1">${
-              limited ? "YouTube側の制限中のため取得できません" : "取得エラー"
-            }${status}${reason}</p>
-            <div class="flex items-center gap-2">
-              <button id="jissha-refresh-btn" type="button"
-                class="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-brand text-white text-xs font-bold hover:bg-brand-dark transition-colors">
-                再読み込み
-              </button>
-              <a href="${channelUrl}" target="_blank" rel="noopener noreferrer"
-                class="text-xs font-bold text-brand hover:underline">実写chを開く</a>
-            </div>
-          </div>`;
-        slot.querySelector<HTMLButtonElement>("#jissha-refresh-btn")?.addEventListener("click", () => {
-          loadJisshaPeek();
-        });
+        // Show global banner and keep this slot lightweight.
+        (window as any).__showYouTubeLimitBanner?.();
+        slot.innerHTML = `<p class="text-sm text-gray-400 py-2">読み込み中のままのときは、上の案内から再読み込みをお試しください。</p>`;
         return;
       }
 

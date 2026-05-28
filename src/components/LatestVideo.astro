@@ -11,10 +11,17 @@ import BentoCard from "./BentoCard.astro";
 
 <script>
   async function loadLatest() {
-    const slot = document.getElementById("latest-video-slot")!;
+    const slot = document.getElementById("latest-video-slot");
+    if (!slot) return;
     try {
       const res = await fetch("/.netlify/functions/youtube-proxy?type=latest");
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const limited = data?.reason === "quotaExceeded" || data?.reason === "rateLimitExceeded";
+        if (limited) (window as any).__showYouTubeLimitBanner?.();
+        slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-8">動画の読み込みに失敗しました</p>`;
+        return;
+      }
       const video = data.videos?.[0];
 
       if (!video) {

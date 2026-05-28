@@ -22,6 +22,41 @@ const weeklyScheduleUpdatedAt = await getWeeklyScheduleUpdatedAt();
 
 <Base title={siteMeta.homeTitle}>
   <div class="max-w-6xl mx-auto px-4 py-6 pb-28 sm:pb-6 space-y-4">
+    <!-- YouTube API limit banner (shown by client scripts) -->
+    <div
+      id="youtube-api-limit-banner"
+      class="hidden rounded-2xl border border-amber-200/70 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm fade-up"
+      role="status"
+    >
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <p class="font-black">おっと、予算の都合上起こるYouTube APIの制限のようだ。</p>
+          <p class="text-amber-900/90 text-xs mt-0.5">最短で明日には回復するはず！ それまでは下の「再読み込み」でお試しください。</p>
+        </div>
+        <button
+          id="youtube-api-limit-reload"
+          type="button"
+          class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-amber-900 text-white text-sm font-black hover:bg-amber-800 transition-colors whitespace-nowrap"
+        >
+          再読み込み
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // Global banner: can be triggered by any YouTube section.
+      (function () {
+        const banner = document.getElementById("youtube-api-limit-banner");
+        if (!banner) return;
+        const btn = document.getElementById("youtube-api-limit-reload");
+        btn?.addEventListener("click", () => location.reload());
+
+        // Expose a tiny helper for other scripts.
+        (window as any).__showYouTubeLimitBanner = function () {
+          banner.classList.remove("hidden");
+        };
+      })();
+    </script>
 
     <!-- Live Status -->
     <LiveStatus />

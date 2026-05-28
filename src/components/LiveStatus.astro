@@ -97,6 +97,7 @@
       const limited = isLimitedReason(reason);
 
       if (limited) {
+        (window as any).__showYouTubeLimitBanner?.();
         if (refreshTimer) {
           window.clearInterval(refreshTimer);
           refreshTimer = null;
@@ -104,15 +105,7 @@
         container.className =
           "rounded-2xl p-5 bg-white shadow-sm border border-gray-100 text-center transition-all duration-500";
         container.innerHTML = `
-          <p class="text-gray-600 font-bold mb-2">現在YouTube側の制限で表示できません</p>
-          <p class="text-xs text-gray-400 mb-4">しばらく時間を置いてから更新してください（${reason}）</p>
-          <button id="live-refresh-btn" type="button"
-            class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-brand text-white text-sm font-bold hover:bg-brand-dark transition-colors">
-            再読み込み
-          </button>`;
-        container.querySelector<HTMLButtonElement>("#live-refresh-btn")?.addEventListener("click", () => {
-          init();
-        });
+          <p class="text-gray-600 font-bold">現在YouTube側の制限で表示できません</p>`;
         return;
       }
     }
