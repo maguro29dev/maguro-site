@@ -10,9 +10,11 @@ import MembershipBenefits from "@/components/MembershipBenefits.astro";
 import GoodsCard from "@/components/GoodsCard.astro";
 import CommunityCard from "@/components/CommunityCard.astro";
 import FeedbackCard from "@/components/FeedbackCard.astro";
+import YouTubeHomeLoader from "@/components/YouTubeHomeLoader.astro";
 
 import { getWeeklySchedule, getRealEvents, getMembershipBenefits, getWeeklyScheduleUpdatedAt } from "@/lib/data";
 import { siteMeta } from "@/data/site-meta";
+import { gameChannel, jisshaChannel } from "@/data/channels";
 
 const weeklySchedule = await getWeeklySchedule();
 const realEvents = await getRealEvents();
@@ -28,18 +30,40 @@ const weeklyScheduleUpdatedAt = await getWeeklyScheduleUpdatedAt();
       class="hidden rounded-2xl border border-amber-200/70 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm fade-up"
       role="status"
     >
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="flex flex-col gap-3">
         <div>
-          <p class="font-black">おっと、予算の都合上起こるYouTube APIの制限の可能性が高い。</p>
-          <p class="text-amber-900/90 text-xs mt-0.5">「再読み込み」でワンチャン復帰します。ダメなら…すまない！ 最短で明日には回復するはず！</p>
+          <p class="font-black leading-snug">
+            おっと、予算の都合上起こるYouTube APIの制限の可能性が高い、再読み込みしてダメならすまない！
+          </p>
+          <p class="text-amber-900/90 text-xs mt-1.5 leading-relaxed">
+            動画や配信予定は YouTube で直接見られます。下のボタンからどうぞ（サイト内の自動表示はクォータ復活までお待ちください）。
+          </p>
         </div>
-        <button
-          id="youtube-api-limit-reload"
-          type="button"
-          class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-amber-900 text-white text-sm font-black hover:bg-amber-800 transition-colors whitespace-nowrap"
-        >
-          再読み込み
-        </button>
+        <div class="flex flex-wrap gap-2">
+          <a
+            href={gameChannel.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-brand text-white text-sm font-black hover:bg-brand-dark transition-colors"
+          >
+            ゲームchを開く ↗
+          </a>
+          <a
+            href={jisshaChannel.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-white text-brand text-sm font-black border border-brand/30 hover:bg-brand-50 transition-colors"
+          >
+            実写chを開く ↗
+          </a>
+          <button
+            id="youtube-api-limit-reload"
+            type="button"
+            class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-amber-900 text-white text-sm font-black hover:bg-amber-800 transition-colors"
+          >
+            再読み込み（試す）
+          </button>
+        </div>
       </div>
     </div>
 
@@ -133,5 +157,7 @@ const weeklyScheduleUpdatedAt = await getWeeklyScheduleUpdatedAt();
         <FeedbackCard />
       </div>
     </div>
+
+    <YouTubeHomeLoader />
   </div>
 </Base>

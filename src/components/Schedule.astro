@@ -206,64 +206,6 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
     showMobileSaveHint(dataUrl);
   }
 
-  async function loadUpcoming() {
-    const slot = document.getElementById("upcoming-schedule");
-    if (!slot) return;
-    if ((window as any).__isYouTubeLimited?.()) {
-      (window as any).__showYouTubeLimitBanner?.();
-      slot.innerHTML = `<p class="text-gray-400 text-sm py-2">配信予定、いま取りに行けません…！上の案内をチェックしてね。</p>`;
-      return;
-    }
-    try {
-      const res = await fetch("/.netlify/functions/youtube-proxy?type=upcoming");
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const reason = data?.reason;
-        const limited = reason === "quotaExceeded" || reason === "rateLimitExceeded";
-        if (limited) (window as any).__markYouTubeLimited?.(reason);
-        if (limited) (window as any).__showYouTubeLimitBanner?.();
-        slot.innerHTML = `
-          <div class="rounded-xl border border-gray-100 bg-white p-3">
-            <p class="text-sm font-bold text-gray-600 mb-1">配信予定、いま取りに行けません…！</p>
-            <p class="text-xs text-gray-400 mb-3">${
-              limited
-                ? `YouTube側の制限っぽいです。上の案内を見つつ、時間を置いて再チャレンジしてね。`
-                : `一時的なエラーかも。時間を置いて再チャレンジしてね。`
-            }</p>
-            <button type="button" id="upcoming-refresh-btn"
-              class="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-brand text-white text-xs font-bold hover:bg-brand-dark transition-colors">
-              再読み込み
-            </button>
-          </div>`;
-        slot.querySelector<HTMLButtonElement>("#upcoming-refresh-btn")?.addEventListener("click", () => {
-          loadUpcoming();
-        });
-        return;
-      }
-      const videos = data.videos || [];
-
-      if (!videos.length) {
-        slot.innerHTML = `<p class="text-gray-400 text-sm py-2">現在予定されている配信はありません</p>`;
-        return;
-      }
-
-      slot.innerHTML = videos
-        .map((v) => {
-          const d = new Date(v.scheduledStart);
-          const dateStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-          return `
-            <a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener noreferrer"
-               class="flex items-center gap-3 p-2.5 rounded-lg bg-gray-50 hover:bg-brand-50 transition-colors">
-              <span class="text-sm font-bold text-red-600 w-20 shrink-0">${dateStr}</span>
-              <span class="text-sm text-gray-800">${v.title}</span>
-            </a>`;
-        })
-        .join("");
-    } catch {
-      slot.innerHTML = `<p class="text-gray-400 text-sm py-2">読み込みに失敗しました</p>`;
-    }
-  }
-
   function mondayStart(d = new Date()) {
     const date = new Date(d);
     const day = date.getDay();
@@ -276,9 +218,6 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
   function initSchedule() {
     const card = document.getElementById("schedule-card");
     const weeklyScheduleUpdatedAt = card?.dataset.scheduleUpdatedAt ?? "";
-
-    const refreshUpcoming = () => loadUpcoming();
-    refreshUpcoming();
 
     const updated = new Date(`${weeklyScheduleUpdatedAt}T12:00:00`);
     if (updated < mondayStart()) {
@@ -336,15 +275,6 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
       }
     });
 
-    // Re-fetch upcoming on bfcache restore / tab return and periodically.
-    window.addEventListener("pageshow", (e) => {
-      if (e.persisted) refreshUpcoming();
-    });
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) refreshUpcoming();
-    });
-    // Be conservative with API usage: refresh every 5 minutes.
-    window.setInterval(() => refreshUpcoming(), 5 * 60 * 1000);
   }
 
   initSchedule();

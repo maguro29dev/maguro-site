@@ -15,11 +15,7 @@ import { jisshaChannel } from "@/data/channels";
       </p>
     </div>
 
-    <div
-      id="jissha-peek-slot"
-      class="flex-1 min-w-0"
-      data-channel-url={jisshaChannel.url}
-    >
+    <div id="jissha-peek-slot" class="flex-1 min-w-0">
       <div class="flex gap-3 items-center animate-pulse">
         <div class="w-36 aspect-video rounded-lg bg-gray-100 shrink-0"></div>
         <div class="flex-1 space-y-2">
@@ -40,54 +36,3 @@ import { jisshaChannel } from "@/data/channels";
     </a>
   </div>
 </BentoCard>
-
-<script>
-  async function loadJisshaPeek() {
-    const slot = document.getElementById("jissha-peek-slot");
-    if (!slot) return;
-
-    const channelUrl = slot.dataset.channelUrl || "https://www.youtube.com/c/Maguro29Jp";
-
-    if ((window as any).__isYouTubeLimited?.()) {
-      (window as any).__showYouTubeLimitBanner?.();
-      slot.innerHTML = `<p class="text-sm text-gray-400 py-2">実写chの取得でコケました。上の案内を見つつ「再読み込み」でワンチャンあります。</p>`;
-      return;
-    }
-
-    try {
-      const res = await fetch("/.netlify/functions/youtube-proxy?type=latest-jissha");
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        const limited = data?.reason === "quotaExceeded" || data?.reason === "rateLimitExceeded";
-        if (limited) (window as any).__markYouTubeLimited?.(data.reason);
-        (window as any).__showYouTubeLimitBanner?.();
-        slot.innerHTML = `<p class="text-sm text-gray-400 py-2">実写chの取得でコケました。上の案内を見つつ「再読み込み」でワンチャンあります。</p>`;
-        return;
-      }
-
-      const video = data.videos?.[0];
-
-      if (!video) {
-        slot.innerHTML = `<p class="text-sm text-gray-400 py-2">公開中の動画が見つかりませんでした。<a href="${channelUrl}" target="_blank" rel="noopener noreferrer" class="text-brand font-bold hover:underline">実写ch</a>からどうぞ。</p>`;
-        return;
-      }
-
-      slot.innerHTML = `
-        <a href="https://www.youtube.com/watch?v=${video.id}" target="_blank" rel="noopener noreferrer"
-           class="group flex gap-3 items-center min-w-0">
-          <div class="w-36 shrink-0 overflow-hidden rounded-lg">
-            <img src="${video.thumbnail}" alt="" loading="lazy"
-                 class="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-105" />
-          </div>
-          <p class="text-sm font-bold text-gray-800 leading-snug line-clamp-2 group-hover:text-brand transition-colors min-w-0">
-            ${video.title}
-          </p>
-        </a>`;
-    } catch {
-      slot.innerHTML = `<p class="text-sm text-gray-400 py-2">読み込みに失敗しました</p>`;
-    }
-  }
-
-  loadJisshaPeek();
-</script>

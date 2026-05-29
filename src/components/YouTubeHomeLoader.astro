@@ -1,0 +1,266 @@
+---
+/** トップページの YouTube データを1回だけ取得して各枠へ配信 */
+import { gameChannel, jisshaChannel } from "@/data/channels";
+---
+
+<script define:vars={{ gameChannelUrl: gameChannel.url, jisshaChannelUrl: jisshaChannel.url }}>
+  const LIMITED_SLOT_HTML =
+    '<p class="text-gray-400 text-sm text-center py-4 leading-relaxed">動画まわりはいま取得できません。<br class="hidden sm:inline" />上の黄色い案内を見てね。</p>';
+
+  let countdownRaf = 0;
+  let refreshTimer = 0;
+
+  function isLimitedReason(reason) {
+    return reason === "quotaExceeded" || reason === "rateLimitExceeded";
+  }
+
+  function setHtml(id, html) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  }
+
+  function showAllLimitedSlots() {
+    setHtml("live-status-content", LIMITED_SLOT_HTML);
+    setHtml("upcoming-schedule", LIMITED_SLOT_HTML);
+    setHtml("latest-video-slot", LIMITED_SLOT_HTML);
+    setHtml("popular-videos-slot", LIMITED_SLOT_HTML);
+    setHtml("short-videos-slot", LIMITED_SLOT_HTML);
+    setHtml("jissha-peek-slot", LIMITED_SLOT_HTML);
+  }
+
+  function startCountdown(targetTime, el) {
+    const target = new Date(targetTime).getTime();
+
+    function update() {
+      const distance = target - Date.now();
+      if (distance < 0) {
+        el.innerHTML = '<span class="text-brand font-bold text-xl">まもなく開始します！</span>';
+        window.setTimeout(() => loadHome(), 8000);
+        return;
+      }
+
+      const d = Math.floor(distance / 86400000);
+      const h = Math.floor((distance % 86400000) / 3600000);
+      const m = Math.floor((distance % 3600000) / 60000);
+      const s = Math.floor((distance % 60000) / 1000);
+      const parts = [];
+      if (d > 0)
+        parts.push(
+          `<span class="tabular-nums">${String(d).padStart(2, "0")}</span><span class="text-lg mx-0.5">日</span>`
+        );
+      parts.push(
+        `<span class="tabular-nums">${String(h).padStart(2, "0")}</span><span class="text-lg mx-0.5">時間</span>`,
+        `<span class="tabular-nums">${String(m).padStart(2, "0")}</span><span class="text-lg mx-0.5">分</span>`,
+        `<span class="tabular-nums">${String(s).padStart(2, "0")}</span><span class="text-lg mx-0.5">秒</span>`
+      );
+      el.innerHTML = parts.join("");
+      countdownRaf = requestAnimationFrame(update);
+    }
+
+    if (countdownRaf) cancelAnimationFrame(countdownRaf);
+    update();
+  }
+
+  function renderLive(live, upcoming) {
+    const container = document.getElementById("live-status-content");
+    if (!container) return;
+
+    if (live?.isLive && live.video) {
+      container.className =
+        "rounded-2xl p-5 bg-red-600 text-white shadow-lg cursor-pointer transition-all duration-500";
+      container.innerHTML = `
+        <a href="https://www.youtube.com/watch?v=${live.video.id}" target="_blank" rel="noopener noreferrer"
+           class="flex items-center justify-center gap-3">
+          <span class="relative flex h-4 w-4">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-4 w-4 bg-white"></span>
+          </span>
+          <span class="text-lg font-bold">ライブ配信中！「${live.video.title}」</span>
+        </a>`;
+      return;
+    }
+
+    if (upcoming?.videos?.length > 0) {
+      const next = upcoming.videos[0];
+      container.className =
+        "rounded-2xl p-6 bg-white shadow-sm border border-gray-100 text-center transition-all duration-500";
+      container.innerHTML = `
+        <p class="text-sm font-bold text-gray-500 mb-2">次回の配信まで</p>
+        <div id="countdown" class="text-4xl md:text-5xl font-black text-gray-900 tracking-tight"></div>
+        <a href="https://www.youtube.com/watch?v=${next.id}" target="_blank" rel="noopener noreferrer"
+           class="text-xs text-gray-400 mt-2 inline-block hover:text-brand transition-colors">${next.title}</a>`;
+      const cd = document.getElementById("countdown");
+      if (cd) startCountdown(next.scheduledStart, cd);
+      return;
+    }
+
+    container.className =
+      "rounded-2xl p-5 bg-white shadow-sm border border-gray-100 text-center transition-all duration-500";
+    container.innerHTML = `
+      <p class="text-gray-500 font-medium mb-3">次回の配信は未定です</p>
+      <a href="https://x.com/maguro29" target="_blank" rel="noopener noreferrer"
+         class="inline-flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
+        Xをフォローして配信情報をチェック
+      </a>`;
+  }
+
+  function renderUpcoming(upcoming) {
+    const slot = document.getElementById("upcoming-schedule");
+    if (!slot) return;
+    const videos = upcoming?.videos || [];
+    if (!videos.length) {
+      slot.innerHTML = `<p class="text-gray-400 text-sm py-2">現在予定されている配信はありません</p>`;
+      return;
+    }
+    slot.innerHTML = videos
+      .map((v) => {
+        const d = new Date(v.scheduledStart);
+        const dateStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+        return `
+          <a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener noreferrer"
+             class="flex items-center gap-3 p-2.5 rounded-lg bg-gray-50 hover:bg-brand-50 transition-colors">
+            <span class="text-sm font-bold text-red-600 w-20 shrink-0">${dateStr}</span>
+            <span class="text-sm text-gray-800">${v.title}</span>
+          </a>`;
+      })
+      .join("");
+  }
+
+  function renderLatest(latest) {
+    const slot = document.getElementById("latest-video-slot");
+    if (!slot) return;
+    const video = latest?.videos?.[0];
+    if (!video) {
+      slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-8">今月の長尺動画がまだありません</p>`;
+      return;
+    }
+    slot.innerHTML = `
+      <a href="https://www.youtube.com/watch?v=${video.id}" target="_blank" rel="noopener noreferrer" class="group block">
+        <div class="overflow-hidden rounded-xl">
+          <img src="${video.thumbnail}" alt="" loading="lazy"
+               class="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-105" />
+        </div>
+        <p class="mt-3 text-sm font-bold text-gray-800 leading-snug group-hover:text-brand transition-colors">${video.title}</p>
+      </a>`;
+  }
+
+  function renderPopular(popular) {
+    const slot = document.getElementById("popular-videos-slot");
+    if (!slot) return;
+    const videos = popular?.videos || [];
+    if (!videos.length) {
+      slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-4 w-full">今月の動画データがありません</p>`;
+      return;
+    }
+    const badgeColors = [
+      "bg-yellow-400 text-gray-900",
+      "bg-gray-300 text-gray-900",
+      "bg-amber-600 text-white",
+      "bg-gray-500 text-white",
+      "bg-gray-500 text-white",
+    ];
+    slot.innerHTML = videos
+      .map(
+        (v, i) => `
+      <a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener noreferrer"
+         class="group flex-shrink-0 w-52 relative">
+        <span class="absolute -top-1 -left-1 z-10 w-7 h-7 ${badgeColors[i]} rounded-full flex items-center justify-center text-xs font-bold shadow">${i + 1}</span>
+        <div class="overflow-hidden rounded-lg">
+          <img src="${v.thumbnail}" alt="" loading="lazy"
+               class="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-105" />
+        </div>
+        <p class="mt-2 text-xs font-bold text-gray-700 leading-snug line-clamp-2 group-hover:text-brand transition-colors">${v.title}</p>
+        <p class="text-[10px] text-gray-400 mt-0.5">${v.viewCount.toLocaleString()} 回視聴</p>
+      </a>`
+      )
+      .join("");
+  }
+
+  function renderShorts(shorts) {
+    const slot = document.getElementById("short-videos-slot");
+    if (!slot) return;
+    const videos = shorts?.videos || [];
+    if (!videos.length) {
+      slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-4 w-full">今月のショートはまだありません</p>`;
+      return;
+    }
+    slot.innerHTML = videos
+      .map(
+        (v) => `
+      <a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener noreferrer"
+         class="group flex-shrink-0 w-28">
+        <div class="overflow-hidden rounded-lg aspect-[9/16] bg-gray-100">
+          <img src="${v.thumbnail}" alt="" loading="lazy"
+               class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+        </div>
+        <p class="mt-1.5 text-[10px] font-bold text-gray-700 leading-snug line-clamp-2 group-hover:text-brand transition-colors">${v.title}</p>
+        <p class="text-[9px] text-gray-400">${v.viewCount.toLocaleString()} 回</p>
+      </a>`
+      )
+      .join("");
+  }
+
+  function renderJissha(jissha) {
+    const slot = document.getElementById("jissha-peek-slot");
+    if (!slot) return;
+    const video = jissha?.videos?.[0];
+    if (!video) {
+      slot.innerHTML = `<p class="text-sm text-gray-400 py-2">公開中の動画が見つかりませんでした。<a href="${jisshaChannelUrl}" target="_blank" rel="noopener noreferrer" class="text-brand font-bold hover:underline">実写ch</a>からどうぞ。</p>`;
+      return;
+    }
+    slot.innerHTML = `
+      <a href="https://www.youtube.com/watch?v=${video.id}" target="_blank" rel="noopener noreferrer"
+         class="group flex gap-3 items-center min-w-0">
+        <div class="w-36 shrink-0 overflow-hidden rounded-lg">
+          <img src="${video.thumbnail}" alt="" loading="lazy"
+               class="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-105" />
+        </div>
+        <p class="text-sm font-bold text-gray-800 leading-snug line-clamp-2 group-hover:text-brand transition-colors min-w-0">${video.title}</p>
+      </a>`;
+  }
+
+  async function loadHome() {
+    if (window.__isYouTubeLimited?.()) {
+      window.__showYouTubeLimitBanner?.();
+      showAllLimitedSlots();
+      return;
+    }
+
+    try {
+      const res = await fetch("/.netlify/functions/youtube-proxy?type=home");
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        if (isLimitedReason(data?.reason)) {
+          window.__markYouTubeLimited?.(data.reason);
+        }
+        window.__showYouTubeLimitBanner?.();
+        showAllLimitedSlots();
+        return;
+      }
+
+      sessionStorage.removeItem("youtube-limited-until");
+      renderLive(data.live, data.upcoming);
+      renderUpcoming(data.upcoming);
+      renderLatest(data.latest);
+      renderPopular(data.popular);
+      renderShorts(data.shorts);
+      renderJissha(data.jissha);
+    } catch {
+      window.__showYouTubeLimitBanner?.();
+      showAllLimitedSlots();
+    }
+  }
+
+  loadHome();
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && !window.__isYouTubeLimited?.()) {
+      loadHome();
+    }
+  });
+
+  refreshTimer = window.setInterval(() => {
+    if (!window.__isYouTubeLimited?.()) loadHome();
+  }, 10 * 60 * 1000);
+</script>

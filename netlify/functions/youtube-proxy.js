@@ -3,7 +3,7 @@
  * Keeps the API key server-side while the browser fetches fresh data.
  *
  * Query params:
- *   type = "live" | "upcoming" | "latest" | "popular" | "shorts" | "latest-jissha"
+ *   type = "live" | "upcoming" | "latest" | "popular" | "shorts" | "latest-jissha" | "home"
  */
 
 const API_KEY = process.env.YOUTUBE_API_KEY;
@@ -101,12 +101,15 @@ exports.handler = async (event) => {
       case "latest-jissha":
         data = await fetchLatestJissha();
         break;
+      case "home":
+        data = await fetchHomeBundle();
+        break;
       default:
         return {
           statusCode: 400,
           headers: CORS_HEADERS,
           body: JSON.stringify({
-            error: "Invalid type. Use: live, upcoming, latest, popular, shorts, latest-jissha",
+            error: "Invalid type. Use: live, upcoming, latest, popular, shorts, latest-jissha, home",
           }),
         };
     }
@@ -407,4 +410,167 @@ async function fetchLatestJissha() {
   }
 
   return { videos: [], channelId: CHANNEL_ID_JISSHA };
+}
+
+/** トップページ用: まとめて取得してクォータ節約（約5 units/回） */
+async function fetchHomeBundle() {
+  const [gameUploads, jisshaUploads] = await Promise.all([
+    getUploadsPlaylistId(CHANNEL_ID),
+    getUploadsPlaylistId(CHANNEL_ID_JISSHA),
+  ]);
+
+  let gamePlaylistItems = [];
+  if (gameUploads) {
+    const playlist = await ytFetch(
+      `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${gameUploads}&maxResults=50&key=${API_KEY}`
+    );
+    gamePlaylistItems = playlist.items || [];
+  }
+
+  const gameIds = [
+    ...new Set(
+      gamePlaylistItems.map((i) => i.snippet?.resourceId?.videoId).filter(Boolean)
+    ),
+  ];
+
+  let videoItems = [];
+  if (gameIds.length) {
+    const videosData = await ytFetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics,liveStreamingDetails&id=${gameIds.join(",")}&key=${API_KEY}`
+    );
+    videoItems = videosData.items || [];
+  }
+
+  const byId = new Map(videoItems.map((v) => [v.id, v]));
+
+  const live = (() => {
+    for (const id of gameIds.slice(0, 5)) {
+      const v = byId.get(id);
+      if (!v) continue;
+      const ld = v.liveStreamingDetails;
+      if (ld?.actualStartTime && !ld?.actualEndTime) {
+        return {
+          isLive: true,
+          video: {
+            id: v.id,
+            title: v.snippet.title,
+            thumbnail: v.snippet.thumbnails?.medium?.url,
+          },
+        };
+      }
+    }
+    return { isLive: false, video: null };
+  })();
+
+  const upcoming = {
+    videos: videoItems
+      .filter((v) => v.snippet.liveBroadcastContent === "upcoming")
+      .map((v) => ({
+        id: v.id,
+        title: v.snippet.title,
+        thumbnail: v.snippet.thumbnails?.medium?.url,
+        scheduledStart: v.liveStreamingDetails?.scheduledStartTime,
+      }))
+      .sort((a, b) => new Date(a.scheduledStart) - new Date(b.scheduledStart)),
+  };
+
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  const latest = {
+    videos: videoItems
+      .filter((v) => {
+        const date = new Date(v.liveStreamingDetails?.scheduledStartTime || v.snippet.publishedAt);
+        return date <= now && isLongForm(v);
+      })
+      .sort((a, b) => {
+        const da = new Date(a.liveStreamingDetails?.scheduledStartTime || a.snippet.publishedAt);
+        const db = new Date(b.liveStreamingDetails?.scheduledStartTime || b.snippet.publishedAt);
+        return db - da;
+      })
+      .slice(0, 1)
+      .map((v) => ({
+        id: v.id,
+        title: v.snippet.title,
+        thumbnail: v.snippet.thumbnails?.medium?.url,
+      })),
+  };
+
+  const popular = {
+    videos: videoItems
+      .filter((v) => {
+        const pub = new Date(v.snippet.publishedAt);
+        return (
+          v.snippet.liveBroadcastContent !== "upcoming" &&
+          pub >= firstOfMonth &&
+          pub <= lastOfMonth &&
+          isLongForm(v)
+        );
+      })
+      .sort((a, b) => {
+        const va = parseInt(a.statistics?.viewCount || "0", 10);
+        const vb = parseInt(b.statistics?.viewCount || "0", 10);
+        return vb - va;
+      })
+      .slice(0, 5)
+      .map((v) => ({
+        id: v.id,
+        title: v.snippet.title,
+        thumbnail: v.snippet.thumbnails?.medium?.url,
+        viewCount: parseInt(v.statistics?.viewCount || "0", 10),
+      })),
+  };
+
+  const shorts = {
+    videos: videoItems
+      .filter((v) => {
+        const pub = new Date(v.snippet.publishedAt);
+        return (
+          v.snippet.liveBroadcastContent !== "upcoming" &&
+          pub >= firstOfMonth &&
+          pub <= lastOfMonth &&
+          isShortForm(v)
+        );
+      })
+      .sort((a, b) => {
+        const va = parseInt(a.statistics?.viewCount || "0", 10);
+        const vb = parseInt(b.statistics?.viewCount || "0", 10);
+        return vb - va;
+      })
+      .slice(0, 6)
+      .map((v) => ({
+        id: v.id,
+        title: v.snippet.title,
+        thumbnail: v.snippet.thumbnails?.medium?.url,
+        viewCount: parseInt(v.statistics?.viewCount || "0", 10),
+      })),
+  };
+
+  let jissha = { videos: [], channelId: CHANNEL_ID_JISSHA };
+  if (jisshaUploads) {
+    const jisshaPlaylist = await ytFetch(
+      `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${jisshaUploads}&maxResults=10&key=${API_KEY}`
+    );
+    for (const item of jisshaPlaylist.items || []) {
+      const videoId = item.snippet?.resourceId?.videoId;
+      if (!videoId || item.snippet?.liveBroadcastContent === "upcoming") continue;
+      jissha = {
+        videos: [
+          {
+            id: videoId,
+            title: item.snippet.title,
+            thumbnail:
+              item.snippet.thumbnails?.medium?.url ||
+              item.snippet.thumbnails?.high?.url ||
+              item.snippet.thumbnails?.default?.url,
+          },
+        ],
+        channelId: CHANNEL_ID_JISSHA,
+      };
+      break;
+    }
+  }
+
+  return { live, upcoming, latest, popular, shorts, jissha };
 }
