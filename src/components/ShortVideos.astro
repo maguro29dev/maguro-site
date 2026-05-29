@@ -18,11 +18,17 @@ import BentoCard from "./BentoCard.astro";
   async function loadShorts() {
     const slot = document.getElementById("short-videos-slot");
     if (!slot) return;
+    if ((window as any).__isYouTubeLimited?.()) {
+      (window as any).__showYouTubeLimitBanner?.();
+      slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-4 w-full">いまショートを取りに行けません…！上の案内をチェックしてね。</p>`;
+      return;
+    }
     try {
       const res = await fetch("/.netlify/functions/youtube-proxy?type=shorts");
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         const limited = data?.reason === "quotaExceeded" || data?.reason === "rateLimitExceeded";
+        if (limited) (window as any).__markYouTubeLimited?.(data.reason);
         if (limited) (window as any).__showYouTubeLimitBanner?.();
         slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-4 w-full">いまショートを取りに行けません…！上の案内をチェックしてね。</p>`;
         return;

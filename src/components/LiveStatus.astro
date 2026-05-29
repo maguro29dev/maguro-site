@@ -22,10 +22,16 @@
   }
 
   async function fetchYouTube(type: string) {
+    if ((window as any).__isYouTubeLimited?.()) {
+      return { __error: true, reason: "quotaExceeded" };
+    }
     try {
       const res = await fetch(`/.netlify/functions/youtube-proxy?type=${type}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        if (isLimitedReason(data?.reason)) {
+          (window as any).__markYouTubeLimited?.(data.reason);
+        }
         return {
           __error: true,
           status: res.status,
@@ -72,6 +78,20 @@
   async function init() {
     const container = document.getElementById("live-status-content");
     if (!container) return;
+
+    if ((window as any).__isYouTubeLimited?.()) {
+      (window as any).__showYouTubeLimitBanner?.();
+      container.className =
+        "rounded-2xl p-5 bg-white shadow-sm border border-gray-100 text-center transition-all duration-500";
+      container.innerHTML = `
+        <p class="text-gray-600 font-bold">配信情報、いま取りに行けません…！</p>
+        <p class="text-xs text-gray-400 mt-1">上の案内にしたがって再読み込みしてみてね。</p>`;
+      if (refreshTimer) {
+        window.clearInterval(refreshTimer);
+        refreshTimer = null;
+      }
+      return;
+    }
 
     const liveData = await fetchYouTube("live");
 

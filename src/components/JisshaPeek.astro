@@ -48,12 +48,19 @@ import { jisshaChannel } from "@/data/channels";
 
     const channelUrl = slot.dataset.channelUrl || "https://www.youtube.com/c/Maguro29Jp";
 
+    if ((window as any).__isYouTubeLimited?.()) {
+      (window as any).__showYouTubeLimitBanner?.();
+      slot.innerHTML = `<p class="text-sm text-gray-400 py-2">実写chの取得でコケました。上の案内を見つつ「再読み込み」でワンチャンあります。</p>`;
+      return;
+    }
+
     try {
       const res = await fetch("/.netlify/functions/youtube-proxy?type=latest-jissha");
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        // Show global banner and keep this slot lightweight.
+        const limited = data?.reason === "quotaExceeded" || data?.reason === "rateLimitExceeded";
+        if (limited) (window as any).__markYouTubeLimited?.(data.reason);
         (window as any).__showYouTubeLimitBanner?.();
         slot.innerHTML = `<p class="text-sm text-gray-400 py-2">実写chの取得でコケました。上の案内を見つつ「再読み込み」でワンチャンあります。</p>`;
         return;

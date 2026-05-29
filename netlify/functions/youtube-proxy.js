@@ -23,8 +23,29 @@ const CORS_HEADERS = {
  * Best-effort in-memory cache (per warm function instance).
  * Helps reduce YouTube API quota usage under burst traffic.
  */
-const CACHE_TTL_MS = 55 * 1000;
-const cache = new Map(); // key -> { ts: number, data: any }
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const ERROR_CACHE_TTL_MS = 30 * 60 * 1000;
+const QUOTA_ERROR_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+const cache = new Map(); // key -> { ts, data, isError?, errorTtl? }
+const uploadsPlaylistCache = new Map(); // channelId -> { id, ts }
+const UPLOADS_CACHE_TTL_MS = 60 * 60 * 1000;
+
+function getErrorCacheTtl(reason) {
+  if (reason === "quotaExceeded") return QUOTA_ERROR_CACHE_TTL_MS;
+  if (reason === "rateLimitExceeded") return ERROR_CACHE_TTL_MS;
+  return 5 * 60 * 1000;
+}
+
+function getCachedEntry(cacheKey) {
+  const cached = cache.get(cacheKey);
+  if (!cached) return null;
+  const ttl = cached.isError ? cached.errorTtl ?? ERROR_CACHE_TTL_MS : CACHE_TTL_MS;
+  if (Date.now() - cached.ts >= ttl) {
+    cache.delete(cacheKey);
+    return null;
+  }
+  return cached;
+}
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "GET") {
@@ -43,14 +64,18 @@ exports.handler = async (event) => {
 
   try {
     const cacheKey = `type:${type}`;
-    const cached = cache.get(cacheKey);
-    if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
+    const cached = getCachedEntry(cacheKey);
+    if (cached) {
+      if (cached.isError) {
+        return {
+          statusCode: 502,
+          headers: { ...CORS_HEADERS, "X-Cache": "ERROR-HIT" },
+          body: JSON.stringify(cached.data),
+        };
+      }
       return {
         statusCode: 200,
-        headers: {
-          ...CORS_HEADERS,
-          "X-Cache": "HIT",
-        },
+        headers: { ...CORS_HEADERS, "X-Cache": "HIT" },
         body: JSON.stringify(cached.data),
       };
     }
@@ -97,14 +122,19 @@ exports.handler = async (event) => {
     const reason = typeof error?.reason === "string" ? error.reason : undefined;
     const message = typeof error?.message === "string" ? error.message : String(error);
     console.error("YouTube proxy error:", message, status, reason);
+    const errorBody = {
+      error: "Failed to fetch YouTube data",
+      status,
+      reason,
+    };
+    const errorTtl = getErrorCacheTtl(reason);
+    if (reason === "quotaExceeded" || reason === "rateLimitExceeded") {
+      cache.set(cacheKey, { ts: Date.now(), data: errorBody, isError: true, errorTtl });
+    }
     return {
       statusCode: status && status >= 400 && status < 600 ? 502 : 500,
       headers: CORS_HEADERS,
-      body: JSON.stringify({
-        error: "Failed to fetch YouTube data",
-        status,
-        reason,
-      }),
+      body: JSON.stringify(errorBody),
     };
   }
 };
@@ -128,38 +158,52 @@ async function ytFetch(url) {
 }
 
 async function getUploadsPlaylistId(channelId = CHANNEL_ID) {
+  const cached = uploadsPlaylistCache.get(channelId);
+  if (cached && Date.now() - cached.ts < UPLOADS_CACHE_TTL_MS) {
+    return cached.id;
+  }
+
   const data = await ytFetch(
     `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelId}&key=${API_KEY}`
   );
-  return data.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+  const uploadsId = data.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+  if (uploadsId) {
+    uploadsPlaylistCache.set(channelId, { id: uploadsId, ts: Date.now() });
+  }
+  return uploadsId;
 }
 
+/** search.list は 100 units/回 — プレイリスト経由でライブ判定（節約） */
 async function fetchLiveStatus() {
-  const searchData = await ytFetch(
-    `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${CHANNEL_ID}&part=snippet,id&eventType=live&type=video&maxResults=1`
+  const uploadsId = await getUploadsPlaylistId();
+  if (!uploadsId) return { isLive: false, video: null };
+
+  const playlist = await ytFetch(
+    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=5&key=${API_KEY}`
   );
 
-  if (!searchData.items?.length) {
-    return { isLive: false, video: null };
-  }
+  const ids = (playlist.items || [])
+    .map((i) => i.snippet?.resourceId?.videoId)
+    .filter(Boolean);
+  if (!ids.length) return { isLive: false, video: null };
 
-  const videoId = searchData.items[0].id.videoId;
-  const details = await ytFetch(
-    `https://www.googleapis.com/youtube/v3/videos?key=${API_KEY}&part=snippet,liveStreamingDetails&id=${videoId}`
+  const videosData = await ytFetch(
+    `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${ids.join(",")}&key=${API_KEY}`
   );
 
-  const video = details.items?.[0];
-  const ld = video?.liveStreamingDetails;
-  const isCurrentlyLive = ld?.actualStartTime && !ld?.actualEndTime;
+  const live = (videosData.items || []).find((v) => {
+    const ld = v.liveStreamingDetails;
+    return ld?.actualStartTime && !ld?.actualEndTime;
+  });
 
-  if (!isCurrentlyLive) return { isLive: false, video: null };
+  if (!live) return { isLive: false, video: null };
 
   return {
     isLive: true,
     video: {
-      id: videoId,
-      title: video.snippet.title,
-      thumbnail: video.snippet.thumbnails?.medium?.url,
+      id: live.id,
+      title: live.snippet.title,
+      thumbnail: live.snippet.thumbnails?.medium?.url,
     },
   };
 }
@@ -333,14 +377,17 @@ async function fetchShortVideos() {
   return { videos: shorts };
 }
 
-/** 実写ch: 最新1本（尺の制限なし・メンバー限定ではない補助枠） */
+/** 実写ch: 最新1本（search 不使用でクォータ節約） */
 async function fetchLatestJissha() {
-  const searchData = await ytFetch(
-    `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${CHANNEL_ID_JISSHA}&part=snippet,id&order=date&type=video&maxResults=10`
+  const uploadsId = await getUploadsPlaylistId(CHANNEL_ID_JISSHA);
+  if (!uploadsId) return { videos: [], channelId: CHANNEL_ID_JISSHA };
+
+  const playlist = await ytFetch(
+    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=10&key=${API_KEY}`
   );
 
-  for (const item of searchData.items || []) {
-    const videoId = item.id?.videoId;
+  for (const item of playlist.items || []) {
+    const videoId = item.snippet?.resourceId?.videoId;
     if (!videoId) continue;
     if (item.snippet?.liveBroadcastContent === "upcoming") continue;
 

@@ -51,10 +51,32 @@ const weeklyScheduleUpdatedAt = await getWeeklyScheduleUpdatedAt();
         const btn = document.getElementById("youtube-api-limit-reload");
         btn?.addEventListener("click", () => location.reload());
 
-        // Expose a tiny helper for other scripts.
+        const STORAGE_KEY = "youtube-limited-until";
+
         (window as any).__showYouTubeLimitBanner = function () {
           banner.classList.remove("hidden");
         };
+
+        (window as any).__markYouTubeLimited = function (reason?: string) {
+          const until =
+            reason === "quotaExceeded"
+              ? Date.now() + 6 * 60 * 60 * 1000
+              : Date.now() + 20 * 60 * 1000;
+          sessionStorage.setItem(STORAGE_KEY, String(until));
+          banner.classList.remove("hidden");
+        };
+
+        (window as any).__isYouTubeLimited = function () {
+          const raw = sessionStorage.getItem(STORAGE_KEY);
+          if (!raw) return false;
+          if (Date.now() < parseInt(raw, 10)) return true;
+          sessionStorage.removeItem(STORAGE_KEY);
+          return false;
+        };
+
+        if ((window as any).__isYouTubeLimited()) {
+          banner.classList.remove("hidden");
+        }
       })();
     </script>
 

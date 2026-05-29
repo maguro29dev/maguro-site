@@ -17,11 +17,17 @@ import BentoCard from "./BentoCard.astro";
   async function loadPopular() {
     const slot = document.getElementById("popular-videos-slot");
     if (!slot) return;
+    if ((window as any).__isYouTubeLimited?.()) {
+      (window as any).__showYouTubeLimitBanner?.();
+      slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-4 w-full">いま人気動画を集計できません…！上の案内をチェックしてね。</p>`;
+      return;
+    }
     try {
       const res = await fetch("/.netlify/functions/youtube-proxy?type=popular");
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         const limited = data?.reason === "quotaExceeded" || data?.reason === "rateLimitExceeded";
+        if (limited) (window as any).__markYouTubeLimited?.(data.reason);
         if (limited) (window as any).__showYouTubeLimitBanner?.();
         slot.innerHTML = `<p class="text-gray-400 text-sm text-center py-4 w-full">いま人気動画を集計できません…！上の案内をチェックしてね。</p>`;
         return;

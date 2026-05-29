@@ -209,12 +209,18 @@ const { weeklySchedule, realEvents, weeklyScheduleUpdatedAt } = Astro.props;
   async function loadUpcoming() {
     const slot = document.getElementById("upcoming-schedule");
     if (!slot) return;
+    if ((window as any).__isYouTubeLimited?.()) {
+      (window as any).__showYouTubeLimitBanner?.();
+      slot.innerHTML = `<p class="text-gray-400 text-sm py-2">配信予定、いま取りに行けません…！上の案内をチェックしてね。</p>`;
+      return;
+    }
     try {
       const res = await fetch("/.netlify/functions/youtube-proxy?type=upcoming");
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         const reason = data?.reason;
         const limited = reason === "quotaExceeded" || reason === "rateLimitExceeded";
+        if (limited) (window as any).__markYouTubeLimited?.(reason);
         if (limited) (window as any).__showYouTubeLimitBanner?.();
         slot.innerHTML = `
           <div class="rounded-xl border border-gray-100 bg-white p-3">
