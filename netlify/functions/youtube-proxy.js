@@ -61,9 +61,9 @@ exports.handler = async (event) => {
   }
 
   const type = event.queryStringParameters?.type;
+  const cacheKey = `type:${type}`;
 
   try {
-    const cacheKey = `type:${type}`;
     const cached = getCachedEntry(cacheKey);
     if (cached) {
       if (cached.isError) {
