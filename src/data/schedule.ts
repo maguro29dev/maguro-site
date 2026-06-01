@@ -5,7 +5,7 @@ import type { ScheduleItem, RealEvent } from "@/lib/data";
  * スケジュールを直したら必ず今日の日付に更新してください。
  * 今週の月曜より古いと「更新忘れかも」メッセージが出ます。
  */
-export const weeklyScheduleUpdatedAt = "2026-05-27";
+export const weeklyScheduleUpdatedAt = "2026-06-01";
 
 /**
  * 週間スケジュール
@@ -13,11 +13,11 @@ export const weeklyScheduleUpdatedAt = "2026-05-27";
  */
 export const weeklySchedule: ScheduleItem[] = [
   { day: "月曜日", time: "13:30〜19:00のどこか", plan: "配信" },
-  { day: "火曜日", time: "13:30〜19:00のどこか", plan: "配信 & 21:00〜 パーティーアニマルズ" },
-  { day: "水曜日", time: "13:30〜19:00のどこか", plan: "配信" },
-  { day: "木曜日", time: "13:30〜19:00のどこか", plan: "配信 & 21:00〜 homeクラ夜" },
+  { day: "火曜日", time: "13:30〜19:00のどこか", plan: "配信" },
+  { day: "水曜日", time: "13:30〜19:00のどこか", plan: "配信 & 21:00〜 homeクラネザー建築" },
+  { day: "木曜日", time: "13:30〜19:00のどこか", plan: "配信" },
   { day: "金曜日", time: "13:30〜19:00のどこか", plan: "配信 & 21:00〜 おじくら" },
-  { day: "土曜日", time: "13:30〜19:00のどこか", plan: "配信" },
+  { day: "土曜日", time: "13:30〜19:00のどこか", plan: "配信 & 21:00〜 月例まぐ会議" },
   { day: "日曜日", time: "", plan: "基本お休み" },
 ];
 
