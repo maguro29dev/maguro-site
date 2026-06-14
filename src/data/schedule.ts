@@ -5,19 +5,19 @@ import type { ScheduleItem, RealEvent } from "@/lib/data";
  * スケジュールを直したら必ず今日の日付に更新してください。
  * 今週の月曜より古いと「更新忘れかも」メッセージが出ます。
  */
-export const weeklyScheduleUpdatedAt = "2026-06-08";
+export const weeklyScheduleUpdatedAt = "2026-06-15";
 
 /**
  * 週間スケジュール
  * Cursorに「スケジュール更新して」と依頼すればここを書き換えます。
  */
 export const weeklySchedule: ScheduleItem[] = [
-  { day: "月曜日", time: "13:30〜19:00のどこか", plan: "配信 & 21:00〜 ペア対抗！エンドラ討伐早抜け戦" },
-  { day: "火曜日", time: "13:30〜19:00のどこか", plan: "配信" },
-  { day: "水曜日", time: "", plan: "基本お休み" },
+  { day: "月曜日", time: "13:30〜19:00のどこか", plan: "配信 & 21:00〜 homeクラミニゲーム2つイベント" },
+  { day: "火曜日", time: "", plan: "基本お休み" },
+  { day: "水曜日", time: "13:30〜19:00のどこか", plan: "配信 & 21:00〜 エルダーガーディアン帰巣本能" },
   { day: "木曜日", time: "", plan: "基本お休み" },
-  { day: "金曜日", time: "13:30〜19:00のどこか", plan: "配信 & 21:00〜 homeクラネザー建築(おじくら)" },
-  { day: "土曜日", time: "13:30〜19:00のどこか", plan: "配信 & 20:00〜 メン限まぐラジ" },
+  { day: "金曜日", time: "13:30〜19:00のどこか", plan: "配信 & 21:00〜 おじくら" },
+  { day: "土曜日", time: "13:30〜19:00のどこか", plan: "配信 & 20:00〜 大トロオンラインオフ会" },
   { day: "日曜日", time: "", plan: "基本お休み" },
 ];
 
