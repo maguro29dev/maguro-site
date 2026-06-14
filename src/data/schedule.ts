@@ -14,7 +14,7 @@ export const weeklyScheduleUpdatedAt = "2026-06-15";
 export const weeklySchedule: ScheduleItem[] = [
   { day: "月曜日", time: "13:30〜19:00のどこか", plan: "配信 & 21:00〜 homeクラミニゲーム2つイベント" },
   { day: "火曜日", time: "", plan: "基本お休み" },
-  { day: "水曜日", time: "13:30〜19:00のどこか", plan: "配信 & 21:00〜 エルダーガーディアン帰巣本能" },
+  { day: "水曜日", time: "13:30〜19:00のどこか", plan: "配信 & 22:00〜 エルダーガーディアン帰巣本能" },
   { day: "木曜日", time: "", plan: "基本お休み" },
   { day: "金曜日", time: "13:30〜19:00のどこか", plan: "配信 & 21:00〜 おじくら" },
   { day: "土曜日", time: "13:30〜19:00のどこか", plan: "配信 & 20:00〜 大トロオンラインオフ会" },
