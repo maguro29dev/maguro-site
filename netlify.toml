@@ -10,3 +10,16 @@
   from = "/manifest.json"
   to = "/manifest.webmanifest"
   status = 301
+
+# homeクラ は専用サイトへ（情報ハブから分離）
+[[redirects]]
+  from = "/homekura"
+  to = "https://homecra.netlify.app/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/homekura/*"
+  to = "https://homecra.netlify.app/guide/"
+  status = 301
+  force = true

@@ -5,5 +5,5 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  site: "https://maguro29.netlify.app",
+  site: "https://maguro29info.netlify.app",
 });
